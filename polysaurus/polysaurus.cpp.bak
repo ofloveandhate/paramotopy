@@ -1,0 +1,795 @@
+#include <iostream>
+#include <ios>
+#include <string>
+#include <fstream>
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h> 
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include "mtrand.h"
+#include "step1.h"
+#include "random.h"
+#include "step2.h"
+#include <mpi.h>
+
+
+enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData, Quit};
+
+
+
+
+int main(int argC, char *args[]){
+  
+  // Data members used throughout the program  
+
+  OPTIONS currentChoice = Start;
+  std::string filename;
+  std::string base_dir ="bfiles_";
+  bool parsed = false;
+  std::ifstream fin;
+  std::ifstream finconfig;
+  std::ofstream fout;
+  int numfunct;
+  int numvar;
+  int numparam;
+  int numconsts;
+  MTRand drand(time(0));
+
+
+  int myid,num_processes, headnode=0;
+
+
+
+  std::vector<std::string> FunctVector; 
+  std::vector<std::string> VarGroupVector; 
+  std::vector<std::string> ParamVector; 
+  std::vector<std::string> ParamStrings;
+  std::vector<std::string> Consts;
+  std::vector<std::string> ConstantStrings;
+  // values of points -- two different ways storing the data
+  // whether or not we are user-defined or not
+  // if doing a mesh, the data is contained as follows
+  // -- first vector size is the number of parameters
+  // -- second vector size the number of mesh points for the given param
+  // -- pair is the real (first) and imaginary (second)
+  
+  // if not doing a mesh, the data is contained as follows
+  // -- first vector size is number of sample n-ples)
+  // -- second vector size is n
+  // -- pair is the real (first) and imaginary (second)
+  
+  
+  std::vector< std::vector< std::pair<float,float> > > Values;
+  
+  // random initial values
+  // -- vector size is the number of parameters
+  // -- pair is the real (first) and imaginary (second)
+  std::vector< std::pair<float,float> > RandomValues;  
+  std::vector< std::pair< std::pair< float, float >, 
+    std::pair< float, float > > >
+    RandomRanges; 
+  
+  bool userdefined;
+  std::string mytemp;
+  std::string randpointfilename;
+  std::ifstream fin3;
+  std::ofstream foutdir;
+  //  std::vector<std::string> Directories;
+  //std::string base_dir;
+  // std::vector<std::string> FrontDirectories;
+  std::string tmpbase;
+  
+  //std::ofstream myfout;
+  // myfout.open("frontdirectories.out");
+  std::string tmpstr;
+
+  std::string dirfilename;  
+  std::vector< int > NumMeshPoints;//added Nov16,2010 DAB
+
+  std::string mcfname;
+
+  // initialize MPI and find the number of processes and their id numbers
+  // initialize_mpi(argC, args, &num_processes, &my_id);
+  std::stringstream myssmc;
+  myssmc << " ";
+  bool parallel;
+  char   processor_name[MPI_MAX_PROCESSOR_NAME];
+  int namelen;
+  std::cout << "\n*******************************\n"
+	    << "Welcome to the Polysaurus main program.\n\n"
+	    << "Before you begin any real work, you must choose an input file to parse.\n";
+
+
+  //  if(myid==headnode){
+  //  std::cout << "num_processes=" << num_processes;
+  // }
+
+  
+  
+
+
+  while(currentChoice!=Quit){
+    
+    if (!parsed){
+      //  if (myid==headnode){
+      std::cout << "Enter the input file's name : ";
+      std::cin >> filename;
+      
+      base_dir="bfiles_";
+      base_dir.append(filename);
+      fin.open(filename.c_str());
+      ParseData(numfunct,
+		numvar,
+		numparam,
+		numconsts,
+		FunctVector,
+		VarGroupVector,
+		ParamVector,
+		ParamStrings,
+		Consts,
+		ConstantStrings,
+		Values,
+		RandomValues,
+		userdefined,
+		fin,
+		NumMeshPoints,
+		filename);
+      fin.close();
+      
+      std::cout << "Done parsing.";
+      parsed=true;
+      PrintRandom(RandomValues,ParamStrings);
+      if(!userdefined){
+	// rewrite the mesh values into a Monte Carlo - like file
+	// in the folder of bfiles_filename
+	
+	mcfname = base_dir;
+	mkdirunix(mcfname.c_str());
+	mcfname.append("/mc");
+	std::string cline = "";
+	std::cout << "mcfname = " << mcfname << "\n";
+	std::string rm = "rm ";
+	rm.append(mcfname);
+	system(rm.c_str());
+	WriteMeshToMonteCarlo(0, Values, mcfname,cline);
+      } 
+    }
+  
+    
+    std::cout << "Here are your choices : \n"
+	      << "1) Parse an appropriate input file. \n"
+	      << "2) Randomize start points. \n"
+	      << "3) Save random start points. \n"
+	      << "4) Load random start points. \n"
+	      << "5) Write Step 1.\n"
+	      << "6) Run Step 1.\n"
+	      << "7) Run Step 2.\n"
+	      << "8) Quit the program.\n\n"
+	      << "Enter the integer value of your choice : ";
+    std::string randfilename;
+    int ccount=0;
+    // pid_t pid;
+    int intChoice;
+    std::cin >> intChoice;
+    std::cout << "\n\n";
+    
+    //      std::vector<int> CurIntDir;
+    
+    while (intChoice < 1 || intChoice > 8){
+      
+      std::cout << "Here are your choices : \n"
+		<< "1) Parse an appropriate input file. \n"
+		<< "2) Randomize start points. \n"
+		<< "3) Save random start points. \n"
+		<< "4) Load random start points. \n"
+		<< "5) Write Step 1.\n"
+		<< "6) Run Step 1.\n"
+		<< "7) Run Step 2.\n"
+		<< "8) Quit the program.\n\n"
+		<< "Enter the integer value of your choice : "; 
+      
+      std::cin >> intChoice;
+      std::cout << "\n\n";	
+    }
+    
+    
+    switch (intChoice){
+    case 1 :
+      currentChoice = Input;
+      std::cout << "Enter in the input file's name : ";
+      std::cin >> filename;
+      base_dir="bfiles_";
+      base_dir.append(filename);
+      fin.close();
+      fin.open(filename.c_str());
+      ParseData(numfunct,numvar,
+		numparam,numconsts,FunctVector,
+		VarGroupVector,ParamVector,
+		ParamStrings,
+		Consts,
+		ConstantStrings,
+		Values,
+		RandomValues,
+		userdefined,
+		fin,
+		NumMeshPoints,
+		filename);
+      fin.close();
+      parsed=true;
+      if(!userdefined){
+	// rewrite the mesh values into a Monte Carlo - like file
+	// in the folder of bfiles_filename
+	
+	mcfname = base_dir;
+	mkdirunix(mcfname.c_str());
+	mcfname.append("/mc");
+	std::cout << "mcfname = " << mcfname << "\n";
+	std::string cline = "";
+	std::string rm = "rm ";
+	rm.append(mcfname);
+	system(rm.c_str());
+	WriteMeshToMonteCarlo(0, Values, mcfname,cline);
+      }
+      
+      // copy the montecarlo file to bfiles_filename/mc
+      
+      
+	
+      PrintRandom(RandomValues,ParamStrings);
+      break;
+    case 2:
+      
+      int randchoice;
+      std::cout << "1) Default range [0 to 1)\n"
+		<< "2) User-specified range\n"
+		<< "Enter in if you would like to use the standard "
+		<< "default range for random floats or if you would "
+		<< "like to specify the range : ";
+      std::cin >> randchoice;
+      while (randchoice != 1 && randchoice != 2){
+	std::cout << "Please enter 1 for the default range or 2 for"
+		  << " a user-specified range : ";
+	std::cin >> randchoice;
+      }
+      if (randchoice == 1){
+	RandomValues = MakeRandomValues(ParamStrings.size());
+      }
+      if (randchoice == 2){
+	
+	int paramrandchoice = 1;	
+	while (paramrandchoice != 0){ 
+	  std::cout << "0 - Done specifying random values\n";
+	  for (int i = 0; i < ParamStrings.size();++i){
+	    std::cout << i+1 << " - " << ParamStrings[i]
+		      << "\n";
+	  }
+	  std::cout << "Enter the parameter you want to rerandomize : ";
+	  std::cin >> paramrandchoice;
+	  while (paramrandchoice < 0 
+		 || paramrandchoice > ParamStrings.size()){
+	    
+	    std::cout << "0 - Done specifying random values\n";
+	    for (int i = 0; i < ParamStrings.size();++i){
+	      std::cout << i+1 << " - " << ParamStrings[i]
+			<< "\n";
+	    }
+	    std::cout << "Enter the parameter you want to rerandomize : ";
+	    std::cin >> paramrandchoice;
+	  }
+	  if (paramrandchoice !=0){
+	    std::cout << "Enter a low range followed "
+		      << "by a high range for the"
+		      << " real and imaginary parts "
+		      << "of the chosen parameter."
+		      << "\n";
+	    
+	    float creallow;
+	    float crealhigh;
+	    float cimaginarylow;
+	    float cimaginaryhigh;
+	    std::cout << "\n" << "Real Low : ";
+	    std::cin >> creallow;
+	    std::cout << "Real High : ";
+	    std::cin >> crealhigh;
+	    std::cout << "Imaginary Low : ";
+	    std::cin >> cimaginarylow;
+	    std::cout << "Imaginary High : ";
+	    std::cin >> cimaginaryhigh;	  
+	    float crandreal = drand();
+	    float crandimaginary = drand();
+	    crandreal*=(crealhigh-creallow);
+	    crandimaginary*=(cimaginaryhigh-cimaginarylow);
+	    crandreal+=creallow;
+	    crandimaginary+=cimaginarylow;
+	    RandomValues[paramrandchoice-1].first=crandreal;
+	    RandomValues[paramrandchoice-1].second=crandimaginary;
+	  }
+	}
+      }
+      PrintRandom(RandomValues,ParamStrings);
+      break;
+      
+    case 3: // Save Random points
+      
+      
+      std::cout << "Enter the filename you want to save the"
+		<< " random start points to : ";
+      std::cin >> randpointfilename;
+      
+	fout.open(randpointfilename.c_str());
+	
+	for (int i = 0; i < numparam; ++i){
+	  fout << RandomValues[i].first << " "
+	       << RandomValues[i].second << "\n";
+	  
+	}
+	fout.close();
+	
+	break;
+      case 4: // Load Random points
+	
+	std::cout << "Enter the filename of the random points you"
+		  << " want to load : ";
+	std::cin >> randfilename;
+	
+	fin3.open(randfilename.c_str());
+	
+      
+	ccount=0;
+	std::cout << "\n\n";
+	while(getline(fin3,mytemp)){
+	  std::stringstream myss;
+	  myss << mytemp;
+	  float crandreal;
+	  float crandimaginary;
+	  myss >> crandreal;
+	  myss >> crandimaginary;
+	  RandomValues[ccount].first = crandreal;
+	  RandomValues[ccount].second = crandimaginary;
+	  std::cout << ParamStrings[ccount]
+		    << " = "
+		    << RandomValues[ccount].first 
+		    << " + "
+		    << RandomValues[ccount].second
+		    << "*I\n";
+	  ++ccount;
+	}
+	std::cout << "\n";
+	fin3.close();
+	break; 
+    case 5:         // Write Step1
+      currentChoice=Step1;
+	
+      
+      WriteStep1(filename, 
+		 "config1", 
+		 FunctVector,
+		 ParamStrings, 
+		 VarGroupVector, 
+		 Consts, 
+		 ConstantStrings,
+		 RandomValues);
+      
+      WriteShell1();
+      
+      
+      std::cout << "Writing Step 1 done ... \n";
+      
+      std::cout << "Chosen choice 1\n\n";	
+      break;
+    case 6: 
+      
+      std::cout << "base_dir = " <<  base_dir << "\n";
+      CallBertiniStep1(base_dir);
+      
+      break;
+      
+    case 7:{
+      
+      int numfilespossible = 8;
+      
+      
+      ToSave *TheFiles = new ToSave[numfilespossible];
+      
+      //  for (int i = 0; i < num_processes;++i){
+      
+      // TheFiles[i] = new ToSave[numfilespossible];
+      TheFiles[0].filename="real_solutions";
+      TheFiles[0].saved=false;
+      TheFiles[0].filecount=0;
+      TheFiles[1].filename="nonsingular_solutions";
+      TheFiles[1].saved=false;
+      TheFiles[1].filecount=0;
+      TheFiles[2].filename="singular_solutions";
+      TheFiles[2].saved=false;
+      TheFiles[2].filecount=0;
+      TheFiles[3].filename="raw_data";
+      TheFiles[3].saved=false;
+      TheFiles[3].filecount=0;
+      TheFiles[4].filename="raw_solutions";
+      TheFiles[4].saved=false;
+      TheFiles[4].filecount=0;
+      TheFiles[5].filename="main_data";
+      TheFiles[5].saved=false;
+      TheFiles[5].filecount=0;
+      TheFiles[6].filename="midpath_data";
+      TheFiles[6].saved=false;
+      TheFiles[6].filecount=0;
+      TheFiles[7].filename="failed_paths";
+      TheFiles[7].saved=false;
+      TheFiles[7].filecount=0;
+     
+      std::cout << "Select the files to save.\n";
+      int selection = 0;
+      while (selection!=numfilespossible){
+	for (int j = 0; j < numfilespossible;++j){
+	  if (!TheFiles[j].saved){
+	    std::cout << j << ")" << TheFiles[j].filename
+		      << "\n";
+	  }
+	}
+	std::cout << numfilespossible << ") Done.\n";
+	std::cout << "Select the file you would like to save : ";
+	std::cin >> selection;
+	while (selection < 0 || selection > numfilespossible){
+	  std::cout << "Invalid selection.  Select again : ";
+	  std::cin >> selection;
+	}
+	if (selection!=numfilespossible){ 
+	  std::cout << "Selection = " << selection
+		    << ", setting saved to true.\n";
+	  TheFiles[selection].saved=true;
+	}
+      }
+    
+    
+      
+      
+      // get info on whether to run parallel or not
+      
+      bool parallel = false;
+      
+      int parselect = -1;
+      
+      while(parselect < 0 || parselect > 1){
+	std::cout << "Run Parallel?\n"
+		  << "0) No.\n"
+		  << "1) Yes.\n"
+		  <<  "Enter choice : ";
+	std::cin >> parselect;
+	if (parselect==0)
+	  parallel=false;
+	else
+	  parallel=true;
+      }
+      
+      
+      // open the bfiles_filename/mc file that contains the monte carlo points
+      // in order in accordance to the order of the paramstrings in ParamStrings
+      
+      std::cout << "Good here and \n";
+      fin.close();
+      base_dir = "bfiles_";
+      base_dir.append(filename);	
+      mcfname = base_dir;
+      mcfname.append("/");
+      mkdirunix(mcfname.c_str());
+      mcfname.append("mc");
+      fin.open(mcfname.c_str());	
+      std::cout << "here.\n";
+      std::cout << "mcfname=" << mcfname << "\n";
+      std::string curline;	
+      std::string filenamestep2="bfiles_";
+      filenamestep2.append(filename);
+      filenamestep2.append("/step2/tmp/");
+      // Write  the copy shell script
+      WriteShell2();
+      
+      
+      std::string DataCollectedBaseDir=base_dir;
+      
+      DataCollectedBaseDir.append("/step2/DataCollected/");
+      mkdirunix(DataCollectedBaseDir.c_str());
+      
+      /*
+      for (int i = 0; i < num_processes;++i){
+	std::string DataCollectedBaseDir2 = DataCollectedBaseDir;
+	DataCollectedBaseDir2.append("n");
+	std::stringstream myss5;
+	myss5 << i << "/";
+	DataCollectedBaseDir2.append(myss5.str());	  
+	mkdirunix(DataCollectedBaseDir2.c_str());
+      }
+      */
+      int numsubfolders=288;
+      //	int lastnumrun;
+      mkdirunix(filenamestep2.c_str());
+      
+      
+      // make the original files for the data collection
+      // but don't put anything in them or change them if they exist
+           
+      int runid = 0;
+      
+      // test to see if bfiles_filename/step2/tmp/lastrun is a file
+      std::ifstream finlastrun;
+      std::string lastrunfname="bfiles_";
+      lastrunfname.append(filename);
+      lastrunfname.append("/step2/tmp/lastrun");
+      finlastrun.open(lastrunfname.c_str());
+      int lastlinenumber = 0;
+      if (finlastrun.is_open()){
+	std::stringstream ss8;
+	std::string lastlinestring;
+	getline(finlastrun,lastlinestring);
+	ss8 << lastlinestring;
+	ss8 >> lastlinenumber;
+	finlastrun.close();
+	for (int i = 0; i < lastlinenumber;++i){
+	  getline(fin,curline);
+	  ++runid;	    
+	}
+      }
+      std::string machinefile;
+      int numprocs;
+      
+      if (parallel){
+	std::cout << "Enter the machine file to be used "
+		  << "in the parallel portion: ";
+	std::cin >> machinefile;
+	  std::cout << "Enter the number of processes to be run: ";
+	  std::cin >> numprocs;
+      }
+      
+      if (!parallel){
+	SetFileCount(TheFiles,numfilespossible,DataCollectedBaseDir);
+	TouchFilesToSave(TheFiles,numfilespossible,DataCollectedBaseDir);
+      }
+      else{
+	for (int i = 1; i < numprocs;++i){
+	  std::stringstream CurDataCollectedBaseDir;
+	  CurDataCollectedBaseDir <<  DataCollectedBaseDir
+				  << "c" << i << "/";
+	  mkdirunix(CurDataCollectedBaseDir.str().c_str());
+	  SetFileCount(TheFiles,numfilespossible,CurDataCollectedBaseDir.str());
+	  TouchFilesToSave(TheFiles,numfilespossible,
+			   CurDataCollectedBaseDir.str());
+	}
+      }
+      std::cout << "Done with updating filecounts "
+		<< "for both parallel and serial\n";
+
+      bool firsttime = true;	  
+      while(!fin.eof()){
+	std::vector<std::string> bertinitmpdir;
+	std::vector<std::vector<std::pair<float,float> > > CValuesVect;
+	for (int i = 0; i < numsubfolders && !fin.eof(); ++i){
+	  std::ifstream finconfig2("config2");
+	  std::vector<std::pair<float,float> > CValues;
+	  getline(fin,curline);
+	  std::cout << "curline = " << curline << "\n";
+	  std::stringstream myss2;
+	  if (curline!=""){
+	    myss2 << curline;
+	    for (int j = 0; j < numparam;++j){
+	      std::pair<float,float> theValue;
+	      myss2 >> theValue.first;
+	      myss2 >> theValue.second;
+	      CValues.push_back(theValue);
+	    }
+	    CValuesVect.push_back(CValues);
+	    std::stringstream ss;
+	    ss <<filenamestep2;      
+	    ss << i;
+	    std::cout << "ss = " << ss.str() << "\n";
+	    mkdirunix(ss.str().c_str());
+	    std::string curbasedir=ss.str();
+	    curbasedir.append("/");
+	    ss << "/input";
+	    fout.open(ss.str().c_str());	  
+	    
+	    WriteStep2(finconfig2,
+		       fout,
+		       CValues,
+		       FunctVector, 
+		       VarGroupVector,
+		       ParamVector,
+		       ParamStrings,
+		       Consts,
+		       ConstantStrings,
+		       RandomValues,
+		       numfunct,
+		       numvar,
+		       numparam,
+		       numconsts);
+	    fout.close();
+	    
+	    
+	    
+	    // Copy the nonsingular_solutions file from
+	    // the step1 run to bfiles_filename/curbasedir/start
+	    std::cout << "curbasedir = " << curbasedir << "\n";
+	    std::cout << "base_dir = " << base_dir << "\n";
+	    CallCopyStartStep2(base_dir,curbasedir);
+	    
+	    
+	    // Run Step2 on the current input file
+	    WriteShell3();
+	    //   std::cout << "i = " << i << " and pushing onto bertinitmpdir\n";
+	    //	    std::cout << "numsubfolders = " << numsubfolders
+	    //		      << ", eof = " << ( fin.eof()? "true\n":"false\n");
+	    //	    std::cout << "loop condition to continue going = "
+	    //	      << (i+1 < numsubfolders && !fin.eof()?"true\n":"false\n");
+	    bertinitmpdir.push_back(curbasedir);
+	  }
+	  // close the config2 input file
+	  finconfig2.close();
+	}
+	//	std::cout << "out of loop for numsubfolders\n";
+
+
+	if (!parallel){
+	  UpdateFileCount(TheFiles, numfilespossible,DataCollectedBaseDir);
+	  //	  std::cout << "bertini temp folders written to = "
+	  //	    << bertinitmpdir.size()<<"\n";
+	  for (int i = 0; i  < bertinitmpdir.size();++i){
+	    bool append;
+	    //	    std::cout << "Before CallBertiniStep2\n";
+	    CallBertiniStep2(bertinitmpdir[i]);	  
+	    for (int j = 0; j < numfilespossible;++j){
+	      if (TheFiles[j].saved){
+		// Store into appropriate files
+		std::string target_file_base_dir = base_dir;
+		target_file_base_dir.append("/step2/DataCollected/");
+		//		target_file_base_dir.append("n0/");
+		std::string target_file =
+		  MakeTargetFilename(target_file_base_dir,
+				     TheFiles,
+				     j);
+
+		std::cout << "target_file = " << target_file << "\n";
+		std::cout << "orig_file = " << bertinitmpdir[i] << "\n";
+		std::string orig_file = bertinitmpdir[i];
+		orig_file.append(TheFiles[j].filename);
+		//  std::cout << "Good here 1.. \n";
+		//  std::cout << "i = " << i << ", j = " << j << "\n";
+		WriteData(runid, 
+			  orig_file, 
+			  target_file,
+			  //	  append,
+			  ParamStrings,
+			  CValuesVect[i]);	    		
+		//  std::cout << "Good here 2.. \n";
+		//  std::cout << "i = " << i << ", j = " << j << "\n";
+	      } // end if saved
+	    }
+	    // end j
+	    
+	    std::ofstream lastrunfile;
+	    std::string lastrunfilename;
+	    lastrunfilename="bfiles_";
+	    lastrunfilename.append(filename);
+	    lastrunfilename.append("/step2/tmp/lastrun");
+	    
+	    //		lastrunfilename.append("lastrun");
+	    lastrunfile.open(lastrunfilename.c_str());
+	    lastrunfile << runid;
+	    lastrunfile.close();
+	    ++runid;	    
+	  }
+	  // end i	    
+	  
+	} // end not parallel
+	else{
+
+	  if (CValuesVect.size()){
+
+	    // update filecount if necessary ...
+	    for (int i = 1; i < numprocs;++i){
+	      std::stringstream CurDataCollectedBaseDir;
+	      CurDataCollectedBaseDir <<  DataCollectedBaseDir
+				      << "c" << i << "/";
+	      mkdirunix(CurDataCollectedBaseDir.str().c_str());
+	      UpdateFileCount(TheFiles, numfilespossible,
+			      CurDataCollectedBaseDir.str());
+	      //	      if (TheFiles[i].saved){
+	      //		std::cout << "File count set to : " << TheFiles[i].filecount
+	      //			  << "\n";
+	      //  }
+	    }
+
+	    std::string mpicommand = "mpirun -machinefile ";
+	    mpicommand.append(machinefile);
+	    mpicommand.append(" -np ");  
+	    std::stringstream ssnumproc;
+	    ssnumproc << numprocs;
+	    mpicommand.append(ssnumproc.str());
+	    mpicommand.append(" ./mystep2 ");	    
+	    mpicommand.append(filename);
+	    mpicommand.append(" ");
+	    int numfilestosave=0;
+	    for (int i = 0; i < numfilespossible;++i){
+	      if (TheFiles[i].saved){
+		++numfilestosave;
+	      }
+	    }
+	    ssnumproc.str("");
+	    ssnumproc.clear();
+	    ssnumproc << numfilestosave;
+	    mpicommand.append(ssnumproc.str());
+	    mpicommand.append(" ");
+
+	    for (int i = 0; i < numfilespossible;++i){
+	      if (TheFiles[i].saved){
+		mpicommand.append(TheFiles[i].filename);
+		mpicommand.append(" ");
+		std::stringstream r;
+		r << TheFiles[i].filecount;
+		mpicommand.append(r.str());
+		mpicommand.append(" ");
+	      }
+	    }
+	    mpicommand.append((firsttime? "1 ": "0 "));
+	    std::stringstream ss42;
+	    ss42 << bertinitmpdir.size();
+	    ss42 << " "
+		 << CValuesVect[0].size();
+	    mpicommand.append(ss42.str());
+	    mpicommand.append(" ");	  
+	    for (int i = 0; i < CValuesVect.size();++i){
+	      ss42.str("");
+	      ss42.clear();
+	      for (int j = 0; j < CValuesVect[i].size();++j){
+		ss42 << CValuesVect[i][j].first
+		     << " "
+		     << CValuesVect[i][j].second
+		   << " ";
+	      }
+	      mpicommand.append(ss42.str());
+	    }
+	    for (int i = 0; i < ParamStrings.size();++i){
+	      mpicommand.append(ParamStrings[i]);
+	      mpicommand.append(" ");
+	    }
+	    //	    std::cout << "mpicommand = " << mpicommand << "\n";
+	    firsttime=false;
+	    system(mpicommand.c_str());
+	  } // end if CValuesVect.size() 
+       
+	  std::ofstream lastrunfile;
+	  std::string lastrunfilename;
+	  lastrunfilename="bfiles_";
+	  lastrunfilename.append(filename);
+	  lastrunfilename.append("/step2/tmp/lastrun");
+	  
+	  //		lastrunfilename.append("lastrun");
+	  //	  runid+=bertinitmpdir.size();
+	  // lastrunfile.open(lastrunfilename.c_str());
+	  // lastrunfile << runid;
+	  // lastrunfile.close();
+	  
+	  
+	} // end parallel
+	  
+      } // end while    
+      
+      // MPI_Finalize();      
+      break;
+    }
+    case 8:
+      currentChoice=Quit;	    
+
+      std::cout << "Quitting\n\n";
+    }
+    
+  }
+  
+  return 0;
+}
