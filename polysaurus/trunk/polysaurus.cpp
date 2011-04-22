@@ -20,6 +20,8 @@
 #include <mpi.h>
 
 
+#define prefversion = 1.4;
+
 enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Quit};
 
 
