@@ -20,7 +20,6 @@
 #include <mpi.h>
 
 
-#define prefversion = 1.4;
 
 enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Quit};
 
@@ -29,6 +28,7 @@ enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Qu
 
 int main(int argC, char *args[]){
   
+	int prefversion = 10; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 	
@@ -141,21 +141,29 @@ int main(int argC, char *args[]){
 	
 	
 	
-	
 	int numprocs = 0;
-	int namelen;	
+	int namelen, saveprogresseverysomany;	
 	bool parallel = true;
 	std::string machinefile = "";
+	
+	
+	
 	bool rerun = false;//for parallel preferences
-	bool finopened = false;//for parsing input file.
-	int numfilesatatime = 0;
-	parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector);
-	while (numfilesatatime == 0 || (parallel && (machinefile=="")) || (numprocs==0)){
+
+	int currprefversion;
+	currprefversion = GetPrefVersion();
+	if (currprefversion<prefversion) {
 		rerun = true;
-		parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector);
-		rerun = false;
 	}
 	
+	int numfilesatatime = 0;
+	parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+	while (numfilesatatime == 0 || (parallel && (machinefile=="")) || (numprocs==0)){
+		rerun = true;
+		parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+		rerun = false;
+	}
+	SetPrefVersion(currprefversion);
 	
 
 
@@ -168,7 +176,7 @@ int main(int argC, char *args[]){
 
 	
 
-	
+	bool finopened = false;//for parsing input file.
 	bool suppliedfilename = true;
 
 	
@@ -930,6 +938,17 @@ int main(int argC, char *args[]){
 				  mpicommand.append(" ");
 				}
 				
+
+				ss42.str("");
+				ss42.clear();
+				
+				
+				ss42 << saveprogresseverysomany;
+				ss42 << " ";
+				
+
+				mpicommand.append(ss42.str());
+				
 				std::cout << "\n\n\n\n\n\n\n\n" << mpicommand << "\n\n\n\n\n\n\n\n\n";
 				system(mpicommand.c_str());
 
@@ -970,7 +989,8 @@ int main(int argC, char *args[]){
 		currentChoice=DetParallel;
 			rerun = true;
 			FilePrefVector.clear();
-			parallel =  DeterminePreferences(machinefile,numprocs,rerun, numfilesatatime,FilePrefVector);
+			parallel =  DeterminePreferences(machinefile,numprocs,rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+			SetPrefVersion(prefversion);
 			rerun = false;
 			break;
 			
