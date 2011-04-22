@@ -163,7 +163,7 @@ int main(int argC, char *args[]){
 		parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
 		rerun = false;
 	}
-	SetPrefVersion(currprefversion);
+	SetPrefVersion(prefversion);
 	
 
 
