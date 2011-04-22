@@ -12,7 +12,8 @@
 
 void master(std::vector<std::string> dir,
 			std::string filename, 
-			int numfilesatatime);
+			int numfilesatatime,
+			int saveprogresseverysomany);
 
 
 void slave(std::vector<std::string> dir, 
@@ -28,6 +29,8 @@ void slave(std::vector<std::string> dir,
 int main(int argc, char* argv[]){
 
   int numfilesatatime;//added march7,11 db
+	int saveprogresseverysomany;
+	
   int myid;
   int numprocs;
   int namelen;
@@ -85,6 +88,10 @@ int main(int argc, char* argv[]){
       commandss >> param;
       ParamNames.push_back(param);
     }
+	  
+	  commandss >> saveprogresseverysomany;
+	
+	  
 	  
 	  commandss.clear();
 	  commandss.str("");
@@ -239,7 +246,7 @@ int main(int argc, char* argv[]){
 	
 	//the main body of the program is here:
   if (myid==headnode){
-    master(tmpfolderlocs,filename, numfilesatatime);
+    master(tmpfolderlocs,filename, numfilesatatime, saveprogresseverysomany);
   }
   else{
     slave(tmpfolderlocs,
@@ -306,7 +313,8 @@ int main(int argc, char* argv[]){
 
 void master(std::vector<std::string> dir,
 			std::string filename,
-			int numfilesatatime){//added mcfin,filename, etc 3/7/11 db
+			int numfilesatatime,
+			int saveprogresseverysomany){//added mcfin,filename, etc 3/7/11 db
 	
 	
 	
@@ -319,7 +327,7 @@ void master(std::vector<std::string> dir,
 	int numsubfolders = dir.size();
 	int numprocs, rank;
 	int workerlastrecieved = 0;
-	int modme = 10;//mod lastoutcounter this, and if 0 write to lastout file. every other do 0 or 1.
+//	int modme = 10;//mod lastoutcounter this, and if 0 write to lastout file. every other do 0 or 1.
 	MPI_Status status;
 	std::ifstream fin;
 	std::ofstream fout;
@@ -915,9 +923,9 @@ void master(std::vector<std::string> dir,
 		
 		lastnumsent[status.MPI_SOURCE] = int(tempsends[(2*numparam)]);
 		
-		if ((lastoutcounter%modme)==0) {
+		if ((lastoutcounter%saveprogresseverysomany)==0) {
 			std::ofstream lastout;
-			if (lastoutcounter%(2*modme)==0) {
+			if (lastoutcounter%(2*saveprogresseverysomany)==0) {
 				lastout.open(lastoutfilename1.c_str());
 			}
 			else {

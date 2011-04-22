@@ -6,6 +6,9 @@
 #include <fstream>
 
 /** Function to write the shell script that calls bertini in the step 1 process */
+
+
+
 void WriteShell1();
 
 void WriteShell1Parallel();
@@ -25,12 +28,16 @@ void ParseData(int & numfunct,
 	       std::string filename);
 
 
-bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector );
+bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany);
 /*
  read the user's preferences for parallelism on the machine.
 	@param rerun - a bool to flag redetermining the preferences
 */
 
+
+void SetPrefVersion(int version);
+
+int GetPrefVersion();
 
 
 /**

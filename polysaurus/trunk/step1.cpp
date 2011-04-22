@@ -50,7 +50,39 @@ void CallBertiniStep1Parallel(std::string base_dir,std::string machinefile, int 
 	system(mystr.c_str());
 }
 
-bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector ){
+int GetPrefVersion(){
+	std::ifstream versionstream;
+	std::string homedir = getenv("HOME");
+	std::string versionlocation;
+	versionlocation = homedir;
+	versionlocation.append("/.poly.prefsversion");
+	versionstream.open(versionlocation.c_str());
+	int version;
+	if (versionstream.is_open()) {
+		versionstream >> version;
+	}
+	else {
+		version = 0;
+	}
+	
+	versionstream.close();
+	return version;
+}
+
+void SetPrefVersion(int version){
+	std::ofstream versionstream;
+	std::string homedir = getenv("HOME");
+	std::string versionlocation;
+	versionlocation = homedir;
+	versionlocation.append("/.poly.prefsversion");
+	versionstream.open(versionlocation.c_str());
+	versionstream << version;
+	versionstream.close();
+
+}
+
+
+bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany){
 	bool parallel;
 	std::string tmp, preflocation;
 	std::stringstream ss;
@@ -120,7 +152,7 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 			<< numprocs << "\n";
 		
 		
-			std::cout << "Enter step2 numfilesatatime: ";
+			std::cout << "Enter step2 number of folders per processor: ";
 			std::cin >> numfilesatatime;
 
 			outprefstream << numfilesatatime << "\n";
@@ -164,8 +196,9 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		}
 		
 		
-		
-		
+		std::cout << "Save progress every ? iterations: ";
+		std::cin >> saveprogresseverysomany;
+		outprefstream << saveprogresseverysomany << "\n";
 		
 		outprefstream.close();
 		
@@ -212,6 +245,14 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		}
 		std::cout << "\n";		
 		
+		ss.clear();
+		ss.str("");
+		getline(prefstream,tmp);
+		ss << tmp;
+		ss >> saveprogresseverysomany;
+		ss.clear();
+		ss.str("");
+		
 		prefstream.close();
 	}//re: if prefstream.isopen
 	
@@ -228,7 +269,8 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		machinefile = homedir;
 		std::cout << "running parallel.\nmachine file: " << machinefile << "\n" 
 		<< "num processors: " << numprocs << "\n" 
-		<< "numfilesatatime: " << numfilesatatime << "\n\n\n\n";
+		<< "num folders per proc: " << numfilesatatime << "\n"
+		<< "saveprogressevery: " << saveprogresseverysomany << "\n\n\n\n";
 	}
 	else {
 		numprocs = 1;
