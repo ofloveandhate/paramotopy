@@ -139,8 +139,7 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		
 		
 		if (parallel){
-			std::cout << "Enter the machine file to be used "
-			<< "in the parallel portion: ";
+			std::cout << "Enter the machine file to be used, relative to your home directory: ";
 			std::cin >> machinefile;
 			std::cout << "Enter the number of processes to be run: ";
 			std::cin >> numprocs;
@@ -198,7 +197,7 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		
 		std::cout << "Save progress every ? iterations: ";
 		std::cin >> saveprogresseverysomany;
-		outprefstream << saveprogresseverysomany << "\n";
+		outprefstream << "\n" << saveprogresseverysomany << "\n";
 		
 		outprefstream.close();
 		
