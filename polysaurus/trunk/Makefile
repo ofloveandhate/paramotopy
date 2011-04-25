@@ -1,4 +1,5 @@
-# Define the file suffixes for C++ source files
+
+OPT=-O3 -funroll-loops -fexpensive-optimizations -Wall -fopenmp #Define the file suffixes for C++ source files
 .SUFFIXES:
 .SUFFIXES: .cpp $(SUFFIXES)
 
@@ -10,18 +11,16 @@ CC = g++ $(INCLUDE)
 OBJS = # none
 # Define Libary Locations
 
-LIBDIR = #-L/home/matt/HD2/mpich2-1.3.1/lib/
+LIBDIR =#-L/usr/lib64/ #-L/home/matt/HD2/mpich2-1.3.1/lib/
 LIBS = #lmpich
-INCLUDE = # -/home/matt/HD2/mpich2-1.3.1/src/include/ 
+INCLUDE = # -/home/matt/HD2/mpich2-1.3.1/src/include/   
 
 
 # Describe how to build the executable file
-#mpipolysaurus: polysaurus.o mtrand.o random.o step2.o step1.o 
-#	$(MCC) -o mpipolysaurus polysaurus.o mtrand.o random.o step2.o step1.o
 polysaurus: polysaurus.o mtrand.o random.o step2.o step1.o 
-	$(CC) -o polysaurus polysaurus.o mtrand.o random.o step2.o step1.o
+	$(CC) $(OPT) -o polysaurus polysaurus.o mtrand.o random.o step2.o step1.o
 mystep2: mystep2.o mtrand.o random.o step2.o step1.o
-	$(MCC) -o mystep2 mystep2.o mtrand.o random.o step2.o step1.o
+	$(MCC) $(OPT) -o mystep2 mystep2.o mtrand.o random.o step2.o step1.o
 
 # Describe how to create the object file
 .cpp.o: 

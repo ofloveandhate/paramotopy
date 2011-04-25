@@ -9,9 +9,9 @@
 
 
 
-void WriteShell1();
+void WriteShell1(int architecture,int usemachine);
 
-void WriteShell1Parallel();
+void WriteShell1Parallel(int architecture, int usemachine);
 
 void ParseData(int & numfunct, 
 	       int & numvar, int & numparam, int & numconsts,
@@ -28,7 +28,7 @@ void ParseData(int & numfunct,
 	       std::string filename);
 
 
-bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany);
+bool DeterminePreferences(int & architecture, int & usemachine, std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany);
 /*
  read the user's preferences for parallelism on the machine.
 	@param rerun - a bool to flag redetermining the preferences

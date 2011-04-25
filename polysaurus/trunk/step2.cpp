@@ -157,13 +157,21 @@ void CallBertiniStep2(std::string param_dir){
 	system(mystr.c_str());
 }
 
-void WriteShell3(){
+void WriteShell3(int architecture){
   const char* fname = "callbertinistep2.sh";
   std::ofstream fout(fname);
-  fout << "#!/bin/bash\n\n cd ./$1 \n";
+switch (architecture) {
+	case 0:
+		fout << "#!/bin/bash\n\n cd ./$1 \n";
+		fout << "$HOME/./bertini";
+		break;
+	case 1:
+		fout << "#!/bin/bash\n\n cd ./$1 \n";
+		fout << "aprun $HOME/lustrefs/./bertini";
+		break;
+}
   //  fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi";
   //\nrm start";
-  fout << "$HOME/./bertini";
   fout.close();
   chmod((const char*) fname,0777);
 }
