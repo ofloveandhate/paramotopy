@@ -43,7 +43,7 @@ void WriteShell2();
 
 void CallBertiniStep2(std::string param_dir);
 
-void WriteShell3();
+void WriteShell3(int architecture);
 
 void WriteData(int runid, 
 	       std::string orig_file, 

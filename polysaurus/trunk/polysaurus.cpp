@@ -28,7 +28,7 @@ enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Qu
 
 int main(int argC, char *args[]){
   
-	int prefversion = 10; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+	int prefversion = 11; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 	
@@ -140,7 +140,7 @@ int main(int argC, char *args[]){
 	
 	
 	
-	
+	int architecture = 0;
 	int numprocs = 0;
 	int namelen, saveprogresseverysomany;	
 	bool parallel = true;
@@ -156,11 +156,12 @@ int main(int argC, char *args[]){
 		rerun = true;
 	}
 	
+	int usemachine = 0;
 	int numfilesatatime = 0;
-	parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
-	while (numfilesatatime == 0 || (parallel && (machinefile=="")) || (numprocs==0)){
+	parallel = DeterminePreferences(architecture, usemachine, machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+	while (numfilesatatime == 0 ||  (numprocs==0)){ //(parallel && (machinefile=="")) ||  antiquated option dab 4/25/11
 		rerun = true;
-		parallel = DeterminePreferences(machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+		parallel = DeterminePreferences(architecture, usemachine, machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
 		rerun = false;
 	}
 	SetPrefVersion(prefversion);
@@ -169,8 +170,7 @@ int main(int argC, char *args[]){
 
 	
 	
-	
-	
+
 	
 	
 
@@ -628,8 +628,8 @@ int main(int argC, char *args[]){
 		 ConstantStrings,
 		 RandomValues);
       
-        WriteShell1();
-		WriteShell1Parallel();
+        WriteShell1(architecture, usemachine);
+		WriteShell1Parallel(architecture, usemachine);
       
       std::cout << "Writing Step 1 done ... \n";
       
@@ -717,7 +717,7 @@ int main(int argC, char *args[]){
 		
       // Write  the copy shell script, running script
       WriteShell2();
-	  WriteShell3();
+	  WriteShell3(architecture);
 		
 		//make the DataCollected directory.
       std::string DataCollectedBaseDir=base_dir;
@@ -989,7 +989,7 @@ int main(int argC, char *args[]){
 		currentChoice=DetParallel;
 			rerun = true;
 			FilePrefVector.clear();
-			parallel =  DeterminePreferences(machinefile,numprocs,rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+			parallel =  DeterminePreferences(architecture, usemachine, machinefile,numprocs,rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
 			SetPrefVersion(prefversion);
 			rerun = false;
 			break;

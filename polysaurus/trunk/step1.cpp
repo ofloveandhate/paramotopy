@@ -10,20 +10,44 @@
 #include <fstream>
 #include <string>
 
-void WriteShell1(){
+void WriteShell1(int architecture,int usemachine){
 	const char* fname = "callbertinistep1.sh";
 	std::ofstream fout(fname);
 	fout << "#!/bin/bash\n\ncd $1/step1 \n$HOME/./bertini";
 	fout.close();
-	chmod((const char*) fname,0777);
+	chmod((const char*) fname,0700);
 }
 
-void WriteShell1Parallel(){
+void WriteShell1Parallel(int architecture,int usemachine){
 	const char* fname = "callbertinistep1parallel.sh";
 	std::ofstream fout(fname);
-	fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -machinefile $2 -np $3 $HOME/./bertiniparallel";
+	switch (architecture) {
+		case 0:
+			if (usemachine==1) {
+
+				fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -machinefile $2 -np $3 $HOME/./bertiniparallel";
+			}
+			else {
+				fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -np $2 $HOME/./bertiniparallel";
+
+			}
+
+			
+			break;
+		case 1:
+			if (usemachine==1) {
+				
+				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -machinefile $2 -np $3 $HOME/lustrefs/./bertiniparallel";
+			}
+			else {
+				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -n $2 $HOME/lustrefs/./bertiniparallel";
+				
+			}			
+			
+			break;
+	}
 	fout.close();
-	chmod((const char*) fname,0777);
+	chmod((const char*) fname,0700);
 }
 
 void CallBertiniStep1(std::string base_dir){
@@ -82,7 +106,7 @@ void SetPrefVersion(int version){
 }
 
 
-bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany){
+bool DeterminePreferences(int & architecture, int & usemachine, std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany){
 	bool parallel;
 	std::string tmp, preflocation;
 	std::stringstream ss;
@@ -115,7 +139,8 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 	if (!prefstream.is_open() || rerun) {
 		prefstream.close();
 		std::ofstream outprefstream;
-		
+		outprefstream.open(preflocation.c_str());
+
 		// get info on whether to run parallel or not
 		
 		std::cout << "Specify preferences for parallel on this machine.\n"
@@ -124,6 +149,13 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		parallel = false;
 		
 		int parselect = -1;
+		
+		std::cout << "Select your command for running parallel processes:\n"
+				<< "0) mpirun\n"
+				<< "1) aprun\n"
+				<< "2) other... (not a functioning selection yet)\n:";
+		std::cin >> architecture;
+		outprefstream << architecture << "\n";
 		
 		while(parselect < 0 || parselect > 1){
 			std::cout << "Run Parallel?\n"
@@ -137,17 +169,22 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 				parallel=true;
 		}
 		
-		
+
 		if (parallel){
-			std::cout << "Enter the machine file to be used, relative to your home directory: ";
+			std::cout << "Does your machine use a machinefile?\n0) No.\n1) Yes.\n: ";
+			std::cin >> usemachine;
+			
+			if (usemachine==1) {
+				
+				std::cout << "Enter the machine file to be used, relative to your home directory: ";
+			}
 			std::cin >> machinefile;
 			std::cout << "Enter the number of processes to be run: ";
 			std::cin >> numprocs;
 		}
-		outprefstream.open(preflocation.c_str());
 		outprefstream << parselect << "\n";
 		if (parallel){
-			outprefstream << machinefile << "\n"
+			outprefstream << usemachine << " " << machinefile << "\n"
 			<< numprocs << "\n";
 		
 		
@@ -203,6 +240,13 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		
 	}//re: if !prefstream.isopen
 	else {
+		
+		getline(prefstream,tmp);
+		ss << tmp;
+		ss >> architecture;
+		ss.clear();
+		ss.str("");
+		
 		int parselect;
 		getline(prefstream,tmp);
 		ss << tmp;
@@ -215,7 +259,14 @@ bool DeterminePreferences(std::string & machinefile,int & numprocs,bool rerun, i
 		else
 		{
 			parallel = true;
-			getline(prefstream,machinefile);	
+			getline(prefstream,tmp);
+			ss << tmp;
+			ss >> usemachine;
+			if (usemachine==1) {
+				ss >> machinefile;
+			}
+			ss.clear();
+			ss.str("");
 			getline(prefstream,tmp);
 			ss << tmp;
 			ss >> numprocs;
