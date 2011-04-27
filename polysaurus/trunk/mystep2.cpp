@@ -7,8 +7,15 @@
 #include <sys/stat.h>
 #include <sys/types.h> 
 #include <vector>
+#include <map>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
-//#define verbosestep2
+#define verbosestep2
 #define timingstep2
 
 
@@ -42,6 +49,9 @@ int main(int argc, char* argv[]){
   std::vector< int > lastnumsent;
 
   std::ifstream fin;
+	
+
+	
   std::string proc_name_str;
   MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
@@ -147,11 +157,11 @@ int main(int argc, char* argv[]){
 
 	
     numsubfolders = (numprocs-1)*numfilesatatime;
-	std::string basedir="bfiles_";
-	basedir.append(filename);
-	basedir.append("/");
-	std::string DataCollectedBaseDir = basedir;
-	DataCollectedBaseDir.append("step2/DataCollected/");
+	std::string base_dir="bfiles_";
+	base_dir.append(filename);
+	base_dir.append("/");
+	std::string DataCollectedbase_dir = base_dir;
+	DataCollectedbase_dir.append("step2/DataCollected/");
 	std::vector<std::string> tmpfolderlocs;
 	int foldersdone=0;
 	for (int i = 0; i < numsubfolders;++i){
@@ -208,12 +218,12 @@ int main(int argc, char* argv[]){
 	  
 	  
 	//make text file with names of folders with data in them
-    std::string mydirfname = basedir;
-    mydirfname.append("folders");
+    std::string mydirfname = base_dir;
+    mydirfname.append("/folders");
     std::ofstream fout(mydirfname.c_str());
     for (int i = 1; i < numprocs;++i){
       std::stringstream tmpfolder;
-      tmpfolder << DataCollectedBaseDir;
+      tmpfolder << DataCollectedbase_dir;
       tmpfolder << "c";
       tmpfolder << i;
       fout << tmpfolder.str() << (i!=numprocs-1 ? "\n" :  "");      
@@ -246,7 +256,7 @@ int main(int argc, char* argv[]){
 		  TheFiles, 
 		  numfiles, 
 		  ParamNames,
-		  filename,
+		  base_dir,
 		  numfilesatatime);
   }
 	
@@ -326,6 +336,9 @@ void master(std::vector<std::string> dir,
 	base_dir.append(filename);	
 	std::string finishedfile = base_dir;
 	finishedfile.append("/finished");
+	
+	
+
 	
 #ifdef timingstep2
 	double t_start, t_end, t_initial, t_receive=0, t_send=0, t_write=0, t1, t2, t3, t4; //for timing the whatnot
@@ -704,9 +717,9 @@ void master(std::vector<std::string> dir,
 #ifdef timingstep2
 			t1 = omp_get_wtime();
 #endif
-			std::string curbasedir=dir[(proc_count-1)*numfilesatatime + localcounter];
-			curbasedir.append("/input");
-			fout.open(curbasedir.c_str());	  
+			std::string curbase_dir=dir[(proc_count-1)*numfilesatatime + localcounter];
+			curbase_dir.append("/input");
+			fout.open(curbase_dir.c_str());	  
 			WriteStep2(configvector,
 			   fout,
 			   TmpValues,
@@ -725,9 +738,9 @@ void master(std::vector<std::string> dir,
 			
 			
 			//write the start files.  only need to do this once.
-			curbasedir=dir[(proc_count-1)*numfilesatatime + localcounter];
-			curbasedir.append("/start");
-			fout.open(curbasedir.c_str());
+			curbase_dir=dir[(proc_count-1)*numfilesatatime + localcounter];
+			curbase_dir.append("/start");
+			fout.open(curbase_dir.c_str());
 			for (int j=0; j<startvector.size(); ++j) {
 				fout << startvector[j] << "\n";
 			}
@@ -912,9 +925,9 @@ void master(std::vector<std::string> dir,
 #ifdef timingstep2
 			t1 = omp_get_wtime();
 #endif
-			std::string curbasedir=dir[i];
-			curbasedir.append("/input");
-			fout.open(curbasedir.c_str());	  
+			std::string curbase_dir=dir[i];
+			curbase_dir.append("/input");
+			fout.open(curbase_dir.c_str());	  
 			WriteStep2(configvector,
 					   fout,
 					   TmpValues,
@@ -1121,7 +1134,7 @@ void slave(std::vector<std::string> dir,
 		   ToSave *TheFiles, 
 		   int numfiles,
 		   std::vector<std::string> ParamNames, 
-		   std::string filename,
+		   std::string npath,
 		   int numfilesatatime){
 
 	
@@ -1133,11 +1146,31 @@ void slave(std::vector<std::string> dir,
 	MPI_Status status;
 	
 	float datareceived[numfilesatatime*(2*numparam+1)];
-	
 	std::stringstream myss;
-	myss << "bfiles_" << filename << "/step2/DataCollected/c"
+	
+	
+	
+	
+	std::ifstream fin;
+	std::string path;
+	std::string tmpname = "path";
+	myss << myid;
+	tmpname.append(myss.str());
+	tmpname.append(".out");
+	std::string syscall = "pwd > ";
+	syscall.append(tmpname);
+	system(syscall.c_str());
+	fin.open(tmpname.c_str());
+	fin >> path;
+	std::cout << path << "\n";
+	fin.close();
+	myss.clear();
+	myss.str("");
+	
+	
+	myss << path << "/step2/DataCollected/c"
 		<< myid << "/";
-	std::string DataCollectedBaseDir = myss.str();//specific to this worker, as based on myid
+	std::string DataCollectedbase_dir = myss.str();//specific to this worker, as based on myid
 	std::vector<std::pair<float,float> >  AllParams;
 	AllParams.resize(numparam);//preallocate
 	myss.clear();
@@ -1148,8 +1181,7 @@ void slave(std::vector<std::string> dir,
 	int writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
-	std::string timingname = "bfiles_";
-	timingname.append(filename);
+	std::string timingname = path;
 	myss << myid;
 	timingname.append("/timing/slavetiming");
 	timingname.append(myss.str());
@@ -1217,7 +1249,7 @@ void slave(std::vector<std::string> dir,
 		for (int j = 0; j < numfiles;++j){
 			  
 			  std::string target_file =
-				MakeTargetFilename(DataCollectedBaseDir,
+				MakeTargetFilename(DataCollectedbase_dir,
 								   TheFiles,
 								   j);
 			  std::string orig_file = dir[k];
@@ -1265,7 +1297,7 @@ void slave(std::vector<std::string> dir,
 		++loopcounter;
 		if (loopcounter==512){//every 512 files, check file sizes
 			
-			UpdateFileCount(TheFiles,numfiles,DataCollectedBaseDir);
+			UpdateFileCount(TheFiles,numfiles,DataCollectedbase_dir);
 
 
 			loopcounter=0;

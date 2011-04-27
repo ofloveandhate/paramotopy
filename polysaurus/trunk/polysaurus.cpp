@@ -18,7 +18,7 @@
 #include "random.h"
 #include "step2.h"
 #include <mpi.h>
-
+#include <unistd.h>
 
 
 enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Quit};
@@ -28,12 +28,10 @@ enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Qu
 
 int main(int argC, char *args[]){
   
+//	get_curr_dir_name();
 	int prefversion = 11; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
-	
-	
-	
 	
 	
   // Data members used throughout the program  
@@ -51,7 +49,16 @@ int main(int argC, char *args[]){
   int numconsts;
   MTRand drand(time(0));
 
-
+	
+	std::string path;
+	system("pwd > path.out");
+	fin.open("path.out");
+	fin >> path;
+	
+	std::cout << path << "\n";
+	fin.close();
+	
+	
   int myid,num_processes, headnode=0;
 
 
@@ -166,9 +173,11 @@ int main(int argC, char *args[]){
 	}
 	SetPrefVersion(prefversion);
 	
-
-
-	
+	WriteShell1(architecture, usemachine);
+	WriteShell1Parallel(architecture, usemachine);	
+	// Write  the copy shell script, running script
+//	WriteShell2();
+	WriteShell3(architecture);
 	
 
 	
@@ -189,8 +198,7 @@ int main(int argC, char *args[]){
 
 
 
-	
-	
+
 
 	bool finished = false;//for detecting already completed runs
 	bool alreadytried = false;//for testing file openness if user supplied command-line filename
@@ -628,8 +636,7 @@ int main(int argC, char *args[]){
 		 ConstantStrings,
 		 RandomValues);
       
-        WriteShell1(architecture, usemachine);
-		WriteShell1Parallel(architecture, usemachine);
+
       
       std::cout << "Writing Step 1 done ... \n";
       
@@ -715,9 +722,7 @@ int main(int argC, char *args[]){
 		
 		
 		
-      // Write  the copy shell script, running script
-      WriteShell2();
-	  WriteShell3(architecture);
+
 		
 		//make the DataCollected directory.
       std::string DataCollectedBaseDir=base_dir;
@@ -887,11 +892,20 @@ int main(int argC, char *args[]){
 //				  UpdateFileCount(TheFiles, numfilespossible,
 //						  CurDataCollectedBaseDir.str());
 //				}//re: making folders for data collection in DataCollected.
+				std::string mpicommand;
+				if (architecture==0) {
 
-				  
-				std::string mpicommand = "mpirun -machinefile ";
-				mpicommand.append(machinefile);
-				mpicommand.append(" -np ");  
+					mpicommand = "mpirun ";
+					if (usemachine==1){
+						mpicommand.append("-machinefile ");
+						mpicommand.append(machinefile);
+					}
+					mpicommand.append(" -np ");
+				}
+				else {
+					mpicommand = "aprun -n ";
+				}
+
 				std::stringstream ssnumproc;
 				ssnumproc << numprocs;
 				mpicommand.append(ssnumproc.str());
@@ -992,6 +1006,12 @@ int main(int argC, char *args[]){
 			parallel =  DeterminePreferences(architecture, usemachine, machinefile,numprocs,rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
 			SetPrefVersion(prefversion);
 			rerun = false;
+			
+			WriteShell1(architecture, usemachine);
+			WriteShell1Parallel(architecture, usemachine);	
+			// Write  the copy shell script, running script
+//			WriteShell2();
+			WriteShell3(architecture);
 			break;
 			
     case 9:

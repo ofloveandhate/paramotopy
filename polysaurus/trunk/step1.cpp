@@ -10,12 +10,13 @@
 #include <fstream>
 #include <string>
 
+
 void WriteShell1(int architecture,int usemachine){
 	const char* fname = "callbertinistep1.sh";
 	std::ofstream fout(fname);
 	fout << "#!/bin/bash\n\ncd $1/step1 \n$HOME/./bertini";
 	fout.close();
-	chmod((const char*) fname,0700);
+	chmod((const char*) fname,0755);
 }
 
 void WriteShell1Parallel(int architecture,int usemachine){
@@ -40,15 +41,62 @@ void WriteShell1Parallel(int architecture,int usemachine){
 				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -machinefile $2 -np $3 $HOME/lustrefs/./bertiniparallel";
 			}
 			else {
-				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -n $2 $HOME/lustrefs/./bertiniparallel";
+				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -n $2 /mnt/lustre_server/users/GRAD511/dbrake/bertiniparallel";
 				
 			}			
 			
 			break;
 	}
 	fout.close();
-	chmod((const char*) fname,0700);
+	chmod((const char*) fname,0755);
 }
+
+//void WriteShell2(){
+//	const char* fname = "cpstartstep2.sh";
+//	std::ofstream fout(fname);
+//	fout << "#!/bin/bash\n\ncp ./$1/step1/nonsingular_solutions ./$2/start \n";
+//    //cd ./$2 \n";
+//	//fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi \nrm start";
+//	fout.close();
+//	chmod((const char*) fname,0777);
+//}
+
+void WriteShell3(int architecture){
+	
+	std::string home;
+
+
+	if (architecture==0){
+		home = getenv("HOME");
+		home.append("/callbertinistep2.sh");
+	}
+	else {
+		home = ".";
+		home.append("/callbertinistep2.sh");
+	}
+	
+	const char* fname = home.c_str();
+	std::cout << "writing callbertinistep2 to " << fname<< "\n";
+	
+	std::ofstream fout(fname);
+	switch (architecture) {
+		case 0:
+			fout << "#!/bin/bash\n\n cd ./$1 \n";
+			
+			fout << "$HOME/./bertini";
+			break;
+		case 1:
+			fout << "#!/bin/bash\n\n cd ./${1} \n";
+			
+			fout << "/mnt/lustre_server/users/GRAD511/dbrake/bertini";
+			break;
+	}
+	//  fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi";
+	//\nrm start";
+	fout.close();
+	chmod((char*) fname,0755);
+}
+
 
 void CallBertiniStep1(std::string base_dir){
    
@@ -71,7 +119,14 @@ void CallBertiniStep1Parallel(std::string base_dir,std::string machinefile, int 
 	ss << numprocs;
 	ss >> tmp;
 	mystr.append(tmp);
+	std::cout << mystr << "\n";
+	
 	system(mystr.c_str());
+	
+	
+#ifdef verbosestep1
+	std::cout << mystr << "\n";
+#endif
 }
 
 int GetPrefVersion(){
@@ -177,8 +232,9 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 			if (usemachine==1) {
 				
 				std::cout << "Enter the machine file to be used, relative to your home directory: ";
+				std::cin >> machinefile;
 			}
-			std::cin >> machinefile;
+
 			std::cout << "Enter the number of processes to be run: ";
 			std::cin >> numprocs;
 		}
@@ -313,10 +369,11 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	//a few things to wrap up preference reading.
 	
 	if (parallel) {
-		
-		homedir.append("/");
-		homedir.append(machinefile);
-		machinefile = homedir;
+		if (usemachine) {
+			homedir.append("/");
+			homedir.append(machinefile);
+			machinefile = homedir;
+		}
 		std::cout << "running parallel.\nmachine file: " << machinefile << "\n" 
 		<< "num processors: " << numprocs << "\n" 
 		<< "num folders per proc: " << numfilesatatime << "\n"
