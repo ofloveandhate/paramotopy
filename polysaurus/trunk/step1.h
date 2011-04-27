@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <stdio.h>
 
 /** Function to write the shell script that calls bertini in the step 1 process */
 
@@ -12,6 +13,11 @@
 void WriteShell1(int architecture,int usemachine);
 
 void WriteShell1Parallel(int architecture, int usemachine);
+
+//void WriteShell2();
+
+void WriteShell3(int architecture);
+
 
 void ParseData(int & numfunct, 
 	       int & numvar, int & numparam, int & numconsts,

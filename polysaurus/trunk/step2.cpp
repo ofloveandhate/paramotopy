@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <cmath>
-
+#define verbosestep2
 #include <sys/types.h> 
 
 void WriteStep2(std::vector< std::string > configvector, 
@@ -122,59 +122,39 @@ void MakeConstantsStep2(std::ofstream & fout,
   
 }
 
-void CallCopyStartStep2(std::string base_dir, std::string param_dir){
+//void CallCopyStartStep2(std::string base_dir, std::string param_dir){
+//
+//  std::string mystr = "./cpstartstep2.sh";
+//
+//  mystr.append(" ");
+//  mystr.append(base_dir);
+//  mystr.append(" ");
+//  mystr.append(param_dir);
+//  system(mystr.c_str());
+//
+//}
 
-  std::string mystr = "./cpstartstep2.sh";
-
-  mystr.append(" ");
-  mystr.append(base_dir);
-  mystr.append(" ");
-  mystr.append(param_dir);
-  system(mystr.c_str());
-
-}
 
 
-void WriteShell2(){
-  const char* fname = "cpstartstep2.sh";
-  std::ofstream fout(fname);
-  fout << "#!/bin/bash\n\ncp ./$1/step1/nonsingular_solutions ./$2/start \n";
-    //cd ./$2 \n";
-  //fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi \nrm start";
-  fout.close();
-  chmod((const char*) fname,0777);
-}
 
 
 void CallBertiniStep2(std::string param_dir){
 
+//	std::string home = getenv("HOME");
   
-  std::string mystr = "./callbertinistep2.sh ";
-  mystr.append(param_dir);
-//  std::cout << "calling the shell script as the following: \n"
-//	    << mystr << "\n";
-
+//	std::string mystr = home;
+	std::string mystr = "sh .";
+	mystr.append("/callbertinistep2.sh ");	
+	mystr.append(param_dir);
+	
+#ifdef verbosestep2
+	std::cout << "calling the shell script as the following: \n"
+	    << mystr << "\n";
+#endif
 	system(mystr.c_str());
 }
 
-void WriteShell3(int architecture){
-  const char* fname = "callbertinistep2.sh";
-  std::ofstream fout(fname);
-switch (architecture) {
-	case 0:
-		fout << "#!/bin/bash\n\n cd ./$1 \n";
-		fout << "$HOME/./bertini";
-		break;
-	case 1:
-		fout << "#!/bin/bash\n\n cd ./$1 \n";
-		fout << "aprun $HOME/lustrefs/./bertini";
-		break;
-}
-  //  fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi";
-  //\nrm start";
-  fout.close();
-  chmod((const char*) fname,0777);
-}
+
 
 
 void WriteData(int runid, 

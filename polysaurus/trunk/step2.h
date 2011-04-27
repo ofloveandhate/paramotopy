@@ -37,13 +37,11 @@ void MakeConstantsStep2(std::ofstream & fout,
 			int numparam);
 
 
-void CallCopyStartStep2(std::string base_dir, std::string param_dir);
-
-void WriteShell2();
+//void CallCopyStartStep2(std::string base_dir, std::string param_dir);
+// antiquated 11.27.04 DAB
 
 void CallBertiniStep2(std::string param_dir);
 
-void WriteShell3(int architecture);
 
 void WriteData(int runid, 
 	       std::string orig_file, 
