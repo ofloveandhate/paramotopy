@@ -14,7 +14,7 @@
 void WriteShell1(int architecture,int usemachine){
 	const char* fname = "callbertinistep1.sh";
 	std::ofstream fout(fname);
-	fout << "#!/bin/bash\n\ncd $1/step1 \n$HOME/./bertini";
+	fout << "#!/bin/bash\n\ncd $1/step1 bertini";
 	fout.close();
 	chmod((const char*) fname,0755);
 }
@@ -26,10 +26,10 @@ void WriteShell1Parallel(int architecture,int usemachine){
 		case 0:
 			if (usemachine==1) {
 
-				fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -machinefile $2 -np $3 $HOME/./bertiniparallel";
+				fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -machinefile $2 -np $3 $HOME/bertiniparallel";
 			}
 			else {
-				fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -np $2 $HOME/./bertiniparallel";
+				fout << "#!/bin/bash\n\ncd $1/step1 \nmpirun -np $2 $HOME/bertiniparallel";
 
 			}
 
@@ -67,7 +67,7 @@ void WriteShell3(int architecture){
 
 
 	if (architecture==0){
-		home = getenv("HOME");
+		home = ".";
 		home.append("/callbertinistep2.sh");
 	}
 	else {
@@ -76,19 +76,19 @@ void WriteShell3(int architecture){
 	}
 	
 	const char* fname = home.c_str();
-	std::cout << "writing callbertinistep2 to " << fname<< "\n";
-	
+//	std::cout << "writing callbertinistep2 to " << fname<< "\n";
+//	
 	std::ofstream fout(fname);
 	switch (architecture) {
 		case 0:
 			fout << "#!/bin/bash\n\n cd ./$1 \n";
 			
-			fout << "$HOME/./bertini";
+			fout << "$HOME/bertini";//$HOME/
 			break;
 		case 1:
 			fout << "#!/bin/bash\n\n cd ./${1} \n";
 			
-			fout << "/mnt/lustre_server/users/GRAD511/dbrake/bertini";
+			fout << "$HOME/bertini";
 			break;
 	}
 	//  fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi";
