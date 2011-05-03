@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <cmath>
-#define verbosestep2
+//#define verbosestep2
 #include <sys/types.h> 
 
 void WriteStep2(std::vector< std::string > configvector, 

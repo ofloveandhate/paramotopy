@@ -50,13 +50,13 @@ int main(int argC, char *args[]){
   MTRand drand(time(0));
 
 	
-	std::string path;
-	system("pwd > path.out");
-	fin.open("path.out");
-	fin >> path;
-	
-	std::cout << path << "\n";
-	fin.close();
+//	std::string path;
+//	system("pwd > path.out");
+//	fin.open("path.out");
+//	fin >> path;
+//	
+//	std::cout << path << "\n";
+//	fin.close();
 	
 	
   int myid,num_processes, headnode=0;
@@ -1009,8 +1009,8 @@ int main(int argC, char *args[]){
 			
 			WriteShell1(architecture, usemachine);
 			WriteShell1Parallel(architecture, usemachine);	
-			// Write  the copy shell script, running script
-//			WriteShell2();
+			// Write the shell script
+
 			WriteShell3(architecture);
 			break;
 			

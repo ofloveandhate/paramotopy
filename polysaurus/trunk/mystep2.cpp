@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-#define verbosestep2
+//#define verbosestep2
 #define timingstep2
 
 
@@ -1134,7 +1134,7 @@ void slave(std::vector<std::string> dir,
 		   ToSave *TheFiles, 
 		   int numfiles,
 		   std::vector<std::string> ParamNames, 
-		   std::string npath,
+		   std::string path,
 		   int numfilesatatime){
 
 	
@@ -1151,21 +1151,21 @@ void slave(std::vector<std::string> dir,
 	
 	
 	
-	std::ifstream fin;
-	std::string path;
-	std::string tmpname = "path";
-	myss << myid;
-	tmpname.append(myss.str());
-	tmpname.append(".out");
-	std::string syscall = "pwd > ";
-	syscall.append(tmpname);
-	system(syscall.c_str());
-	fin.open(tmpname.c_str());
-	fin >> path;
-	std::cout << path << "\n";
-	fin.close();
-	myss.clear();
-	myss.str("");
+//	std::ifstream fin;
+//	std::string path;
+//	std::string tmpname = "path";
+//	myss << myid;
+//	tmpname.append(myss.str());
+//	tmpname.append(".out");
+//	std::string syscall = "pwd > ";
+//	syscall.append(tmpname);
+//	system(syscall.c_str());
+//	fin.open(tmpname.c_str());
+//	fin >> path;
+//	std::cout << path << "\n";
+//	fin.close();
+//	myss.clear();
+//	myss.str("");
 	
 	
 	myss << path << "/step2/DataCollected/c"
