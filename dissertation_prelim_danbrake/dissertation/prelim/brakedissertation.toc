@@ -1,0 +1,21 @@
+\contentsline {chapter}{\numberline {1}Introduction}{1}
+\contentsline {chapter}{\numberline {2}Homotopy Continuation}{2}
+\contentsline {section}{\numberline {2.1}Theory, \emph {Bertini }}{2}
+\contentsline {section}{\numberline {2.2}\emph {Paramatopy }}{2}
+\contentsline {subsection}{\numberline {2.2.1}High Performance Computing and \emph {Paramatopy }}{2}
+\contentsline {chapter}{\numberline {3}Intrinsic Localized Modes}{3}
+\contentsline {section}{\numberline {3.1}Introduction}{3}
+\contentsline {section}{\numberline {3.2}Setup of the Problem}{3}
+\contentsline {section}{\numberline {3.3}Results}{6}
+\contentsline {section}{\numberline {3.4}History and Motivation}{7}
+\contentsline {section}{\numberline {3.5}Single Molecule Detection through Intrinsic Localized Modes}{7}
+\contentsline {section}{\numberline {3.6}Using \emph {Bertini }to Find ILM}{7}
+\contentsline {chapter}{\numberline {4}Cooperative Robotic Workspaces}{9}
+\contentsline {section}{\numberline {4.1}Formal Problem Statement}{10}
+\contentsline {section}{\numberline {4.2}Homotopy Continuation}{11}
+\contentsline {section}{\numberline {4.3}Workspace Computation}{12}
+\contentsline {section}{\numberline {4.4}2D case: Two link planar robots}{14}
+\contentsline {section}{\numberline {4.5}3D Case: Three Joint Manipulators}{17}
+\contentsline {section}{\numberline {4.6}Conclusion}{22}
+\contentsline {section}{\numberline {4.7}eqns}{23}
+\contentsline {chapter}{\numberline {5}Conclusion}{24}
