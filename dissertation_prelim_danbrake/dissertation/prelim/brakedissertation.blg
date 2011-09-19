@@ -1,0 +1,45 @@
+This is BibTeX, Version 0.99c (TeX Live 2009)
+The top-level auxiliary file: brakedissertation.aux
+The style file: plain.bst
+Database file #1: brakedissertation.bib
+You've used 49 entries,
+            2118 wiz_defined-function locations,
+            845 strings with 12287 characters,
+and the built_in function-call counts, 17540 in all, are:
+= -- 1720
+> -- 854
+< -- 4
++ -- 338
+- -- 283
+* -- 1399
+:= -- 2921
+add.period$ -- 147
+call.type$ -- 49
+change.case$ -- 286
+chr.to.int$ -- 0
+cite$ -- 49
+duplicate$ -- 591
+empty$ -- 1345
+format.name$ -- 283
+if$ -- 3607
+int.to.chr$ -- 0
+int.to.str$ -- 49
+missing$ -- 50
+newline$ -- 247
+num.names$ -- 100
+pop$ -- 234
+preamble$ -- 1
+purify$ -- 239
+quote$ -- 0
+skip$ -- 418
+stack$ -- 0
+substring$ -- 1280
+swap$ -- 91
+text.length$ -- 4
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 192
+warning$ -- 0
+while$ -- 168
+width$ -- 51
+write$ -- 540
