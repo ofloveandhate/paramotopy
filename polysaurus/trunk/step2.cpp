@@ -11,26 +11,75 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <cmath>
-//#define verbosestep2
 #include <sys/types.h> 
+
+
+
+
+void SetUpFolders(std::string base_dir,
+			 int numprocs,
+			 int numfilesatatime){
+	
+	
+	std::string filenamestep2=base_dir;
+	filenamestep2.append("/step2/tmp/");
+	std::string DataCollectedbase_dir = base_dir;
+	DataCollectedbase_dir.append("/step2/DataCollected/");
+	  
+#ifdef timingstep2
+	  std::string timingdir = base_dir;
+	  timingdir.append("/timing/");
+	  mkdirunix(timingdir.c_str());
+#endif
+	  
+	std::cout << "setting up folders, " << numprocs << " procs " << numfilesatatime << " folders " << base_dir << "\n";
+	  //make the tmp folders.  
+	  for (int i=0; i<(numprocs-1)*numfilesatatime; ++i) {
+		  std::stringstream ss;
+		  ss <<filenamestep2 << i;
+		  mkdirunix(ss.str().c_str());//make the folder for the run.
+		  std::cout << "I claim i just made directory " << ss.str() << " " << i << "\n";
+		  ss.clear();
+		  ss.str("");
+	  }
+	  
+	  
+	//make text file with names of folders with data in them
+    std::string mydirfname = base_dir;
+    mydirfname.append("/folders");
+    std::ofstream fout(mydirfname.c_str());
+    for (int i = 1; i < numprocs;++i){
+      std::stringstream tmpfolder;
+      tmpfolder << DataCollectedbase_dir;
+      tmpfolder << "c";
+      tmpfolder << i;
+      fout << tmpfolder.str() << (i!=numprocs-1 ? "\n" :  "");      
+    }
+    fout.close();
+}
+
+
+
+
+
 
 void WriteStep2(std::vector< std::string > configvector, 
 		std::ofstream & fout,
-		std::vector<std::pair<float, float> > CValues,
+		std::vector<std::pair<double, double> > CValues,
 		std::vector<std::string> FunctVector, 
 		std::vector<std::string> VarGroupVector,
 		std::vector<std::string> ParamVector,
 		std::vector<std::string> ParamStrings,
 		std::vector<std::string> Consts,
 		std::vector<std::string> ConstantStrings,
-		std::vector<std::pair<float,float> > RandomValues,
+		std::vector<std::pair<double,double> > RandomValues,
 		int numfunct,
 		int numvar,
 		int numparam,
 		int numconsts){
   
   MakeConfig(configvector, fout);
-	fout.precision(20);
+	fout.precision(16);
   fout << "\n\nINPUT\n\n";
   // Variable Group portion
   fout << "variable ";  
@@ -84,8 +133,8 @@ void WriteStep2(std::vector< std::string > configvector,
 
 
 void MakeConstantsStep2(std::ofstream & fout,
-			std::vector< std::pair<float,float> > RandomValues,
-		        std::vector< std::pair<float,float> > CValues,
+			std::vector< std::pair<double,double> > RandomValues,
+		        std::vector< std::pair<double,double> > CValues,
 			std::vector<std::string> ParamStrings,
 			std::vector<std::string> Consts,
 			std::vector<std::string> ConstantStrings,
@@ -161,7 +210,7 @@ void WriteData(int runid,
 	       std::string orig_file, 
 	       std::string target_file,
 	       std::vector<std::string> ParamStrings,
-	       std::vector<std::pair<float, float> > CValues){
+	       std::vector<std::pair<double, double> > CValues){
 
   std::string cline;
   

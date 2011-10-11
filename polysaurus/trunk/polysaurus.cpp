@@ -82,14 +82,14 @@ int main(int argC, char *args[]){
   // -- pair is the real (first) and imaginary (second)
   
   
-  std::vector< std::vector< std::pair<float,float> > > Values;
+  std::vector< std::vector< std::pair<double,double> > > Values;
   
   // random initial values
   // -- vector size is the number of parameters
   // -- pair is the real (first) and imaginary (second)
-  std::vector< std::pair<float,float> > RandomValues;  
-  std::vector< std::pair< std::pair< float, float >, 
-    std::pair< float, float > > >
+  std::vector< std::pair<double,double> > RandomValues;  
+  std::vector< std::pair< std::pair< double, double >, 
+    std::pair< double, double > > >
     RandomRanges; 
   
   bool userdefined;
@@ -370,8 +370,8 @@ int main(int argC, char *args[]){
 				while(getline(fin,mytemp)){
 					std::stringstream myss;
 					myss << mytemp;
-					float crandreal;
-					float crandimaginary;
+					double crandreal;
+					double crandimaginary;
 					myss >> crandreal;
 					myss >> crandimaginary;
 					RandomValues[ccount].first = crandreal;
@@ -470,22 +470,7 @@ int main(int argC, char *args[]){
 		filename);
       fin.close();
       parsed=true;
-//      if(!userdefined){
-//			// rewrite the mesh values into a Monte Carlo - like file
-//			// in the folder of bfiles_filename
-//			
-//			mcfname = base_dir;
-//			mkdirunix(mcfname.c_str());
-//			mcfname.append("/mc");
-//			std::cout << "mcfname = " << mcfname << "\n";
-//			std::string cline = "";
-//			std::string rm = "rm ";
-//			rm.append(mcfname);
-//			system(rm.c_str());
-//			WriteMeshToMonteCarlo(0, Values, mcfname,cline);
-//      }
-      
-      // copy the montecarlo file to bfiles_filename/mc
+
       
       
 	
@@ -536,10 +521,10 @@ int main(int argC, char *args[]){
 				  << "of the chosen parameter."
 				  << "\n";
 			
-			float creallow;
-			float crealhigh;
-			float cimaginarylow;
-			float cimaginaryhigh;
+			double creallow;
+			double crealhigh;
+			double cimaginarylow;
+			double cimaginaryhigh;
 			std::cout << "\n" << "Real Low : ";
 			std::cin >> creallow;
 			std::cout << "Real High : ";
@@ -548,8 +533,8 @@ int main(int argC, char *args[]){
 			std::cin >> cimaginarylow;
 			std::cout << "Imaginary High : ";
 			std::cin >> cimaginaryhigh;	  
-			float crandreal = drand();
-			float crandimaginary = drand();
+			double crandreal = drand();
+			double crandimaginary = drand();
 			crandreal*=(crealhigh-creallow);
 			crandimaginary*=(cimaginaryhigh-cimaginarylow);
 			crandreal+=creallow;
@@ -596,8 +581,8 @@ int main(int argC, char *args[]){
 			while(getline(fin3,mytemp)){
 			  std::stringstream myss;
 			  myss << mytemp;
-			  float crandreal;
-			  float crandimaginary;
+			  double crandreal;
+			  double crandimaginary;
 			  myss >> crandreal;
 			  myss >> crandimaginary;
 			  RandomValues[ccount].first = crandreal;
