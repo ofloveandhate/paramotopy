@@ -27,8 +27,8 @@ void ParseData(int & numfunct,
 	       std::vector< std::string > & ParamStrings,
 	       std::vector<std::string>  & Consts,
 	       std::vector<std::string> & ConstantStrings,
-	       std::vector< std::vector< std::pair<float,float> > > & Values,  
-	       std::vector< std::pair<float,float> > & RandomValues,
+	       std::vector< std::vector< std::pair<double,double> > > & Values,  
+	       std::vector< std::pair<double,double> > & RandomValues,
 	       bool & userdefined,
 	       std::ifstream & fin, std::vector< int > & NumMeshPoints,
 	       std::string filename);
@@ -90,7 +90,7 @@ std::vector<std::string> ReadParameters(int numparam, std::ifstream & fin);
 
 
 
-void WriteMeshToMonteCarlo(int level, std::vector<std::vector<std::pair<float,float> > > Values, std::ofstream fout,std::string cline);
+void WriteMeshToMonteCarlo(int level, std::vector<std::vector<std::pair<double,double> > > Values, std::ofstream fout,std::string cline);
 
 
 
@@ -108,7 +108,7 @@ void WriteStep1(std::string filename,
 		std::vector<std::string> & VarGroupVector,
 		std::vector<std::string> & Consts,
 		std::vector<std::string> & ConstantStrings,
-		std::vector<std::pair<float, float> > & RandomValues);
+		std::vector<std::pair<double, double> > & RandomValues);
 
 
 void MakeFunctions(std::ofstream & fout, 
@@ -130,7 +130,7 @@ void MakeDeclareFunctions(std::ofstream & fout, int size);
 void MakeConstants(std::ofstream & fout, 
 		   std::vector<std::string> ParamStrings, 
 		   std::vector<std::string> ConstantStrings,
-		   std::vector<std::pair<float,float> > RandomValues);
+		   std::vector<std::pair<double,double> > RandomValues);
 
 
 void mkdirunix(std::string mydir);
@@ -149,11 +149,11 @@ void CallBertiniStep1Parallel(std::string base_dir,std::string machinefile, int 
 std::vector< std::string > MakeParameterStrings(
 	     				std::vector<std::string> ToParse);
 
-std::vector< std::vector< std::pair<float,float> > > MakeValues(
+std::vector< std::vector< std::pair<double,double> > > MakeValues(
 					std::vector<std::string> ToParse, std::vector< int > & NumMeshPoints);
 
 
-std::vector< std::vector< std::pair<float,float>  > > MakeValues(
+std::vector< std::vector< std::pair<double,double>  > > MakeValues(
 				       int numparam, std::ifstream & fin);
 
 void WriteStep1(std::string filename, 
@@ -163,12 +163,12 @@ void WriteStep1(std::string filename,
 		std::vector<std::string> & VarGroupVector,
 		std::vector<std::string> & Consts,
 		std::vector<std::string> & ConstantStrings,
-		std::vector<std::pair<float, float> > & RandomValues);
+		std::vector<std::pair<double, double> > & RandomValues);
 
 // assuming we open the input file stream and the output filestream
 void MakeConfig(std::ifstream & fin, std::ofstream & fout);
 
 void WriteMeshToMonteCarlo(int level, 
-	       std::vector<std::vector<std::pair<float, float> > > Values, 
+	       std::vector<std::vector<std::pair<double, double> > > Values, 
 			   std::string dirfilename, 
 			   std::string cline);

@@ -4,6 +4,8 @@
 #include <map>
 #include <sstream>
 #include "step1.h"
+#define timingstep2
+
 
 struct ToSave{
   
@@ -13,24 +15,29 @@ struct ToSave{
 
 };
 
+
+void SetUpFolders(std::string base_dir,
+			 int numprocs,
+			 int numfilesatatime);
+
 void WriteStep2(std::vector< std::string > configvector, 
 		std::ofstream & fout,
-		std::vector<std::pair<float, float> > CValues,
+		std::vector<std::pair<double, double> > CValues,
 		std::vector<std::string> FunctVector, 
 		std::vector<std::string> VarGroupVector,
 		std::vector<std::string> ParamVector,
 		std::vector<std::string> ParamStrings,
 		std::vector<std::string> Consts,
 		std::vector<std::string> ConstantStrings,
-		std::vector<std::pair<float,float> > RandomValues,
+		std::vector<std::pair<double,double> > RandomValues,
 		int numfunct,
 		int numvar,
 		int numparam,
 		int numconsts);
 
 void MakeConstantsStep2(std::ofstream & fout,
-			std::vector< std::pair<float,float> > RandomValues,
-		        std::vector< std::pair<float,float> > CValues,
+			std::vector< std::pair<double,double> > RandomValues,
+		        std::vector< std::pair<double,double> > CValues,
 			std::vector<std::string> ParamStrings,
 			std::vector<std::string> Consts,
 			std::vector<std::string> ConstantStrings,
@@ -48,7 +55,7 @@ void WriteData(int runid,
 	       std::string target_file,
 	       //	       bool append,
 	       std::vector<std::string> ParamStrings,
-	       std::vector<std::pair<float, float> > CValues);
+	       std::vector<std::pair<double, double> > CValues);
 
 std::string MakeTargetFilename(std::string base_dir,
 			       ToSave *TheFile,

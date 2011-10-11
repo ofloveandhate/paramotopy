@@ -402,8 +402,8 @@ void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
 	       std::vector< std::string > & ParamStrings,
 	       std::vector<std::string>  & Consts,
 	       std::vector<std::string> & ConstantStrings,
-	       std::vector< std::vector< std::pair<float,float> > > & Values,  
-	       std::vector< std::pair<float,float> > & RandomValues,
+	       std::vector< std::vector< std::pair<double,double> > > & Values,  
+	       std::vector< std::pair<double,double> > & RandomValues,
 	       bool & userdefined,
 	       std::ifstream & fin,
 		   std::vector< int > & NumMeshPoints,
@@ -595,7 +595,7 @@ void WriteStep1(std::string filename,
 		std::vector<std::string> & VarGroupVector,
 		std::vector<std::string> & Consts,
 		std::vector<std::string> & ConstantStrings,
-		std::vector<std::pair<float, float> > & RandomValues){
+		std::vector<std::pair<double, double> > & RandomValues){
 
   // Make the appropriate Directory to place the input file in
   mkdirstep1(filename);
@@ -691,7 +691,7 @@ void MakeDeclareFunctions(std::ofstream & fout, int size){
 void MakeConstants(std::ofstream & fout, 
 		   std::vector<std::string> ParamStrings,
 		   std::vector<std::string> ConstantStrings,
-		   std::vector<std::pair<float,float> > RandomValues){
+		   std::vector<std::pair<double,double> > RandomValues){
   for (int i = 0; i < ConstantStrings.size();++i){
     fout << "\n" << ConstantStrings[i];
   }
@@ -707,24 +707,24 @@ void MakeConstants(std::ofstream & fout,
 
 }
 
-std::vector< std::vector< std::pair<float,float>  > >
+std::vector< std::vector< std::pair<double,double>  > >
      MakeValues(int numparam, std::ifstream & fin){
 
 
-  std::vector< std::vector< std::pair<float,float> > > Values;
+  std::vector< std::vector< std::pair<double,double> > > Values;
 
   std::string temp;
   int lcount = 0;
   while(getline(fin,temp)){
-    std::vector< std::pair<float, float> > CValue;
+    std::vector< std::pair<double, double> > CValue;
     std::stringstream ss;
     ss << temp;
     for (int i = 0; i < numparam;++i){
-      float creal;
-      float cimaginary;
+      double creal;
+      double cimaginary;
       ss >> creal;
       ss >> cimaginary;
-      CValue.push_back(std::pair<float, float>(creal,cimaginary));
+      CValue.push_back(std::pair<double, double>(creal,cimaginary));
     }
     ++lcount;
    
@@ -734,10 +734,10 @@ std::vector< std::vector< std::pair<float,float>  > >
   return Values;
 }
 
-std::vector< std::vector< std::pair<float,float>  > >MakeValues(
+std::vector< std::vector< std::pair<double,double>  > >MakeValues(
 	std::vector< std::string > ToParse, std::vector< int > & NumMeshPoints){
   
-  std::vector< std::vector< std::pair<float,float> > > MeshValues;
+  std::vector< std::vector< std::pair<double,double> > > MeshValues;
   
   // parse the parameter string per line
   for (int i = 0; i < ToParse.size();++i){
@@ -750,24 +750,24 @@ std::vector< std::vector< std::pair<float,float>  > >MakeValues(
     //   ss >> userdefined;
     //   if (!userdefined){ 
     // values given by lep, rep, and # of mesh points
-    float lepr; // left end point real
-    float lepi; // right end point real
-    float repr; // 
-    float repi;
+    double lepr; // left end point real
+    double lepi; // right end point real
+    double repr; // 
+    double repi;
     int meshpoints;
-    std::vector< std::pair<float,float> > currentmesh;
+    std::vector< std::pair<double,double> > currentmesh;
     ss >> lepr;
     ss >> lepi;
     ss >> repr;
     ss >> repi;
     ss >> meshpoints;
 	  NumMeshPoints.push_back(meshpoints);
-    float stepr = (repr - lepr)/(meshpoints-1);
-    float stepi = (repi - lepi)/(meshpoints+1);
-    float currentr = lepr;
-    float currenti = lepi;
+    double stepr = (repr - lepr)/(meshpoints-1);
+    double stepi = (repi - lepi)/(meshpoints+1);
+    double currentr = lepr;
+    double currenti = lepi;
     for (int j = 0; j < meshpoints;++j){
-      currentmesh.push_back(std::pair<float,float>(currentr,currenti));
+      currentmesh.push_back(std::pair<double,double>(currentr,currenti));
       currentr+=stepr;
       currenti+=stepi;
     }
@@ -812,7 +812,7 @@ void MakeConfig(std::vector< std::string > configvector, std::ofstream & fout){
 }
 
 void WriteMeshToMonteCarlo(int level, 
-			   std::vector<std::vector<std::pair<float, float> > > Values, 
+			   std::vector<std::vector<std::pair<double, double> > > Values, 
 			   std::string dirfilename, 
 			   std::string cline){
   
