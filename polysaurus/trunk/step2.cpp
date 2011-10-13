@@ -13,6 +13,7 @@
 #include <cmath>
 #include <sys/types.h> 
 
+#define timingstep2
 
 
 
@@ -32,13 +33,12 @@ void SetUpFolders(std::string base_dir,
 	  mkdirunix(timingdir.c_str());
 #endif
 	  
-	std::cout << "setting up folders, " << numprocs << " procs " << numfilesatatime << " folders " << base_dir << "\n";
+	std::cout << "setting up folders, " << numprocs << " procs.\n";
 	  //make the tmp folders.  
-	  for (int i=0; i<(numprocs-1)*numfilesatatime; ++i) {
+	  for (int i=1; i<numprocs; ++i) { //everybody gets one
 		  std::stringstream ss;
 		  ss <<filenamestep2 << i;
 		  mkdirunix(ss.str().c_str());//make the folder for the run.
-		  std::cout << "I claim i just made directory " << ss.str() << " " << i << "\n";
 		  ss.clear();
 		  ss.str("");
 	  }
@@ -251,7 +251,9 @@ std::string MakeTargetFilename(std::string base_dir,
   std::stringstream ss;
   
 	
-  ss << base_dir
+	
+  ss << "../../../../"
+	 << base_dir
      << TheFiles[index].filename
      << TheFiles[index].filecount;
   return ss.str();

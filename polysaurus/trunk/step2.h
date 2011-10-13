@@ -7,6 +7,9 @@
 #define timingstep2
 
 
+#ifndef __STEPTWO_H__
+#define __STEPTWO_H__
+
 struct ToSave{
   
   std::string filename;
@@ -72,3 +75,6 @@ void UpdateFileCount(ToSave *TheFiles, int numfiles,
 
 void SetFileCount(ToSave *TheFiles, int numfiles,
 		  std::string DataCollectedBaseDir);
+
+
+#endif

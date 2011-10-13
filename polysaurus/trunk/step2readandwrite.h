@@ -1,7 +1,26 @@
+#include <mpi.h>
+#include "step1.h"
+//#include "step2.h"
+#include "mtrand.h"
+#include "random.h"
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h> 
+#include <vector>
+#include <map>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
 #define timingstep2
 
 
-
+#ifndef __STEP2READANDWRITE_H__
+#define __STEP2READANDWRITE_H__
 void GetStartConfig(std::string base_dir,
 					std::vector< std::string > & startvector,
 					std::vector< std::string > & configvector);
@@ -30,3 +49,4 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 					std::vector<std::pair<double,double> > AllParams,
 					int numparam);
 
+#endif
