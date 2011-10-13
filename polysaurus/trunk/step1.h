@@ -7,7 +7,8 @@
 #include <stdio.h>
 
 /** Function to write the shell script that calls bertini in the step 1 process */
-
+#ifndef __STEPONE_H__
+#define __STEPONE_H__
 
 
 void WriteShell1(int architecture,int usemachine);
@@ -172,3 +173,6 @@ void WriteMeshToMonteCarlo(int level,
 	       std::vector<std::vector<std::pair<double, double> > > Values, 
 			   std::string dirfilename, 
 			   std::string cline);
+
+#endif
+
