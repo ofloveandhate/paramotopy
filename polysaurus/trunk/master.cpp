@@ -17,8 +17,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-#include "master.h"
 #include "step2readandwrite.h"
+
+#include "master.h"
 
 
 
@@ -266,10 +267,15 @@ void master(std::vector<std::string> dir,
 		//write the start files.  only need to do this once.
 		std::string initrunstart = initrunfolder;
 		initrunstart.append("/start");
-		std::cout << initrunstart << "\n";
+//		std::cout << initrunstart << "\n";
 		fout.open(initrunstart.c_str());
 		for (int j=0; j<startvector.size(); ++j) {
-			fout << startvector[j] << "\n";
+			fout << startvector[j];
+			if (startvector[j].length() > 0) {
+				fout << ";";
+			}
+			
+			fout  << "\n";
 		}
 		fout.close();		
 	}
@@ -285,7 +291,7 @@ void master(std::vector<std::string> dir,
 	
 	//to let workers know its ok to do the 2.1 solve
 	int arbitraryint =0 ;
-	std::cout << "letting workers know its ok to start w init.\n";
+//	std::cout << "letting workers know its ok to start w init.\n";
 	MPI_Bcast(&arbitraryint, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	
 	
@@ -313,7 +319,12 @@ void master(std::vector<std::string> dir,
 		std::cout << curbase_dir << "\n";
 		fout.open(curbase_dir.c_str());
 		for (int j=0; j<startvector.size(); ++j) {
-			fout << startvector[j] << "\n";
+			fout << startvector[j];
+			if (startvector[j].length() > 0) {
+				fout << ";";
+			}
+			
+			fout  << "\n";
 		}
 		fout.close();
 #ifdef timingstep2
@@ -387,7 +398,7 @@ void master(std::vector<std::string> dir,
 	
 	//to let the workers know its ok to move on, and to let head node know workers are done with initial solve
 	MPI_Bcast(&biggestnumsent, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	std::cout << "bcast indicating all workers done w init\n";
+//	std::cout << "bcast indicating all workers done w init\n";
 	
 	
 	double tempsends[numfilesatatime*(2*numparam+1)];
