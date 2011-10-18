@@ -688,14 +688,15 @@ void MakeDeclareFunctions(std::ofstream & fout, int size){
   }
 }
 
+
+
+
+
 void MakeConstants(std::ofstream & fout, 
 		   std::vector<std::string> ParamStrings,
 		   std::vector<std::string> ConstantStrings,
 		   std::vector<std::pair<double,double> > RandomValues){
-  for (int i = 0; i < ConstantStrings.size();++i){
-    fout << "\n" << ConstantStrings[i];
-  }
-  fout << "\n";
+
   for (int i = 0; i < RandomValues.size();++i){
     fout << ParamStrings[i]
 	 << " = "
@@ -704,8 +705,14 @@ void MakeConstants(std::ofstream & fout,
 	 << RandomValues[i].second
 	 << "*I;\n";
   }
-
+	for (int i = 0; i < ConstantStrings.size();++i){
+		fout << "\n" << ConstantStrings[i];
+	}
+	fout << "\n";
 }
+
+
+
 
 std::vector< std::vector< std::pair<double,double>  > >
      MakeValues(int numparam, std::ifstream & fin){

@@ -90,16 +90,17 @@ void WriteStep2(std::vector< std::string > configvector,
     
   }
   // constant portion for here and rand in the parameter homotopy
-  fout << "constant ";
-  for (int i = 0; i < ParamStrings.size();++i){
-    fout << "here" << ParamStrings[i]
+	fout << "constant ";
+	for (int i = 0; i < ParamStrings.size();++i){
+		fout << "rand" << ParamStrings[i]
+		<< (i!=ParamStrings.size()-1?",":";\n");
+	}
+	fout << "constant ";
+	for (int i = 0; i < ParamStrings.size();++i){
+	fout << "here" << ParamStrings[i]
 	 << (i!=ParamStrings.size()-1?",":";\n");
-  }
-  fout << "constant ";
-  for (int i = 0; i < ParamStrings.size();++i){
-    fout << "rand" << ParamStrings[i]
-	 << (i!=ParamStrings.size()-1?",":";\n");
-  }
+	}
+
 
   // user given constants
   if (Consts.size()!=0){
@@ -186,22 +187,22 @@ void MakeConstantsStep2(std::ofstream & fout,
 
 
 
-
-void CallBertiniStep2(std::string param_dir){
-
-//	std::string home = getenv("HOME");
-  
-//	std::string mystr = home;
-	std::string mystr = "sh .";
-	mystr.append("/callbertinistep2.sh ");	
-	mystr.append(param_dir);
-	
-#ifdef verbosestep2
-	std::cout << "calling the shell script as the following: \n"
-	    << mystr << "\n";
-#endif
-	system(mystr.c_str());
-}
+//antiquated october 13, 2011 daniel brake
+//void CallBertiniStep2(std::string param_dir){
+//
+////	std::string home = getenv("HOME");
+//  
+////	std::string mystr = home;
+//	std::string mystr = "sh .";
+//	mystr.append("/callbertinistep2.sh ");	
+//	mystr.append(param_dir);
+//	
+//#ifdef verbosestep2
+//	std::cout << "calling the shell script as the following: \n"
+//	    << mystr << "\n";
+//#endif
+//	system(mystr.c_str());
+//}
 
 
 
@@ -257,107 +258,7 @@ std::string MakeTargetFilename(std::string base_dir,
      << TheFiles[index].filename
      << TheFiles[index].filecount;
   return ss.str();
-  /*
-  int currentfilebytecount;
-  int currentbytecount;
-  
-  std::string wccommand = "wc -c ";
-  wccommand.append(base_dir);
-  wccommand.append(filename);
-  ss << wccommand;
-  ss << currentfilecount;
-  wccommand=ss.str();
-  ss.str("");
-  ss.clear();
-  wccommand.append(" > ./");
-  wccommand.append(tmp_base_dir);
-  wccommand.append("tmpbytecounttargetfile");
-  //  std::cout  << "wc command1 = " << wccommand << "\n";
-  system(wccommand.c_str());
 
-  // load the currentbytecount into memory
-  std::string tmpfileloc="./";
-  tmpfileloc.append(tmp_base_dir);
-  tmpfileloc.append("tmpbytecounttargetfile");
-  
-  std::ifstream fin(tmpfileloc.c_str());
-
-  std::string cline;
-  getline(fin,cline);
-  fin.close();
-  // put the line on a string stream buffer
-  
-  
-  ss << cline;
-  ss >> currentbytecount;
-  std::string thefile;
-  ss >> thefile;
-  ss.str("");
-  ss.clear();
-  
-  // say that our max size of any given data storage file is 100 megs
-  // or 100 * 2^10 * 2^10 
-  
-  // load  the currentfilebytecount into memory
-  
-  std::string wccommand2="wc -c ";
-  wccommand2.append(tmp_base_dir);
-  //  wccommand2.append("/");
-  wccommand2.append(tmpfilename);
-  wccommand2.append(" > ./");
-  wccommand2.append(tmp_base_dir);
-  wccommand2.append("tmpbytecount");
-
-  //  std::cout  << "wc command2 = " << wccommand2 << "\n";
-  //  wccommand2.append("tmpbytecount");
-  system(wccommand2.c_str());
-  std::string fileloc2="./";
-  fileloc2.append(tmp_base_dir);
-  fileloc2.append("tmpbytecount");
-  
-  fin.open(fileloc2.c_str());
-  getline(fin,cline);
-  ss << cline;
-  ss >> currentfilebytecount;
-  std::string thefile2;
-  ss >> thefile2;
-  ss.str("");
-  ss.clear();
-  int maxsize = int(100*double(pow(double(2),double(20))));
-
-  std::string returnstring;
- 
-  if (maxsize > currentfilebytecount+currentbytecount){
-    // ss << base_dir;
-    ss << tmpfilename;
-    ss << currentfilecount;
-    returnstring=ss.str();
-    if (currentbytecount)
-      append=true;
-    else
-      append=false;
-
-  }
-  else{
-    if(currentbytecount){
-      ++currentfilecount;
-    }
-    // ss << base_dir;
-    ss << filename;
-    ss << currentfilecount;
-
-    if (currentbytecount){
-      append=true;
-    }
-    else{
-      append=false;
-    }
-
-    returnstring=ss.str();
-  }
-  //  std::cout << "append = " << (append? "true\n":"false\n");  
-  return returnstring;
-  */
 
 }
 
@@ -381,75 +282,7 @@ void TouchFilesToSave(ToSave *TheFiles,int numfilespossible,
       
     }
   }
-  //std::cout << "Leaving TouchFilesToSave(Blah)\n";
-  /* 
-    std::string command = "touch ";
-    int filecount=TheFiles[i].filecount;
-    std::stringstream thefilename;
-    thefilename << base_dir
-      //		  << "n"
-      //		  << j
-      //		  << "/"
-		<< TheFiles[i].filename
-		<< TheFiles[i].filecount;
-    //   std::cout << "filecount = " << filecount << "\n";
-    std::ifstream toopen(thefilename.str().c_str());
-    bool empty = false;
-    while(toopen.is_open() && !empty){
-      // test if the file is empty
-      std::string wccommand = "wc -c ";
-      wccommand.append(thefilename.str());
-      wccommand.append(" > ./");
-      //      wccommand.append(base_dir);
-      wccommand.append("tmpbytecount");
-      system(wccommand.c_str());
-      std::string tmpfileloc = "";
-      tmpfileloc.append("./tmpbytecount");
-      std::ifstream fin2(tmpfileloc.c_str());
-      int bytecount;
-      fin2 >> bytecount;
-      std::cout << "In TouchFilesToSave : wccommand = "
-		<< wccommand << ", tmpfileloc = " << tmpfileloc
-		<< "\n";
-      std::cout << "tmpfileloc.is_open() : "
-		<< (fin2.is_open()?"true\n" : "false\n");
-      std::cout << "In TouchFilesToSave : bytecount = "
-		<< bytecount << "\n";
-      fin2.close();
-      system("rm tmpbytecount");
-      if (bytecount==0){
-	empty=true;
-      }
-      else{
-	//   std::cout << "The file : " << thefilename.str() << " is open.\n";
-	thefilename.str("");
-	thefilename.clear();
-	filecount++;
-	thefilename << base_dir 
-	  //    << "n"
-	  //	    << j
-	  //	    << "/"
-		    << TheFiles[i].filename
-		    << filecount;
-	toopen.close();
-	toopen.open(thefilename.str().c_str());
-      }
-    }
-    if (TheFiles[i].saved){
-      std::cout << "Inside TouchFilesToSave(blah)\n";
-      std::cout << "Setting the filecount to " << filecount << "\n";
-      TheFiles[i].filecount = filecount;
-      
-      std::cout << "The file : " << thefilename.str() << " is not open.\n";
-    }
-    if(TheFiles[i].saved){
-      //      command.append(base_dir);
-      command.append(thefilename.str());
-      system(command.c_str());
-    }    
-  } 
 
-  */ 
 }
 
 

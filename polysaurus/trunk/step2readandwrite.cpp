@@ -278,13 +278,13 @@ void WriteDotOut(std::vector<std::string> & arroutvector,
 	fout.close();
 	
 	fout.open("deg.out");
-	for (int ii = 0; ii<arroutvector.size()-1; ii++) {
-		fout << arroutvector[ii] << "\n";
+	for (int ii = 0; ii<degoutvector.size()-1; ii++) {
+		fout << degoutvector[ii] << "\n";
 	}
 	fout.close();
 	fout.open("names.out");
-	for (int ii = 0; ii<arroutvector.size()-1; ii++) {
-		fout << arroutvector[ii] << "\n";
+	for (int ii = 0; ii<namesoutvector.size()-1; ii++) {
+		fout << namesoutvector[ii] << "\n";
 	}
 	fout.close();
 	
@@ -298,7 +298,8 @@ void WriteDotOut(std::vector<std::string> & arroutvector,
 	for (int ii = 0; ii<funcinputvector.size()-1; ii++) {
 		fout << funcinputvector[ii] << "\n";
 	}
-	fout.close();}
+	fout.close();
+}
 
 
 
@@ -319,6 +320,10 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 	//write the first two lines
 	fout << Numoutvector[0] << "\n" << Numoutvector[1] << "\n";
 
+	//write the random values associated with this run:
+	for (int ii=0; ii<2*numparam; ++ii) {
+		fout << Numoutvector[ii+2] << "\n";
+	}
 	
 	//write the parameter lines
 	for (int ii = 0; ii<numparam; ++ii) {
@@ -353,7 +358,7 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 		
 	}
 	
-	for (int ii = (2+2*numparam); ii<Numoutvector.size()-1; ++ii) {
+	for (int ii = (2+4*numparam); ii<Numoutvector.size()-1; ++ii) {
 		fout << Numoutvector[ii] << "\n";
 	}
 	
