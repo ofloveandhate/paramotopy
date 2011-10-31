@@ -187,11 +187,19 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 		FilePrefVector[i] = false;
 	}	
 	
-	
-	
-	
+	int makefreshprefs = 0;
 	
 	if (!prefstream.is_open() || rerun) {
+		makefreshprefs=1;
+	}
+	else {
+		getline(prefstream,tmp);
+		if (prefstream.eof) {
+			makefreshprefs=1;
+		}
+	}
+	
+	if (makefreshprefs==1) {
 		prefstream.close();
 		std::ofstream outprefstream;
 		outprefstream.open(preflocation.c_str());
@@ -297,8 +305,7 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	}//re: if !prefstream.isopen
 	else {
 		
-		getline(prefstream,tmp);
-		ss << tmp;
+		ss << tmp; //would be holding over from before the if statement.
 		ss >> architecture;
 		ss.clear();
 		ss.str("");
