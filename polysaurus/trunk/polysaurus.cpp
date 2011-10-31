@@ -50,13 +50,7 @@ int main(int argC, char *args[]){
   MTRand drand(time(0));
 
 	
-//	std::string path;
-//	system("pwd > path.out");
-//	fin.open("path.out");
-//	fin >> path;
-//	
-//	std::cout << path << "\n";
-//	fin.close();
+
 	
 	
   int myid,num_processes, headnode=0;
@@ -147,8 +141,7 @@ int main(int argC, char *args[]){
 	
 	
 	
-	int architecture = 0;
-	int numprocs = 0;
+
 	int namelen, saveprogresseverysomany;	
 	bool parallel = true;
 	std::string machinefile = "";
@@ -159,25 +152,27 @@ int main(int argC, char *args[]){
 
 	int currprefversion;
 	currprefversion = GetPrefVersion();
-	if (currprefversion<prefversion) {
+	if (currprefversion!=prefversion) {
 		rerun = true;
 	}
 	
+	int architecture = 0;
+	int numprocs = -1;
 	int usemachine = 0;
-	int numfilesatatime = 0;
+	int numfilesatatime = -1;
 	parallel = DeterminePreferences(architecture, usemachine, machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
-	while (numfilesatatime == 0 ||  (numprocs==0)){ //(parallel && (machinefile=="")) ||  antiquated option dab 4/25/11
+	while (numfilesatatime <= 0 ||  (numprocs<=0)){
 		rerun = true;
 		parallel = DeterminePreferences(architecture, usemachine, machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
 		rerun = false;
 	}
 	SetPrefVersion(prefversion);
 	
+	
+	
 	WriteShell1(architecture, usemachine);
 	WriteShell1Parallel(architecture, usemachine);	
-	// Write  the copy shell script, running script
-//	WriteShell2();
-	WriteShell3(architecture);
+
 	
 
 	
@@ -437,7 +432,8 @@ int main(int argC, char *args[]){
       std::cout << "\n\n";	
     }
     
-    
+	  int cancelthis = 0, keepgoing=1;
+
     switch (intChoice){
     case 1 :
       currentChoice = Input;
@@ -569,34 +565,50 @@ int main(int argC, char *args[]){
 			
       case 4: // Load Random points
 			
-			std::cout << "Enter the filename of the random points you"
-				  << " want to load : ";
-			std::cin >> randfilename;
+			while ( !fin3.is_open() ) {
+				std::cout << "Enter the filename of the random points you"
+					  << " want to load (% to cancel): ";
+				std::cin >> randfilename;
 			
-			fin3.open(randfilename.c_str());
-			
-			  
-			ccount=0;
-			std::cout << "\n\n";
-			while(getline(fin3,mytemp)){
-			  std::stringstream myss;
-			  myss << mytemp;
-			  double crandreal;
-			  double crandimaginary;
-			  myss >> crandreal;
-			  myss >> crandimaginary;
-			  RandomValues[ccount].first = crandreal;
-			  RandomValues[ccount].second = crandimaginary;
-			  std::cout << ParamStrings[ccount]
-					<< " = "
-					<< RandomValues[ccount].first 
-					<< " + "
-					<< RandomValues[ccount].second
-					<< "*I\n";
-			  ++ccount;
+				size_t found=randfilename.find('%');
+				if (found!=std::string::npos) {
+					if ( int(found) == 0) {
+						std::cout << "canceling load.\n" << std::endl;
+						cancelthis = 1;
+						break;
+					}
+					
+				}
+				
+				
+				fin3.open(randfilename.c_str());
 			}
-			std::cout << "\n";
-			fin3.close();
+			
+			if (!cancelthis) {
+
+				ccount=0;
+				std::cout << "\n\n";
+				while(getline(fin3,mytemp)){
+				  std::stringstream myss;
+				  myss << mytemp;
+				  double crandreal;
+				  double crandimaginary;
+				  myss >> crandreal;
+				  myss >> crandimaginary;
+				  RandomValues[ccount].first = crandreal;
+				  RandomValues[ccount].second = crandimaginary;
+				  std::cout << ParamStrings[ccount]
+						<< " = "
+						<< RandomValues[ccount].first 
+						<< " + "
+						<< RandomValues[ccount].second
+						<< "*I\n";
+				  ++ccount;
+				}
+				std::cout << "\n";
+				fin3.close();
+			}
+			
 			break; 
 			
 			
@@ -641,7 +653,18 @@ int main(int argC, char *args[]){
 			
 			
     case 6: 
-      
+		WriteStep1(filename, 
+					   "config1", 
+					   FunctVector,
+					   ParamStrings, 
+					   VarGroupVector, 
+					   Consts, 
+					   ConstantStrings,
+					   RandomValues);
+			
+			
+			
+			
       std::cout << "base_dir = " <<  base_dir << "\n";
 			if (parallel) {
 				CallBertiniStep1Parallel(base_dir,machinefile,numprocs);
@@ -729,7 +752,7 @@ int main(int argC, char *args[]){
 		  SetFileCount(TheFiles,numfilespossible,CurDataCollectedBaseDir.str());
 		  TouchFilesToSave(TheFiles,numfilespossible,
 				   CurDataCollectedBaseDir.str());
-//			std::cout << "touching files in folder: " << CurDataCollectedBaseDir.str() << "\n";
+
 		}
       }
 
@@ -996,7 +1019,7 @@ int main(int argC, char *args[]){
 			WriteShell1Parallel(architecture, usemachine);	
 			// Write the shell script
 
-			WriteShell3(architecture);
+			//WriteShell3(architecture);
 			break;
 			
     case 9:
