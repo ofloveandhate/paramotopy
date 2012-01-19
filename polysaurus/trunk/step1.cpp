@@ -194,7 +194,7 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	}
 	else {
 		getline(prefstream,tmp);
-		if (prefstream.eof) {
+		if (prefstream.eof()) {
 			makefreshprefs=1;
 		}
 	}

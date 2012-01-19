@@ -22,7 +22,7 @@ all: polysaurus mystep2
 polysaurus: polysaurus.o mtrand.o random.o step2.o step1.o
 	$(MCC) $(OPT) -o polysaurus polysaurus.o mtrand.o random.o step2.o step1.o
 mystep2: mystep2.o mtrand.o random.o step2.o step1.o  step2readandwrite.o master.o slave.o
-	$(MCC) -L$./ $(OPT) -o mystep2 mystep2.cpp mtrand.o random.o step2.o step1.o  step2readandwrite.o  master.o slave.o -lbertini -lm -lmpfr -lgmp -static 
+	$(MCC) -L./ $(OPT) -o mystep2 mystep2.cpp mtrand.o random.o step2.o step1.o  step2readandwrite.o  master.o slave.o -lbertini -lm -lmpfr -lgmp -static 
 #mystep2shared:
 #	$(MCC) -L$(HOME)/lib $(OPT) -o mystep2 mystep2.cpp mtrand.o random.o step2.o step1.o -Bdynamic -lbertini -Bstatic -lm  -Bstatic -lmpfr  -Bstatic -lgmp # -static 
 
