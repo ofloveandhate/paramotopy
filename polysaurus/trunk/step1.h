@@ -6,11 +6,22 @@
 #include <fstream>
 #include <stdio.h>
 
-/** Function to write the shell script that calls bertini in the step 1 process */
 #ifndef __STEPONE_H__
 #define __STEPONE_H__
 
 
+struct preferences{
+	
+	std::string machinefile;
+	int architecture;
+	int usemachine;
+	int numprocs;
+	int numfilesatatime;
+	int saveprogresseverysomany;
+};
+
+
+/** Function to write the shell script that calls bertini in the step 1 process */
 void WriteShell1(int architecture,int usemachine);
 
 void WriteShell1Parallel(int architecture, int usemachine);
@@ -35,7 +46,7 @@ void ParseData(int & numfunct,
 	       std::string filename);
 
 
-bool DeterminePreferences(int & architecture, int & usemachine, std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany);
+bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector);
 /*
  read the user's preferences for parallelism on the machine.
 	@param rerun - a bool to flag redetermining the preferences

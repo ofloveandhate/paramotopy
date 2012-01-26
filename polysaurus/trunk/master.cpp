@@ -36,7 +36,7 @@ void master(std::vector<std::string> dir,
 	
 	
 	//some data members used in this function
-	int numsubfolders = dir.size();
+	//int numsubfolders = dir.size();
 	int numprocs, rank;
 	//	int workerlastrecieved = 0;
 	MPI_Status status;
@@ -269,7 +269,7 @@ void master(std::vector<std::string> dir,
 		initrunstart.append("/start");
 //		std::cout << initrunstart << "\n";
 		fout.open(initrunstart.c_str());
-		for (int j=0; j<startvector.size(); ++j) {
+		for (int j=0; j<int(startvector.size()); ++j) {
 			fout << startvector[j];
 			if (startvector[j].length() > 0) {
 				fout << ";";
@@ -318,7 +318,7 @@ void master(std::vector<std::string> dir,
 #endif	
 		std::cout << curbase_dir << "\n";
 		fout.open(curbase_dir.c_str());
-		for (int j=0; j<startvector.size(); ++j) {
+		for (int j=0; j< int(startvector.size()); ++j) {
 			fout << startvector[j];
 			if (startvector[j].length() > 0) {
 				fout << ";";

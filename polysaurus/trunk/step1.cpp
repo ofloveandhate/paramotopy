@@ -161,7 +161,7 @@ void SetPrefVersion(int version){
 }
 
 
-bool DeterminePreferences(int & architecture, int & usemachine, std::string & machinefile,int & numprocs,bool rerun, int & numfilesatatime, std::vector< bool > & FilePrefVector, int & saveprogresseverysomany){
+bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector){
 	bool parallel;
 	std::string tmp, preflocation;
 	std::stringstream ss;
@@ -171,7 +171,7 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	preflocation.append("/.poly.prefs");
 	prefstream.open(preflocation.c_str());
 	
-	int numfilespossible = 8;	
+	int numfilespossible = 7; //now 7; was 8	
 	std::vector< std::string > FileNames;
 	FileNames.resize(numfilespossible);
 	FileNames[0] = "real_solutions";
@@ -181,7 +181,7 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	FileNames[4] = "raw_solutions";
 	FileNames[5] = "main_data";
 	FileNames[6] = "midpath_data";
-	FileNames[7] = "failed_paths";
+//	FileNames[7] = "failed_paths";
 	
 	for (int i=0; i<numfilespossible; ++i) {
 		FilePrefVector[i] = false;
@@ -217,8 +217,8 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 				<< "0) mpirun\n"
 				<< "1) aprun\n"
 				<< "2) other... (not a functioning selection yet)\n:";
-		std::cin >> architecture;
-		outprefstream << architecture << "\n";
+		std::cin >> Prefs[0].architecture;
+		outprefstream << Prefs[0].architecture << "\n";
 		
 		while(parselect < 0 || parselect > 1){
 			std::cout << "Run Parallel?\n"
@@ -235,32 +235,32 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 
 		if (parallel){
 			std::cout << "Does your machine use a machinefile?\n0) No.\n1) Yes.\n: ";
-			std::cin >> usemachine;
+			std::cin >> Prefs[0].usemachine;
 			
-			if (usemachine==1) {
+			if (Prefs[0].usemachine==1) {
 				
 				std::cout << "Enter the machine file to be used, relative to your home directory: ";
-				std::cin >> machinefile;
+				std::cin >> Prefs[0].machinefile;
 			}
 
 			std::cout << "Enter the number of processes to be run: ";
-			std::cin >> numprocs;
+			std::cin >> Prefs[0].numprocs;
 		}
 		outprefstream << parselect << "\n";
 		if (parallel){
-			outprefstream << usemachine << " " << machinefile << "\n"
-			<< numprocs << "\n";
+			outprefstream << Prefs[0].usemachine << " " << Prefs[0].machinefile << "\n"
+			<< Prefs[0].numprocs << "\n";
 		
 		
 			std::cout << "Enter step2 number of folders per processor: ";
-			std::cin >> numfilesatatime;
+			std::cin >> Prefs[0].numfilesatatime;
 
-			outprefstream << numfilesatatime << "\n";
+			outprefstream << Prefs[0].numfilesatatime << "\n";
 		
 		
 		}
 		else {
-			numfilesatatime = 1;
+			Prefs[0].numfilesatatime = 1;
 		}
 	
 
@@ -297,8 +297,8 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 		
 		
 		std::cout << "Save progress every ? iterations: ";
-		std::cin >> saveprogresseverysomany;
-		outprefstream << "\n" << saveprogresseverysomany << "\n";
+		std::cin >> Prefs[0].saveprogresseverysomany;
+		outprefstream << "\n" << Prefs[0].saveprogresseverysomany << "\n";
 		
 		outprefstream.close();
 		
@@ -306,7 +306,7 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	else {
 		
 		ss << tmp; //would be holding over from before the if statement.
-		ss >> architecture;
+		ss >> Prefs[0].architecture;
 		ss.clear();
 		ss.str("");
 		
@@ -324,21 +324,21 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 			parallel = true;
 			getline(prefstream,tmp);
 			ss << tmp;
-			ss >> usemachine;
-			if (usemachine==1) {
-				ss >> machinefile;
+			ss >> Prefs[0].usemachine;
+			if (Prefs[0].usemachine==1) {
+				ss >> Prefs[0].machinefile;
 			}
 			ss.clear();
 			ss.str("");
 			getline(prefstream,tmp);
 			ss << tmp;
-			ss >> numprocs;
+			ss >> Prefs[0].numprocs;
 			ss.clear();
 			ss.str("");
 			
 			getline(prefstream,tmp);
 			ss << tmp;
-			ss >> numfilesatatime;
+			ss >> Prefs[0].numfilesatatime;
 			ss.clear();
 			ss.str("");
 		}
@@ -362,7 +362,7 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 		ss.str("");
 		getline(prefstream,tmp);
 		ss << tmp;
-		ss >> saveprogresseverysomany;
+		ss >> Prefs[0].saveprogresseverysomany;
 		ss.clear();
 		ss.str("");
 		
@@ -376,19 +376,19 @@ bool DeterminePreferences(int & architecture, int & usemachine, std::string & ma
 	//a few things to wrap up preference reading.
 	
 	if (parallel) {
-		if (usemachine) {
+		if (Prefs[0].usemachine) {
 			homedir.append("/");
-			homedir.append(machinefile);
-			machinefile = homedir;
+			homedir.append(Prefs[0].machinefile);
+			Prefs[0].machinefile = homedir;
 		}
-		std::cout << "running parallel.\nmachine file: " << machinefile << "\n" 
-		<< "num processors: " << numprocs << "\n" 
-		<< "num folders per proc: " << numfilesatatime << "\n"
-		<< "saveprogressevery: " << saveprogresseverysomany << "\n\n\n\n";
+		std::cout << "running parallel.\nmachine file: " << Prefs[0].machinefile << "\n" 
+		<< "num processors: " << Prefs[0].numprocs << "\n" 
+		<< "num folders per proc: " << Prefs[0].numfilesatatime << "\n"
+		<< "saveprogressevery: " << Prefs[0].saveprogresseverysomany << "\n\n\n\n";
 	}
 	else {
-		numprocs = 1;
-		numfilesatatime = 1;	
+		Prefs[0].numprocs = 1;
+		Prefs[0].numfilesatatime = 1;	
 		std::cout <<"serial setup on this machine.\nnum processors, numfilesatatime set to 1.\n\n\n\n";
 	}
 
@@ -491,15 +491,15 @@ void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
 
 
   std::cout << "The functions in FunctVector (as strings) are : \n\n";
-  for (int i = 0; i < FunctVector.size();++i){
+  for (int i = 0; i < int(FunctVector.size());++i){
     std::cout << FunctVector[i] << "\n";
   }
   std::cout << "\nThe variable groups in VarGroupVector (as strings) are : \n\n";
-  for (int i = 0; i < VarGroupVector.size();++i){
+  for (int i = 0; i < int(VarGroupVector.size());++i){
     std::cout << VarGroupVector[i] << "\n";
   }
   std::cout << "\nThe parameters in ParamVector (as strings) are :\n\n";
-  for (int i = 0; i < ParamVector.size();++i){
+  for (int i = 0; i < int(ParamVector.size());++i){
     std::cout << ParamVector[i] << "\n";
   }
 
@@ -645,7 +645,7 @@ void MakeFunctions(std::ofstream & fout,
 		   std::vector<std::string> FunctVector){
 
   fout << "\n";
-  for (int i = 0; i < FunctVector.size();++i){
+  for (int i = 0; i < int(FunctVector.size());++i){
     fout << "f" << i+1
 	 << " = "
 	 << FunctVector[i]
@@ -657,7 +657,7 @@ void MakeFunctions(std::ofstream & fout,
 void MakeVariableGroups(std::ofstream & fout, 
 			std::vector<std::string> VarGroupVector){
 
-  for (int i = 0; i < VarGroupVector.size();++i){
+  for (int i = 0; i < int(VarGroupVector.size());++i){
     fout << "\n";
     fout << "variable_group ";
     fout << VarGroupVector[i];
@@ -671,9 +671,9 @@ void MakeDeclareConstants(std::ofstream & fout,
   
   fout << "\n";
   fout << "constant ";
-  for (int i = 0; i < ParamStrings.size();++i){
+  for (int i = 0; i < int(ParamStrings.size());++i){
     fout << ParamStrings[i]
-	 << (i != ParamStrings.size()-1?",":";\n");
+	 << (i != int(ParamStrings.size())-1?",":";\n");
     
   }
   if (Consts.size()!=0){
@@ -704,7 +704,7 @@ void MakeConstants(std::ofstream & fout,
 		   std::vector<std::string> ConstantStrings,
 		   std::vector<std::pair<double,double> > RandomValues){
 
-  for (int i = 0; i < RandomValues.size();++i){
+  for (int i = 0; i < int(RandomValues.size());++i){
     fout << ParamStrings[i]
 	 << " = "
 	 << RandomValues[i].first
@@ -712,7 +712,7 @@ void MakeConstants(std::ofstream & fout,
 	 << RandomValues[i].second
 	 << "*I;\n";
   }
-	for (int i = 0; i < ConstantStrings.size();++i){
+	for (int i = 0; i < int(ConstantStrings.size());++i){
 		fout << "\n" << ConstantStrings[i];
 	}
 	fout << "\n";
@@ -754,7 +754,7 @@ std::vector< std::vector< std::pair<double,double>  > >MakeValues(
   std::vector< std::vector< std::pair<double,double> > > MeshValues;
   
   // parse the parameter string per line
-  for (int i = 0; i < ToParse.size();++i){
+  for (int i = 0; i < int(ToParse.size());++i){
     std::string temp;
     //    bool userdefined;
     
@@ -798,7 +798,7 @@ std::vector< std::string > MakeParameterStrings(
        std::vector<std::string> ToParse){
   
   std::vector<std::string> ParamStrings;
-  for (int i = 0; i < ToParse.size();++i){
+  for (int i = 0; i < int(ToParse.size());++i){
     std::stringstream ss;
     ss << ToParse[i];
     std::string paramname;
@@ -820,7 +820,7 @@ void MakeConfig(std::ifstream & fin, std::ofstream & fout){
 }
 
 void MakeConfig(std::vector< std::string > configvector, std::ofstream & fout){
-	for (int i=0; i< configvector.size();++i) {
+	for (int i=0; i< int(configvector.size());++i) {
 		fout << configvector[i] << "\n";
 	}	
 }
@@ -830,10 +830,10 @@ void WriteMeshToMonteCarlo(int level,
 			   std::string dirfilename, 
 			   std::string cline){
   
-  if (level==Values.size()-1){
+  if (level==int(Values.size())-1){
     // at the last end of the parameters ....
     //    std::string cline2 = cline;
-    for (int i = 0; i < Values[level].size();++i){
+    for (int i = 0; i < int(Values[level].size());++i){
       // cline = cline2;
       std::stringstream ss;
       ss << cline;
@@ -850,7 +850,7 @@ void WriteMeshToMonteCarlo(int level,
     }
   }
   else{
-    for (int i= 0; i < Values[level].size();++i){
+    for (int i= 0; i < int(Values[level].size());++i){
       std::stringstream ss;
       ss << cline;
       ss << " ";

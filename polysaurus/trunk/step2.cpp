@@ -83,22 +83,22 @@ void WriteStep2(std::vector< std::string > configvector,
   fout << "\n\nINPUT\n\n";
   // Variable Group portion
   fout << "variable ";  
-  for (int i = 0; i < VarGroupVector.size();++i){
+  for (int i = 0; i < int(VarGroupVector.size());++i){
     fout << VarGroupVector[i] 
-	 << ( i != VarGroupVector.size()-1? ",":";\n\n" );    
+	 << ( i != int(VarGroupVector.size())-1? ",":";\n\n" );    
     
     
   }
   // constant portion for here and rand in the parameter homotopy
 	fout << "constant ";
-	for (int i = 0; i < ParamStrings.size();++i){
+	for (int i = 0; i < int(ParamStrings.size());++i){
 		fout << "rand" << ParamStrings[i]
-		<< (i!=ParamStrings.size()-1?",":";\n");
+		<< (i!= int(ParamStrings.size())-1?",":";\n");
 	}
 	fout << "constant ";
-	for (int i = 0; i < ParamStrings.size();++i){
+	for (int i = 0; i < int(ParamStrings.size());++i){
 	fout << "here" << ParamStrings[i]
-	 << (i!=ParamStrings.size()-1?",":";\n");
+	 << (i!= int(ParamStrings.size()) -1?",":";\n");
 	}
 
 
@@ -111,8 +111,8 @@ void WriteStep2(std::vector< std::string > configvector,
   
   fout << "pathvariable t;\n"
        << "parameter ";
-  for (int i =0;i < ParamStrings.size();++i){
-    fout << ParamStrings[i] << (i!=ParamStrings.size()-1?",":";\n");
+  for (int i =0;i < int(ParamStrings.size());++i){
+    fout << ParamStrings[i] << (i!= int(ParamStrings.size())-1?",":";\n");
   }
 
   // Declare Functions
@@ -141,7 +141,7 @@ void MakeConstantsStep2(std::ofstream & fout,
 			std::vector<std::string> ConstantStrings,
 			int numparam){
   
-  for (int i = 0; i < ParamStrings.size(); ++i){
+  for (int i = 0; i < int(ParamStrings.size()); ++i){
     fout << "rand" 
 	 << ParamStrings[i]
 	 << " = "
@@ -149,19 +149,19 @@ void MakeConstantsStep2(std::ofstream & fout,
 	 << "*I;\n";
   }
 
- for (int i = 0; i < ParamStrings.size(); ++i){
+ for (int i = 0; i < int(ParamStrings.size()); ++i){
     fout << "here" 
 	 << ParamStrings[i]
 	 << " = "
 	 << CValues[i].first << " + " << CValues[i].second
 	 << "*I;\n";
   }
-  for (int i = 0; i < ConstantStrings.size();++i){
+  for (int i = 0; i < int(ConstantStrings.size());++i){
     fout << ConstantStrings[i]
 	 << "\n";
   }
   
-  for (int i = 0; i < ParamStrings.size(); ++i){
+  for (int i = 0; i < int(ParamStrings.size()); ++i){
     fout << ParamStrings[i]
 	 << "= t*rand"
 	 << ParamStrings[i]
@@ -228,12 +228,12 @@ void WriteData(int runid,
     fintarget.close();
     fout.open(target_file.c_str());
     
-    for (int i = 0; i < ParamStrings.size();++i){
-      fout << ParamStrings[i] << (i != ParamStrings.size()-1? " ": "\n");
+    for (int i = 0; i < int(ParamStrings.size());++i){
+      fout << ParamStrings[i] << (i != int(ParamStrings.size())-1? " ": "\n");
     }
   }
   fout << runid << "\n";
-  for (int i = 0; i < CValues.size();++i){
+  for (int i = 0; i < int(CValues.size());++i){
     fout << CValues[i].first << " " << CValues[i].second << " ";
   }
   fout << "\n";
