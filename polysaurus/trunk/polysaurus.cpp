@@ -29,7 +29,7 @@ enum OPTIONS {Start, Input, SetRandom, Step1, Step2,CollectData ,DetParallel, Qu
 int main(int argC, char *args[]){
   
 //	get_curr_dir_name();
-	int prefversion = 11; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+	int prefversion = 12; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 	
@@ -53,7 +53,7 @@ int main(int argC, char *args[]){
 
 	
 	
-  int myid,num_processes, headnode=0;
+//  int myid,num_processes, headnode=0;
 
 
 
@@ -108,9 +108,9 @@ int main(int argC, char *args[]){
   std::cout << "\n*******************************\n"
 	    << "Welcome to the Polysaurus main program.\n\n";
 
-	int numfilespossible = 8;
+	int numfilespossible = 8; //  changed to 7 from 8 Jan 19 2012 -- brake
 	std::vector< bool >  FilePrefVector;
-	FilePrefVector.resize(numfilespossible);
+	FilePrefVector.resize(numfilespossible-1);
 
 	
 	ToSave *TheFiles = new ToSave[numfilespossible];
@@ -136,15 +136,20 @@ int main(int argC, char *args[]){
 	TheFiles[6].saved=false;
 	TheFiles[6].filecount=0;
 	TheFiles[7].filename="failed_paths";
-	TheFiles[7].saved=false;
+	TheFiles[7].saved=true;
 	TheFiles[7].filecount=0;
 	
-	
-	
+	preferences *Prefs = new preferences[1];
+		Prefs[0].machinefile = "";
+		Prefs[0].architecture = 0;
+		Prefs[0].numprocs = -1;
+		Prefs[0].usemachine = 0;
+		Prefs[0].numfilesatatime = -1;
+		Prefs[0].saveprogresseverysomany = 0;
 
-	int namelen, saveprogresseverysomany;	
+//	int namelen;	
 	bool parallel = true;
-	std::string machinefile = "";
+
 	
 	
 	
@@ -156,22 +161,19 @@ int main(int argC, char *args[]){
 		rerun = true;
 	}
 	
-	int architecture = 0;
-	int numprocs = -1;
-	int usemachine = 0;
-	int numfilesatatime = -1;
-	parallel = DeterminePreferences(architecture, usemachine, machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
-	while (numfilesatatime <= 0 ||  (numprocs<=0)){
+
+	parallel = DeterminePreferences(Prefs, rerun, FilePrefVector);
+	while (Prefs[0].numfilesatatime <= 0 ||  (Prefs[0].numprocs<=0)){
 		rerun = true;
-		parallel = DeterminePreferences(architecture, usemachine, machinefile, numprocs, rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+		parallel = DeterminePreferences(Prefs, rerun, FilePrefVector);
 		rerun = false;
 	}
 	SetPrefVersion(prefversion);
 	
 	
 	
-	WriteShell1(architecture, usemachine);
-	WriteShell1Parallel(architecture, usemachine);	
+	WriteShell1(Prefs[0].architecture, Prefs[0].usemachine);
+	WriteShell1Parallel(Prefs[0].architecture, Prefs[0].usemachine);	
 
 	
 
@@ -273,7 +275,7 @@ int main(int argC, char *args[]){
 		int tmpint;
 		if (fin.is_open()){
 			int lastoutcounter=1;
-			for (int i=1; i<numprocs; ++i) {
+			for (int i=1; i<Prefs[0].numprocs; ++i) {
 				getline(fin,blank);
 				if (blank=="") {
 					break;
@@ -297,7 +299,7 @@ int main(int argC, char *args[]){
 		lastnumsent1.push_back(0);
 		if (fin.is_open()){
 			int lastoutcounter=1;
-			for (int i=1; i<numprocs; ++i) {
+			for (int i=1; i<Prefs[0].numprocs; ++i) {
 				getline(fin,blank);
 				if (blank=="") {
 					break;
@@ -343,7 +345,7 @@ int main(int argC, char *args[]){
 		
 		
 		//if a previous run is recoverable...
-		if ( ((lastnumsent1.size()==numprocs) || (lastnumsent0.size()==numprocs))  && !finished ) {
+		if ( (( int(lastnumsent1.size()) ==Prefs[0].numprocs) || ( int(lastnumsent0.size())==Prefs[0].numprocs))  && !finished ) {
 			
 
 			
@@ -432,7 +434,7 @@ int main(int argC, char *args[]){
       std::cout << "\n\n";	
     }
     
-	  int cancelthis = 0, keepgoing=1;
+	  int cancelthis = 0;
 
     switch (intChoice){
     case 1 :
@@ -494,16 +496,16 @@ int main(int argC, char *args[]){
 			  int paramrandchoice = 1;	
 			  while (paramrandchoice != 0){ 
 			  std::cout << "0 - Done specifying random values\n";
-			  for (int i = 0; i < ParamStrings.size();++i){
+			  for (int i = 0; i < int(ParamStrings.size());++i){
 				std::cout << i+1 << " - " << ParamStrings[i]
 					  << "\n";
 		  }
 		  std::cout << "Enter the parameter you want to rerandomize : ";
 		  std::cin >> paramrandchoice;
-		  while (paramrandchoice < 0 || paramrandchoice > ParamStrings.size()){
+		  while (paramrandchoice < 0 || paramrandchoice > int(ParamStrings.size())){
 			
 			std::cout << "0 - Done specifying random values\n";
-			for (int i = 0; i < ParamStrings.size();++i){
+			for (int i = 0; i < int(ParamStrings.size());++i){
 				  std::cout << i+1 << " - " << ParamStrings[i]
 					<< "\n";
 			}
@@ -667,7 +669,7 @@ int main(int argC, char *args[]){
 			
       std::cout << "base_dir = " <<  base_dir << "\n";
 			if (parallel) {
-				CallBertiniStep1Parallel(base_dir,machinefile,numprocs);
+				CallBertiniStep1Parallel(base_dir,Prefs[0].machinefile,Prefs[0].numprocs);
 			}
 			else {
 				CallBertiniStep1(base_dir);
@@ -705,7 +707,7 @@ int main(int argC, char *args[]){
 		
 	
 		
-		for (int i =0; i<numfilespossible; ++i) {
+		for (int i =0; i<numfilespossible-1; ++i) {
 			TheFiles[i].saved = FilePrefVector[i];
 		}      
       
@@ -744,7 +746,7 @@ int main(int argC, char *args[]){
 		TouchFilesToSave(TheFiles,numfilespossible,DataCollectedBaseDir);
       }
       else{
-		for (int i = 1; i < numprocs;++i){
+		for (int i = 1; i < Prefs[0].numprocs;++i){
 		  std::stringstream CurDataCollectedBaseDir;
 		  CurDataCollectedBaseDir <<  DataCollectedBaseDir
 					  << "c" << i << "/";
@@ -901,12 +903,12 @@ int main(int argC, char *args[]){
 //						  CurDataCollectedBaseDir.str());
 //				}//re: making folders for data collection in DataCollected.
 				std::string mpicommand;
-				if (architecture==0) {
+				if (Prefs[0].architecture==0) {
 
 					mpicommand = "mpirun ";
-					if (usemachine==1){
+					if (Prefs[0].usemachine==1){
 						mpicommand.append("-machinefile ");
-						mpicommand.append(machinefile);
+						mpicommand.append(Prefs[0].machinefile);
 					}
 					mpicommand.append(" -np ");
 				}
@@ -915,7 +917,7 @@ int main(int argC, char *args[]){
 				}
 
 				std::stringstream ssnumproc;
-				ssnumproc << numprocs;
+				ssnumproc << Prefs[0].numprocs;
 				mpicommand.append(ssnumproc.str());
 				mpicommand.append(" ./mystep2 ");	    
 				mpicommand.append(filename);
@@ -945,7 +947,7 @@ int main(int argC, char *args[]){
 				
 				
 				std::stringstream ss42;//nice variable name matt
-				ss42 << numfilesatatime;
+				ss42 << Prefs[0].numfilesatatime;
 				ss42 << " ";
 				mpicommand.append(ss42.str());
 				
@@ -955,7 +957,7 @@ int main(int argC, char *args[]){
 				ss42 << ParamStrings.size();
 				ss42 << " ";
 				mpicommand.append(ss42.str());
-				for (int i = 0; i < ParamStrings.size();++i){
+				for (int i = 0; i < int(ParamStrings.size());++i){
 				  mpicommand.append(ParamStrings[i]);
 				  mpicommand.append(" ");
 				}
@@ -965,7 +967,7 @@ int main(int argC, char *args[]){
 				ss42.clear();
 				
 				
-				ss42 << saveprogresseverysomany;
+				ss42 << Prefs[0].saveprogresseverysomany;
 				ss42 << " ";
 				
 
@@ -1011,12 +1013,12 @@ int main(int argC, char *args[]){
 		currentChoice=DetParallel;
 			rerun = true;
 			FilePrefVector.clear();
-			parallel =  DeterminePreferences(architecture, usemachine, machinefile,numprocs,rerun, numfilesatatime,FilePrefVector,saveprogresseverysomany);
+			parallel =  DeterminePreferences(Prefs, rerun, FilePrefVector);
 			SetPrefVersion(prefversion);
 			rerun = false;
 			
-			WriteShell1(architecture, usemachine);
-			WriteShell1Parallel(architecture, usemachine);	
+			WriteShell1(Prefs[0].architecture, Prefs[0].usemachine);
+			WriteShell1Parallel(Prefs[0].architecture, Prefs[0].usemachine);	
 			// Write the shell script
 
 			//WriteShell3(architecture);

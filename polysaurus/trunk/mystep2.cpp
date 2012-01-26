@@ -10,7 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <omp.h>
 
 #include "step1.h"
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]){
 #ifdef verbosestep2
     if (myid==headnode){
       std::cout << "ParamNames: ";
-      for (int i=0;i<ParamNames.size();++i){
+      for (int i=0; i< int(ParamNames.size());++i){
 		std::cout << ParamNames[i] << " "; 
       }
 

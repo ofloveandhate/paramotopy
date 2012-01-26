@@ -21,7 +21,7 @@ std::vector<std::pair<double, double> >
   std::vector<std::pair<double, double> > RandomValues;
 
   MTRand drand(time(0));
-  for (int i = 0; i < RandomRanges.size(); ++i){
+  for (int i = 0; i < int(RandomRanges.size()); ++i){
     double crandreal = drand();
     double crandimaginary = drand();
     crandreal*=(RandomRanges[i].first.second 
@@ -48,7 +48,7 @@ void PrintRandom(std::vector<std::pair<double,double> > RandomValues,
   //  std::cout << "\nParamStrings.size() = " << ParamStrings.size();
   // std::cout << "\n";
   std::cout << "The random initial values for the parameters are : \n";
-  for (int i = 0; i < ParamStrings.size();++i){
+  for (int i = 0; i < int(ParamStrings.size());++i){
     std::cout << ParamStrings[i] << " = " << RandomValues[i].first
 	      << " + " << RandomValues[i].second << "*I\n";
 

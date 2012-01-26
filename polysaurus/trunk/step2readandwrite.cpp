@@ -105,13 +105,13 @@ void GetLastNumSent(std::string base_dir,
 	
 	
 	int vectortosave = -1;
-	if ( (lastnumsent1.size()<numprocs) && lastnumsent0.size()<numprocs ) {//failed overall...suck.
+	if ( (int(lastnumsent1.size())<numprocs) && int(lastnumsent0.size())<numprocs ) {//failed overall...suck.
 		//both vectors fail.  initialize fresh run.
 	}
-	else if (lastnumsent0.size()<numprocs){//failed during writing of 0?
+	else if (int(lastnumsent0.size())<numprocs){//failed during writing of 0?
 		vectortosave = 1;
 	}
-	else if (lastnumsent1.size()<numprocs){//failed during writing of 1?
+	else if (int(lastnumsent1.size())<numprocs){//failed during writing of 1?
 		vectortosave = 0;
 	}
 	else {//not possible for exactly one of the two following things to happen, given the previous 3 failed
@@ -272,30 +272,30 @@ void WriteDotOut(std::vector<std::string> & arroutvector,
 	
 	
 	fout.open("arr.out");
-	for (int ii = 0; ii<arroutvector.size()-1; ii++) {
+	for (int ii = 0; ii< int(arroutvector.size())-1; ii++) {
 		fout << arroutvector[ii] << "\n";
 	}
 	fout.close();
 	
 	fout.open("deg.out");
-	for (int ii = 0; ii<degoutvector.size()-1; ii++) {
+	for (int ii = 0; ii< int(degoutvector.size())-1; ii++) {
 		fout << degoutvector[ii] << "\n";
 	}
 	fout.close();
 	fout.open("names.out");
-	for (int ii = 0; ii<namesoutvector.size()-1; ii++) {
+	for (int ii = 0; ii< int(namesoutvector.size())-1; ii++) {
 		fout << namesoutvector[ii] << "\n";
 	}
 	fout.close();
 	
 	fout.open("config");
-	for (int ii = 0; ii<configvector.size()-1; ii++) {
+	for (int ii = 0; ii< int(configvector.size())-1; ii++) {
 		fout << configvector[ii] << "\n";
 	}
 	fout.close();
 	
 	fout.open("func_input");
-	for (int ii = 0; ii<funcinputvector.size()-1; ii++) {
+	for (int ii = 0; ii< int(funcinputvector.size())-1; ii++) {
 		fout << funcinputvector[ii] << "\n";
 	}
 	fout.close();
@@ -358,7 +358,7 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 		
 	}
 	
-	for (int ii = (2+4*numparam); ii<Numoutvector.size()-1; ++ii) {
+	for (int ii = (2+4*numparam); ii< int(Numoutvector.size())-1; ++ii) {
 		fout << Numoutvector[ii] << "\n";
 	}
 	
