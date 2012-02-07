@@ -17,10 +17,10 @@ INCLUDE = # -/home/matt/HD2/mpich2-1.3.1/src/include/
 
 
 # Describe how to build the executable file
-all: polysaurus mystep2
+all: paramotopy mystep2
 
-polysaurus: polysaurus.o mtrand.o random.o step2.o step1.o
-	$(MCC) $(OPT) -o polysaurus polysaurus.o mtrand.o random.o step2.o step1.o
+paramotopy: paramotopy.o mtrand.o random.o step2.o step1.o para_aux_funcs.o
+	$(MCC) $(OPT) -o paramotopy paramotopy.o mtrand.o random.o step2.o step1.o para_aux_funcs.o
 mystep2: mystep2.o mtrand.o random.o step2.o step1.o  step2readandwrite.o master.o slave.o
 	$(MCC) -L./ $(OPT) -o mystep2 mystep2.cpp mtrand.o random.o step2.o step1.o  step2readandwrite.o  master.o slave.o -lbertini -lm -lmpfr -lgmp -static 
 #mystep2shared:
@@ -40,4 +40,4 @@ mystep2: mystep2.o mtrand.o random.o step2.o step1.o  step2readandwrite.o master
 
 # Describe actions necessary to clean the current directory
 clean:
-	rm -f *.o polysaurus mystep2 *~
+	rm -f *.o paramotopy mystep2 *~

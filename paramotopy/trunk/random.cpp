@@ -54,5 +54,4 @@ void PrintRandom(std::vector<std::pair<double,double> > RandomValues,
 
   }
   std::cout << "\n";
-  std::cout << "ParamStrings.size() = " << ParamStrings.size() << "\n";
 }
