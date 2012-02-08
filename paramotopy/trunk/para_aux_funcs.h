@@ -9,14 +9,14 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-
+#include "paramotopy_enum.h" 
 
 
 #ifndef __PARA_AUX_H__
 #define __PARA_AUX_H__
 
 
-int GetUserChoice(int intChoice);
+int GetUserChoice();
 
 std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
 													std::vector<std::string> ParamStrings);
@@ -37,6 +37,13 @@ void step2_case(int numfilespossible,
 				int numparam, 
 				std::vector< std::pair<double,double> > RandomValues,
 				std::vector<std::string> ParamStrings);
+
+void TryToRecoverPrevRun(std::vector< std::pair<double,double> > & RandomValues,
+						 std::string filename,
+						 std::string base_dir,
+						 preferences *Prefs,
+						 OPTIONS & currentChoice,
+						 std::vector<std::string> ParamStrings);
 
 #endif
 

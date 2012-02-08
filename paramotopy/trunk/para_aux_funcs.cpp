@@ -14,22 +14,22 @@
 
 
 
-int GetUserChoice(int intChoice){
-
-while (intChoice < 1 || intChoice > 9){
-	
-std::cout << "\n\nHere are your choices : \n"
-<< "1) Parse an appropriate input file. \n"
-<< "2) Randomize start points. \n"
-<< "3) Save random start points. \n"
-<< "4) Load random start points. \n"
-<< "5) Write Step 1.\n"
-<< "6) Write and Run Step 1.\n"
-<< "7) Run Step 2.\n"
-<< "8) Determine Preferences for this machine.\n"
-<< "9) Quit the program.\n\n"
-<< "Enter the integer value of your choice : "; 
-	
+int GetUserChoice(){
+	int intChoice = 0;
+	while (intChoice < 1 || intChoice > 9){
+		
+	std::cout << "\n\nHere are your choices : \n"
+	<< "1) Parse an appropriate input file. \n"
+	<< "2) Randomize start points. \n"
+	<< "3) Save random start points. \n"
+	<< "4) Load random start points. \n"
+	<< "5) Write Step 1.\n"
+	<< "6) Write and Run Step 1.\n"
+	<< "7) Run Step 2.\n"
+	<< "8) Determine Preferences for this machine.\n"
+	<< "9) Quit the program.\n\n"
+	<< "Enter the integer value of your choice : "; 
+		
 	std::cin >> intChoice;
 	std::cout << "\n\n";	
     }
@@ -495,9 +495,134 @@ else{
 
 
 
+void TryToRecoverPrevRun(std::vector< std::pair<double,double> > & RandomValues,
+						 std::string filename,
+						 std::string base_dir,
+						 preferences *Prefs,
+						 OPTIONS & currentChoice,
+						 std::vector<std::string> ParamStrings){
+
+bool finished = false;
+std::ifstream fin;
+//check out previous runs...
+std::string blank;
+std::stringstream commandss;
+
+std::string lastoutfilename0 = base_dir;
+lastoutfilename0.append("/step2/lastnumsent0");	  
+// query whether had run or not yet. 
+fin.open(lastoutfilename0.c_str());
+std::vector< int > lastnumsent0;
+lastnumsent0.push_back(0);
+int tmpint;
+if (fin.is_open()){
+	int lastoutcounter=1;
+	for (int i=1; i<Prefs[0].numprocs; ++i) {
+		getline(fin,blank);
+		if (blank=="") {
+			break;
+		}
+		commandss << blank;
+		commandss >> tmpint;
+		lastnumsent0.push_back(tmpint);
+		lastoutcounter++;
+		commandss.clear();
+		commandss.str("");
+	}
+	
+}
+fin.close();
+
+std::string lastoutfilename1 = base_dir;
+lastoutfilename1.append("/step2/lastnumsent1");	  
+// query whether had run or not yet. 
+fin.open(lastoutfilename1.c_str());
+std::vector< int > lastnumsent1;
+lastnumsent1.push_back(0);
+if (fin.is_open()){
+	int lastoutcounter=1;
+	for (int i=1; i<Prefs[0].numprocs; ++i) {
+		getline(fin,blank);
+		if (blank=="") {
+			break;
+		}
+		commandss << blank;
+		commandss >> tmpint;
+		lastnumsent1.push_back(tmpint);
+		lastoutcounter++;
+		commandss.clear();
+		commandss.str("");
+	}
+	
+}
+fin.close();	
 
 
 
 
+std::string finishedfile = "bfiles_";
+finishedfile.append(filename);
+finishedfile.append("/finished");
+fin.open(finishedfile.c_str());
+if (fin.is_open()){
+	finished = true;
+}
+fin.close();
+if (finished) {
+	std::cout << "\n\n\nthis run appears done.  proceed anyway?  1 yes, 0 no.\n: ";
+	int tmpint;
+	
+	std::cin >> tmpint;
+	if (tmpint==0) {
+		currentChoice=Quit;
+		finished = true;
+	}
+	else {
+		finished = false;
+	}
+}		
+
+
+//if a previous run is recoverable...
+if ( (( int(lastnumsent1.size()) ==Prefs[0].numprocs) || ( int(lastnumsent0.size())==Prefs[0].numprocs))  && !finished ) {
+	
+	std::cout << "detected a previous run, which is recoverable.\nload previous random values?\n1 yes, 0 no.\n: ";
+	int loadiemcloadster = -1;
+	while ((loadiemcloadster<0) || (loadiemcloadster>1)) {
+		std::cin >> loadiemcloadster;
+	}
+	
+	if (loadiemcloadster==1) {
+		std::string randfilename=base_dir;
+		randfilename.append("/randstart");
+		
+		fin.open(randfilename.c_str());
+		
+		int ccount=0;
+		std::cout << "\n\n";
+		std::string mytemp;
+		while(getline(fin,mytemp)){
+			std::stringstream myss;
+			myss << mytemp;
+			double crandreal;
+			double crandimaginary;
+			myss >> crandreal;
+			myss >> crandimaginary;
+			RandomValues[ccount].first = crandreal;
+			RandomValues[ccount].second = crandimaginary;
+			std::cout << ParamStrings[ccount]
+			<< " = "
+			<< RandomValues[ccount].first 
+			<< " + "
+			<< RandomValues[ccount].second
+			<< "*I\n";
+			++ccount;
+		}
+		std::cout << "\n";
+		fin.close();
+	}
+}
+
+}
 
 

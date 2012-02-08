@@ -18,11 +18,11 @@
 #include "random.h"
 #include "step2.h"
 #include "para_aux_funcs.h"
+#include "paramotopy_enum.h"
 #include <mpi.h>
 #include <unistd.h>
 
 
-enum OPTIONS {Start, Input, SetRandom, SaveRandom, LoadRandom, WriteStepOne, RunStepOne, Step2,CollectData ,DetPrefs, Quit};
 
 
 
@@ -171,7 +171,6 @@ int main(int argC, char *args[]){
 
 	bool finopened = false;//for parsing input file.
 	bool suppliedfilename = true;
-	bool finished = false;//for detecting already completed runs
 	bool alreadytried = false;//for testing file openness if user supplied command-line filename
 
 	
@@ -181,233 +180,98 @@ int main(int argC, char *args[]){
 	}
 
 
-  while(currentChoice!=Quit){
+	//open file
+	while (!finopened) {
+		if ( (!suppliedfilename) || alreadytried) {
+			std::cout << "Enter the input file's name : ";
+			std::cin >> filename;
+		}
+		else{
+			std::stringstream commandss;
+			for (int i=0;i<argC;++i){
+				commandss << args[i] << " ";	
+			}
+			std::string garbage;
+			commandss >> garbage;
+			commandss >> filename;
+		}
+		
+		
+		base_dir="bfiles_";
+		base_dir.append(filename);
+		fin.open(filename.c_str());
+		if (fin.is_open()){
+			finopened = true;
+		}
+		else {
+			std::cout << "could not open a file of that name... try again.\n";
+			alreadytried=true;
+		}
+	}
+	finopened = false;//reset
+	//end open file 
+	
+	ParseData(numfunct,numvar,numparam,numconsts,FunctVector,VarGroupVector,ParamVector,ParamStrings,Consts,ConstantStrings,Values,RandomValues,userdefined,fin,NumMeshPoints,filename);
+	fin.close();
+	
+	std::cout << "Done parsing.";
+	parsed=true;
+	PrintRandom(RandomValues,ParamStrings);
+	
+	
+	TryToRecoverPrevRun(RandomValues,//get values -- the real purpose of this function
+						filename,
+						base_dir,
+						Prefs, //numprocs
+						currentChoice, //could simply quit
+						ParamStrings); //for printing to screen
     
-    if (!parsed){
-		
-		//open file
-		while (!finopened) {
-			if ( (!suppliedfilename) || alreadytried) {
-				std::cout << "Enter the input file's name : ";
-				std::cin >> filename;
-			}
-			else{
-				std::stringstream commandss;
-				for (int i=0;i<argC;++i){
-					commandss << args[i] << " ";	
-				}
-				std::string garbage;
-				commandss >> garbage;
-				commandss >> filename;
-			}
-			
-			
-			  base_dir="bfiles_";
-			  base_dir.append(filename);
-			  fin.open(filename.c_str());
-			if (fin.is_open()){
-				finopened = true;
-			}
-			else {
-				std::cout << "could not open a file of that name... try again.\n";
-				alreadytried=true;
-			}
-		}
-		finopened = false;//reset
-		//end open file 
-		
-      ParseData(numfunct,numvar,numparam,numconsts,FunctVector,VarGroupVector,ParamVector,ParamStrings,Consts,ConstantStrings,Values,RandomValues,userdefined,fin,NumMeshPoints,filename);
-      fin.close();
-      
-      std::cout << "Done parsing.";
-      parsed=true;
-      PrintRandom(RandomValues,ParamStrings);
-
-		
-
-		
-		
-		//check out previous runs...
-		std::string blank;
-		std::stringstream commandss;
-
-		std::string lastoutfilename0 = base_dir;
-		lastoutfilename0.append("/step2/lastnumsent0");	  
-		// query whether had run or not yet. 
-		fin.open(lastoutfilename0.c_str());
-		std::vector< int > lastnumsent0;
-		lastnumsent0.push_back(0);
-		int tmpint;
-		if (fin.is_open()){
-			int lastoutcounter=1;
-			for (int i=1; i<Prefs[0].numprocs; ++i) {
-				getline(fin,blank);
-				if (blank=="") {
-					break;
-				}
-				commandss << blank;
-				commandss >> tmpint;
-				lastnumsent0.push_back(tmpint);
-				lastoutcounter++;
-				commandss.clear();
-				commandss.str("");
-			}
-			
-		}
-		fin.close();
-		
-		std::string lastoutfilename1 = base_dir;
-		lastoutfilename1.append("/step2/lastnumsent1");	  
-		// query whether had run or not yet. 
-		fin.open(lastoutfilename1.c_str());
-		std::vector< int > lastnumsent1;
-		lastnumsent1.push_back(0);
-		if (fin.is_open()){
-			int lastoutcounter=1;
-			for (int i=1; i<Prefs[0].numprocs; ++i) {
-				getline(fin,blank);
-				if (blank=="") {
-					break;
-				}
-				commandss << blank;
-				commandss >> tmpint;
-				lastnumsent1.push_back(tmpint);
-				lastoutcounter++;
-				commandss.clear();
-				commandss.str("");
-			}
-			
-		}
-		fin.close();	
-		
-
-		
-		
-		std::string finishedfile = "bfiles_";
-		finishedfile.append(filename);
-		finishedfile.append("/finished");
-		fin.open(finishedfile.c_str());
-		if (fin.is_open()){
-			finished = true;
-		}
-		fin.close();
-		if (finished) {
-			std::cout << "\n\n\nthis run appears done.  proceed anyway?  1 yes, 0 no.\n: ";
-			int tmpint;
-			
-			std::cin >> tmpint;
-			if (tmpint==0) {
-				finished=true;
-				currentChoice=Quit;
-				
-			}
-			else {
-				finished=false;
-			}
-		}		
-		
-		
-		
-		
-		//if a previous run is recoverable...
-		if ( (( int(lastnumsent1.size()) ==Prefs[0].numprocs) || ( int(lastnumsent0.size())==Prefs[0].numprocs))  && !finished ) {
-			
-
-			
-			
-			std::cout << "detected a previous run, which is recoverable.\nload previous random values?\n1 yes, 0 no.\n: ";
-			int loadiemcloadster = -1;
-			while ((loadiemcloadster<0) || (loadiemcloadster>1)) {
-				std::cin >> loadiemcloadster;
-			}
-			
-			if (loadiemcloadster==1) {
-				std::string randfilename=base_dir;
-				randfilename.append("/randstart");
-				
-				fin.open(randfilename.c_str());
-
-				int ccount=0;
-				std::cout << "\n\n";
-				while(getline(fin,mytemp)){
-					std::stringstream myss;
-					myss << mytemp;
-					double crandreal;
-					double crandimaginary;
-					myss >> crandreal;
-					myss >> crandimaginary;
-					RandomValues[ccount].first = crandreal;
-					RandomValues[ccount].second = crandimaginary;
-					std::cout << ParamStrings[ccount]
-					<< " = "
-					<< RandomValues[ccount].first 
-					<< " + "
-					<< RandomValues[ccount].second
-					<< "*I\n";
-					++ccount;
-				}
-				std::cout << "\n";
-				fin.close();
-			}
-		}
-		//done reloading previous random values
-		
-		
-		
-    }
-  
+	
+	int intChoice=0;	
+	while(currentChoice!=Quit){
+    
     
 
-    std::string randfilename;
-
-	int intChoice=0;
-	  
-	  if (finished) {
-	    intChoice=9;
-	  }
-	  else {
-		  intChoice = GetUserChoice(intChoice);
-	  }
     
-	  intChoice = GetUserChoice(intChoice);
+	  intChoice = GetUserChoice();
 
 
     switch (intChoice){
     case 1 :
-			
-      currentChoice = Input;
-			finopened = false;
-			while (!finopened) {
 				
-			
-			    std::cout << "Enter in the input file's name : ";
-			    std::cin >> filename;
-			    base_dir="bfiles_";
-			    base_dir.append(filename);
-			    fin.close();
-			    fin.open(filename.c_str());
-				if (fin.is_open()) {
-					finopened = true;
+		  currentChoice = Input;
+				finopened = false;
+				while (!finopened) {
+					
+				
+					std::cout << "Enter in the input file's name : ";
+					std::cin >> filename;
+					base_dir="bfiles_";
+					base_dir.append(filename);
+					fin.close();
+					fin.open(filename.c_str());
+					if (fin.is_open()) {
+						finopened = true;
+					}
 				}
-			}
-			finopened = false;
-      ParseData(numfunct,numvar,
-		numparam,numconsts,FunctVector,
-		VarGroupVector,ParamVector,
-		ParamStrings,
-		Consts,
-		ConstantStrings,
-		Values,
-		RandomValues,
-		userdefined,
-		fin,
-		NumMeshPoints,
-		filename);
-      fin.close();
-      parsed=true;
-	
-      PrintRandom(RandomValues,ParamStrings);
-      break;
+				finopened = false;
+		  ParseData(numfunct,numvar,
+			numparam,numconsts,FunctVector,
+			VarGroupVector,ParamVector,
+			ParamStrings,
+			Consts,
+			ConstantStrings,
+			Values,
+			RandomValues,
+			userdefined,
+			fin,
+			NumMeshPoints,
+			filename);
+		  fin.close();
+		  parsed=true;
+		
+		  PrintRandom(RandomValues,ParamStrings);
+		  break;
     case 2:
 			
 			currentChoice = SetRandom;
@@ -422,8 +286,7 @@ int main(int argC, char *args[]){
 			save_random_case(RandomValues, fout, numparam);
 			break;
 					
-					
-			
+
 			
 	case 4: // Load Random points
 			
@@ -433,75 +296,53 @@ int main(int argC, char *args[]){
 		
 			
     case 5:         // Write Step1
-      currentChoice=WriteStepOne;
-	
-      
-      WriteStep1(filename, 
-		 "config1", 
-		 FunctVector,
-		 ParamStrings, 
-		 VarGroupVector, 
-		 Consts, 
-		 ConstantStrings,
-		 RandomValues);
-      
+		  currentChoice=WriteStepOne;
+		
+		  
+		  WriteStep1(filename, 
+			 "config1", 
+			 FunctVector,
+			 ParamStrings, 
+			 VarGroupVector, 
+			 Consts, 
+			 ConstantStrings,
+			 RandomValues);
+		  
 
-      
-      std::cout << "Writing Step 1 done ... \n";
-      
+		  
+		  std::cout << "Writing Step 1 done ... \n";
+		  
 
-      break;
-			
-			
-			
-			
-			
-			
-			
-			
-			
+		  break;
 			
 			
 			
 			
     case 6: 
-		currentChoice = RunStepOne;
-		WriteStep1(filename, 
-					   "config1", 
-					   FunctVector,
-					   ParamStrings, 
-					   VarGroupVector, 
-					   Consts, 
-					   ConstantStrings,
-					   RandomValues);
-			
-			
-			
-			if (parallel) {
-				CallBertiniStep1Parallel(base_dir,Prefs[0].machinefile,Prefs[0].numprocs);
-			}
-			else {
-				CallBertiniStep1(base_dir);
-			}
+			currentChoice = RunStepOne;
+			WriteStep1(filename, 
+						   "config1", 
+						   FunctVector,
+						   ParamStrings, 
+						   VarGroupVector, 
+						   Consts, 
+						   ConstantStrings,
+						   RandomValues);
+				
+				
+				if (parallel) {
+					CallBertiniStep1Parallel(base_dir,Prefs[0].machinefile,Prefs[0].numprocs);
+				}
+				else {
+					CallBertiniStep1(base_dir);
+				}
 
-      
-      break;
-      
-			
-			
+		  
+		  break;
+		  
 			
 			
     case 7:
-      
-			////////////////////////
-			//
-			//
-			//     begin choice 7, step2
-			//
-			//
-			////////////////////////////
-			
-			
 			
 				
 		currentChoice = Step2;
@@ -517,25 +358,6 @@ int main(int argC, char *args[]){
 				   RandomValues,
 				   ParamStrings);
 		break;
-		
-		
-					
-		/////////////////////////
-			//
-			//
-			//     end choice 7
-			//
-			//
-		//////////////////////////
-			
-			
-		
-    //end choice 7: step2
-			
-			
-			
-			
-
 			
 			
 			
@@ -555,8 +377,11 @@ int main(int argC, char *args[]){
 			break;
 			
     case 9:
+			
       currentChoice=Quit;	    
       std::cout << "Quitting\n\n";
+			
+			
     }//re: switch (intChoice)
     
   }//re: while(currentChoice!=Quit)
