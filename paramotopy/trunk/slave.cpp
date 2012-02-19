@@ -242,7 +242,7 @@ void slave(std::vector<std::string> dir,
 #ifdef verbosestep2
 				std::cout << target_file << " " << orig_file << "\n";
 				std::cout << "allparams: " << AllParams[numparam-1].first << "\n";
-				std::cout << "trying to write data to " << target_file << " from worker " << myid << " with folder" << k <<"\n";
+				std::cout << "writing data to " << target_file << " from worker " << myid << " with folder" << k <<"\n";
 #endif
 				
 				
