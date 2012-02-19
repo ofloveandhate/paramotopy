@@ -303,32 +303,45 @@ void WriteDotOut(std::vector<std::string> & arroutvector,
 
 
 
+
+
+
+
 void WriteNumDotOut(std::vector<std::string> Numoutvector,
 					std::vector<std::pair<double,double> > AllParams,
 					int numparam){
 	
-	
+	//modified 2012.02.19 to make a single write call. db.
 	
 	
 	char *numer = NULL, *denom = NULL;
 	//	char *passto_computeNumDenom = NULL;
+	
+	
 	std::string convertmetochar;
-	std::stringstream ss;
+	std::stringstream ss, writess;
 	std::ofstream fout;
 	fout.open("num.out");
 	
+	
+	
+	
 	//write the first two lines
-	fout << Numoutvector[0] << "\n" << Numoutvector[1] << "\n";
+	//fout << Numoutvector[0] << "\n" << Numoutvector[1] << "\n";
+	writess << Numoutvector[0] << "\n" << Numoutvector[1] << "\n";
 
 	//write the random values associated with this run:
 	for (int ii=0; ii<2*numparam; ++ii) {
-		fout << Numoutvector[ii+2] << "\n";
+		//fout << Numoutvector[ii+2] << "\n";
+		writess << Numoutvector[ii+2] << "\n";
+
 	}
 	
 	//write the parameter lines
 	for (int ii = 0; ii<numparam; ++ii) {
 		if (AllParams[ii].first==0) {
-			fout << "0/1 ;\n";
+			//fout << "0/1 ;\n";
+			writess << "0/1 ;\n";
 		}
 		else {
 			ss << AllParams[ii].first;
@@ -339,12 +352,14 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 			//make a call from the bertini library 
 			computeNumDenom(&numer, &denom, (char *) convertmetochar.c_str());
 			
-			fout << numer << "/" << denom << " ;\n";
+			//fout << numer << "/" << denom << " ;\n";
+			writess << numer << "/" << denom << " ;\n";
 		}
 		
 		
 		if (AllParams[ii].second==0) {
-			fout << "0/1 ;\n";
+			//fout << "0/1 ;\n";
+			writess << "0/1 ;\n";
 		}
 		else {
 			ss << AllParams[ii].second; 
@@ -353,15 +368,19 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 			ss.str("");
 			
 			computeNumDenom(&numer, &denom, (char *) convertmetochar.c_str());
-			fout << numer << "/" << denom << " ;\n";
+			//fout << numer << "/" << denom << " ;\n";
+			writess << numer << "/" << denom << " ;\n";
 		}
 		
 	}
 	
 	for (int ii = (2+4*numparam); ii< int(Numoutvector.size())-1; ++ii) {
-		fout << Numoutvector[ii] << "\n";
+		//fout << Numoutvector[ii] << "\n";
+		writess << Numoutvector[ii] << "\n";
 	}
 	
+	
+	fout << writess.str();
 	fout.close();
 	
 }
