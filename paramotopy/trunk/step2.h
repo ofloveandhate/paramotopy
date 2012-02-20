@@ -56,12 +56,6 @@ void MakeConstantsStep2(std::ofstream & fout,
 void CallBertiniStep2(std::string param_dir);
 
 
-void WriteData(int runid, 
-	       std::string orig_file, 
-	       std::string target_file,
-	       //	       bool append,
-	       std::vector<std::string> ParamStrings,
-	       std::vector<std::pair<double, double> > CValues);
 
 std::string MakeTargetFilename(std::string base_dir,
 			       ToSave *TheFile,

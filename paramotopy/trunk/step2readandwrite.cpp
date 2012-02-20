@@ -10,6 +10,46 @@ extern "C" {
 }
 
 
+
+void WriteData(int runid, 
+			   std::string orig_file, 
+			   std::string target_file,
+			   std::vector<std::string> ParamStrings,
+			   std::vector<std::pair<double, double> > CValues){
+	
+	std::string cline;
+	
+	std::ifstream fin(orig_file.c_str());
+	std::ofstream fout;
+	// test if file target file is open
+	
+	std::ifstream fintarget(target_file.c_str());
+	if (fintarget.is_open()){
+		fintarget.close();
+		fout.open(target_file.c_str(),std::ios::app);
+	}
+	else{
+		fintarget.close();
+		fout.open(target_file.c_str());
+		
+		for (int i = 0; i < int(ParamStrings.size());++i){
+			fout << ParamStrings[i] << (i != int(ParamStrings.size())-1? " ": "\n");
+		}
+	}
+	fout << runid << "\n";
+	for (int i = 0; i < int(CValues.size());++i){
+		fout << CValues[i].first << " " << CValues[i].second << " ";
+	}
+	fout << "\n";
+	while(getline(fin,cline)){
+		fout << cline << "\n";
+	}
+	fin.close();
+	fout.close();
+}
+
+
+
 void GetStartConfig(std::string base_dir,
 					std::vector< std::string > & startvector,
 					std::vector< std::string > & configvector){
