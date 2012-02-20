@@ -64,15 +64,31 @@ void slave(std::vector<std::string> dir,
 	
 	double datareceived[numfilesatatime*(2*numparam+1)]; //for catching from the mpi
 	std::stringstream myss;
-	char *args_parse[3];
+	char *args_parse[11];
 	args_parse[0] = "bertini";
 	args_parse[1] = "input";
-	args_parse[2] = "0";
+	args_parse[2] = "start";
+	args_parse[3] = "0";
+	args_parse[4] = "0";
+	args_parse[5] = "0";
+	args_parse[6] = "0";
+	args_parse[7] = "0";
+	args_parse[8] = "0";
+	args_parse[9] = "0";
+	args_parse[10] = "2";
 	
-	char *args_noparse[4];
+	char *args_noparse[12];
 	args_noparse[0] = "bertini";
 	args_noparse[1] = "input";
-	args_noparse[2] = "1";
+	args_noparse[2] = "start";
+	args_noparse[3] = "0";
+	args_noparse[4] = "0";
+	args_noparse[5] = "0";
+	args_noparse[6] = "0";
+	args_noparse[7] = "0";
+	args_noparse[8] = "0";
+	args_noparse[9] = "0";
+	args_noparse[10] = "1";
 	
 	
 	
@@ -136,7 +152,7 @@ void slave(std::vector<std::string> dir,
 #ifdef timingstep2
 	t1 = omp_get_wtime();
 #endif
-	currentSeed = bertini_main(3,args_parse);
+	currentSeed = bertini_main(11,args_parse);
 #ifdef timingstep2
 	t_bertini += omp_get_wtime() - t1;
 	bertinicounter++;
@@ -167,7 +183,7 @@ void slave(std::vector<std::string> dir,
 	//		std::cout << "done reading \n";
 	myss << currentSeed;
 	myss >> currentSeedstring;
-	args_noparse[3] = const_cast<char *>(currentSeedstring.c_str());
+	args_noparse[11] = const_cast<char *>(currentSeedstring.c_str());
 	myss.clear();
 	myss.str("");
 	
@@ -267,7 +283,7 @@ void slave(std::vector<std::string> dir,
 #ifdef timingstep2
 			t1 = omp_get_wtime();
 #endif
-			blaint = bertini_main(4,args_noparse);
+			blaint = bertini_main(12,args_noparse);
 #ifdef timingstep2
 			t_bertini += omp_get_wtime() - t1;
 			bertinicounter++;
