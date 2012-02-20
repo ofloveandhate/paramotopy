@@ -22,12 +22,14 @@
 #ifndef __STEP2READANDWRITE_H__
 #define __STEP2READANDWRITE_H__
 
-void WriteData(int runid, 
-			   std::string orig_file, 
+std::string AppendData(int runid, 
+				std::string orig_file, 
+				std::vector<std::string> ParamStrings,
+				std::vector<std::pair<double, double> > CValues);
+
+void WriteData(std::string outstring,
 			   std::string target_file,
-			   //	       bool append,
-			   std::vector<std::string> ParamStrings,
-			   std::vector<std::pair<double, double> > CValues);
+			   std::vector<std::string> ParamStrings);
 
 
 void GetStartConfig(std::string base_dir,
