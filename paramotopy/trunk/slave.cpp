@@ -83,8 +83,9 @@ void slave(std::vector<std::string> dir,
 	std::vector<std::string> configvector;
 	std::vector<std::string> funcinputvector;
 	
-	
-	
+	std::vector<std::string> runningfile; //for storing the data between writes.
+	runningfile.resize(numfiles);
+	int writethreshold = 256;
 	
 	
 	myss << base_dir << "/step2/DataCollected/c"
@@ -184,6 +185,21 @@ void slave(std::vector<std::string> dir,
 #ifdef verbosestep2
 			std::cout << "received kill tag to rank " << myid << "\nkilling now\n";
 #endif
+			for (int j = 0; j < numfiles;++j){
+				
+				std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
+#ifdef timingstep2
+				t1= omp_get_wtime();
+#endif
+				WriteData(runningfile[j], 
+						  target_file,
+						  ParamNames);
+				runningfile[j] = "";				
+#ifdef timingstep2
+				t_write += omp_get_wtime() - t1;
+				writecounter++;
+#endif
+			}
 			break; //exits the while loop
 		}
 		
@@ -230,17 +246,14 @@ void slave(std::vector<std::string> dir,
 			// Collect the Data
 			for (int j = 0; j < numfiles;++j){
 				
-				std::string target_file =
-				MakeTargetFilename(DataCollectedbase_dir,
-								   TheFiles,
-								   j);
-				//			  std::string orig_file = dir[k];
-				std::string orig_file = "";  //original file is in current directory now.  -dan brake
+				std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
+				//std::string orig_file = "";  //original file is in current directory now.  -dan brake  //			  std::string orig_file = dir[k];
+				//orig_file.append(TheFiles[j].filename);
 				
-				orig_file.append(TheFiles[j].filename);
+				
 				
 #ifdef verbosestep2
-				std::cout << target_file << " " << orig_file << "\n";
+				std::cout << target_file << " " << TheFiles[j].filename << "\n";
 				std::cout << "allparams: " << AllParams[numparam-1].first << "\n";
 				std::cout << "writing data to " << target_file << " from worker " << myid << " with folder" << k <<"\n";
 #endif
@@ -248,19 +261,29 @@ void slave(std::vector<std::string> dir,
 				
 				
 				//write data to file
+
+				runningfile[j].append(AppendData(linenumber,
+												 TheFiles[j].filename,
+												 ParamNames,
+												 AllParams));
+				
+				//std::cout << myid << " " << runningfile[j].size() << "\n";
+				
+				
 #ifdef timingstep2
 				t1= omp_get_wtime();
 #endif
-				WriteData(linenumber, 
-						  orig_file, 
-						  target_file,
-						  ParamNames,
-						  AllParams);	
+				if (int(runningfile[j].size()) > 64000){
+					WriteData(runningfile[j], 
+							  target_file,
+							  ParamNames);
+					runningfile[j] = "";
+				}
+				
 #ifdef timingstep2
 				t_write += omp_get_wtime() - t1;
 				writecounter++;
 #endif
-				
 			}
     		
 			
@@ -271,7 +294,7 @@ void slave(std::vector<std::string> dir,
 			
 			++localcounter;
 			++loopcounter;
-			if (loopcounter==512){//every 512 loops, check file sizes
+			if (loopcounter==writethreshold){//every 256 loops, check file sizes
 				UpdateFileCount(TheFiles,numfiles,DataCollectedbase_dir);
 				loopcounter=0;
 			}
