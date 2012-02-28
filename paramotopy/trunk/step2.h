@@ -4,7 +4,10 @@
 #include <map>
 #include <sstream>
 #include "step1.h"
-#define timingstep2
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 
 #ifndef __STEPTWO_H__
@@ -66,8 +69,8 @@ void TouchFilesToSave(ToSave *TheFiles,int numfilespossible,
 		      std::string base_dir);
 
 
-void UpdateFileCount(ToSave *TheFiles, int numfiles,
-		     std::string DataCollectedBaseDir);
+//void UpdateFileCount(ToSave *TheFiles, int numfiles,
+//		     std::string DataCollectedBaseDir);
 
 
 void SetFileCount(ToSave *TheFiles, int numfiles,

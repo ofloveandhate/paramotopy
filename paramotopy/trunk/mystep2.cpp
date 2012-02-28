@@ -21,8 +21,7 @@
 #include "master.h"
 #include "slave.h"
 
-#define timingstep2
-#define verbosestep2
+
 
 /*
  the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
@@ -122,6 +121,7 @@ int main(int argc, char* argv[]){
 		  TheFiles[i].saved = true;
 		  commandss >> TheFiles[i].filecount;
 	  }  
+	
 
     commandss >> numfilesatatime;//number of folders for each processor to own, and work out of.
     commandss >> numparam;//number of parameters in the input file.

@@ -26,19 +26,25 @@
 
 
 
+
 void master(std::vector<std::string> dir,
 			std::string filename,
 			int numfilesatatime,
 			int saveprogresseverysomany){//added mcfin,filename, etc 3/7/11 db
 	
 	
-	
+#ifdef verbosestep2
+	std::cout << "starting initial stuff master\n";
+#endif
 	
 	
 	//some data members used in this function
-	//int numsubfolders = dir.size();
+
 	int numprocs, rank;
-	//	int workerlastrecieved = 0;
+	int terminationint;//how many solves to do total.
+	
+
+	
 	MPI_Status status;
 	std::ifstream fin;
 	std::ofstream fout;
@@ -63,15 +69,19 @@ void master(std::vector<std::string> dir,
 	timingname.append("/timing/mastertiming");
 #endif 
 	
+	
+	
 	/* Find out how many processes there are in the default
      communicator */
 	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 	
+	void *v;
+    int flag;
+    int norunflag;
+	MPI_Comm_get_attr( MPI_COMM_WORLD, MPI_TAG_UB, &v, &flag );
+	norunflag = *(int*)v - 1;	
 	
-	
-	
-	
-	
+
 	
 	
 	
@@ -102,7 +112,7 @@ void master(std::vector<std::string> dir,
 			  ParamStrings,
 			  Consts,
 			  ConstantStrings,
-			  Values,//captures both user-defined and program-generated
+			  Values,//captures both user-defined and program-generated.  since userdefined could be a big file, it gets read as needed down below.
 			  RandomValues,//we will overwrite, because will be wrong.  load from a file in the bfiles folder
 			  userdefined,
 			  fin,//yep
@@ -115,32 +125,61 @@ void master(std::vector<std::string> dir,
 	std::cout << "parsed\n";	
 #endif
 	
-	std::vector< int > lastnumsent;
-	GetLastNumSent(base_dir,
-				   lastnumsent,
-				   numprocs);
 	
-	//get random values.  probably destroyed during parsing process.  gotta do this after parsing.
+	
+	std::vector< int > lastnumsent;
+	int smallestnumsent = GetLastNumSent(base_dir,  //reads from two files.
+								  lastnumsent, // assigns this vector here
+								  numprocs);
+#ifdef verbosestep2
+	std::cout << smallestnumsent << "\n";
+#endif
+	
+	
+	//get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.
 	GetRandomValues(base_dir,
 					RandomValues);
 	
 	
-	
-	
-	//open mc file for writing out to
 	std::string mcfname = base_dir;
 	mcfname.append("/mc");
-	std::ofstream mcfout;
-	if (lastnumsent.size()>1) {
-		mcfout.open(mcfname.c_str(), std::ios::out | std::ios::app);	
+	std::vector< int > KVector;// for the index making function
+	std::ofstream mc_out_stream;
+	std::ifstream mc_in_stream;
+	
+	
+	if (!userdefined) {
+		KVector.push_back(1); 
+		for (int i=1; i<numparam; ++i) {
+			KVector.push_back(KVector[i-1]*NumMeshPoints[i-1]);
+		}
+		terminationint = KVector[numparam-1]*NumMeshPoints[numparam-1];
+
+
+		//open mc file for writing out to
+		if (smallestnumsent==0) {  // fresh run
+			mc_out_stream.open(mcfname.c_str(), std::ios::out | std::ios::app);	
+		}
+		else {
+			mc_out_stream.open(mcfname.c_str());	
+		}
+		//end open mc file
 	}
 	else {
-		mcfout.open(mcfname.c_str());	
+		
+		int num_lines_mcfile = GetMcNumLines(base_dir,numparam); // verified correct for both newline terminated and not newline terminated.  dab
+		terminationint = num_lines_mcfile;
+
+		mc_in_stream.open(mcfname.c_str(), std::ios::in);
+		
 	}
-	//end open mc file
+
+	
+	
 	
 	std::vector< std::string > startvector;
 	std::vector< std::string > configvector;
+	// read in the start and config files
 	GetStartConfig(base_dir,
 				   startvector,
 				   configvector);
@@ -153,35 +192,29 @@ void master(std::vector<std::string> dir,
 	
 	std::vector< std::pair<double,double> > TmpValues;
 	TmpValues.resize(numparam);
+	
 	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
 	indexvector.resize(numparam);
 	
-	std::vector< int > KVector;//same
 
 	double ParamSends[(numprocs-1)*numfilesatatime*(2*numparam+1)];//for sending to workers, to print into datacollected files
 	int I, J, index;
 	double a, b;//real and imaginary parts of the parameter values.
 	std::stringstream ssdeleteme;
 	int localcounter;//how many times through the loop
-	int terminationint;//how many solves to do total.
-	if (!userdefined) {
-		KVector.push_back(1);
-		for (int i=1; i<numparam; ++i) {
-			KVector.push_back(KVector[i-1]*NumMeshPoints[i-1]);
-		}
-		terminationint = KVector[numparam-1]*NumMeshPoints[numparam-1];
-	}
-	else {
-		terminationint = Values.size();
-	}
+
 	
 	
+	
+	// for the step 2.1 solve, we need random values
+	std::vector<std::pair<double, double> > tmprandomvalues = MakeRandomValues(numparam);
+
 	
 	
 	
 	/////////////////////////
 	//
-	//  end initial setup for master
+	//    end setup for master
 	//
 	//////////////////////
 	
@@ -204,9 +237,7 @@ void master(std::vector<std::string> dir,
 	
 	
 	
-#ifdef verbosestep2
-	std::cout << "starting initial stuff\n";
-#endif
+
 	
 	//////////////////////////////
 	//
@@ -216,21 +247,9 @@ void master(std::vector<std::string> dir,
 	
 	
 	
+
 	
 	
-	
-	if (lastnumsent.size()==1) {
-		for (int i=1; i<numprocs; ++i) {
-			lastnumsent.push_back((i-1)*numfilesatatime);
-		}
-	}
-	
-	
-	
-	
-	
-	
-	std::vector<std::pair<double, double> > tmprandomvalues = MakeRandomValues(numparam);
 	for (int ii=1; ii<numprocs; ++ii) {
 		std::stringstream myss;
 		myss << base_dir << "/step2/tmp/init" << ii;
@@ -250,8 +269,8 @@ void master(std::vector<std::string> dir,
 		WriteStep2(configvector,
 				   fout,
 				   tmprandomvalues, //  <------- this, in this call, has been replaced from TmpValues to tmprandomvalues.
-				   FunctVector, 
-				   VarGroupVector,
+				   FunctVector,     // 
+				   VarGroupVector,  //    write for the initial 2.1 solve 
 				   ParamVector,
 				   ParamStrings,
 				   Consts,
@@ -267,7 +286,7 @@ void master(std::vector<std::string> dir,
 		//write the start files.  only need to do this once.
 		std::string initrunstart = initrunfolder;
 		initrunstart.append("/start");
-//		std::cout << initrunstart << "\n";
+
 		fout.open(initrunstart.c_str());
 		for (int j=0; j<int(startvector.size()); ++j) {
 			fout << startvector[j];
@@ -283,138 +302,235 @@ void master(std::vector<std::string> dir,
 	
 	
 	
-	
-	
 #ifdef timingstep2
 	t_initial = omp_get_wtime() - t_start;	
-#endif	
+#endif
+	
+	
 	
 	//to let workers know its ok to do the 2.1 solve
 	int arbitraryint =0 ;
-//	std::cout << "letting workers know its ok to start w init.\n";
+	
+#ifdef verbosestep2
+	std::cout << "letting workers know its ok to start w init.\n";
+#endif
+#ifdef timingstep2
+	t1 = omp_get_wtime();
+#endif	
 	MPI_Bcast(&arbitraryint, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#ifdef timingstep2
+	t_send += omp_get_wtime()-t1;
+	sendcounter++;
+#endif
+	
+	
+	
+	
+	//////////////////////////////
+	//
+	//        If userdefined, read the initial parameter values into memory...
+	//
+	////////////////////////////////
+	
+	
+	if (userdefined) {
+		Values.clear();
+		std::string temp;
+		
+
+		if (smallestnumsent>0) {
+			for (int i=0; i < smallestnumsent ; ++i) {
+				getline(mc_in_stream,temp);         // burn the already processed lines
+			}
+		}
+		
+		
+		for (int j=0; (j < (numprocs-1)*numfilesatatime) && ( (j+smallestnumsent) < terminationint ) ; ++j) {
+			
+			getline(mc_in_stream,temp);
+			std::vector< std::pair<double, double> > CValue;
+			std::stringstream ss;
+			ss << temp;
+			for (int i = 0; i < numparam;++i){
+				double creal;
+				double cimaginary;
+				ss >> creal;
+				ss >> cimaginary;
+				CValue.push_back(std::pair<double,double>(creal,cimaginary));
+			}
+			
+			Values.push_back(CValue);
+		}
+	} // if userdefined
 	
 	
 	
 	
 	
+	
+	
+	////////////////////////////////
+	//
+	//        seed the lastnumsent vector
+	//
+	/////////////////////////////
+	lastnumsent.clear();
+	for (int i=1; i<numprocs; ++i) {
+		lastnumsent.push_back(smallestnumsent + (i-1)*numfilesatatime);
+#ifdef verbosestep2
+		std::cout << "lastnumsent[" << i-1 << "] = " << lastnumsent[i-1] << "\n";
+#endif
+	}
+
+
 	
 	///////////////
-	//
-	//    create the input files for the initial seed of workers
+	//    
+	//    create the necessary files for the workers
 	//
 	///////////////
-	int biggestnumsent = 0;
+	std::vector< int > numtoprocess_first;
+	numtoprocess_first.resize(numprocs);
+	int biggestnumsent;
 	int loopcounter = 0;
 	for (int proc_count=1;proc_count<(numprocs);++proc_count){
 		
-		
-		std::cout << (proc_count-1) << "\n";
-		//write the start files.  only need to do this once.			
-		std::string curbase_dir=dir[proc_count-1];
-		curbase_dir.append("/start");
-#ifdef timingstep2
-		t1 = omp_get_wtime();
-#endif	
-		std::cout << curbase_dir << "\n";
-		fout.open(curbase_dir.c_str());
-		for (int j=0; j< int(startvector.size()); ++j) {
-			fout << startvector[j];
-			if (startvector[j].length() > 0) {
-				fout << ";";
-			}
-			
-			fout  << "\n";
-		}
-		fout.close();
-#ifdef timingstep2
-		t_write+= omp_get_wtime() - t1;
-		writecounter++;
-#endif
-		
-		
-		std::cout << "lastnumsent[proccount] " << lastnumsent[proc_count] << "\n";
-		
-		localcounter=0; //how many times have done the next inner loop
-		for (int i = lastnumsent[proc_count]; (i < lastnumsent[proc_count]+numfilesatatime) && (i<terminationint  ); ++i){
-			
-			
-			//determine the parameter values for this file
-			if (userdefined){
-				TmpValues = Values[i];
-				for (int j=0; j<numparam; ++j) {
-					ParamSends[loopcounter*(2*numparam+1)+2*j] = Values[i][j].first;//
-					ParamSends[loopcounter*(2*numparam+1)+2*j+1] = Values[i][j].second;//
-				}
-				ParamSends[loopcounter*(2*numparam+1)+2*numparam] = i;//the line number in mc file
-			}
-			
-			else {//not user defined
-				//form index
-				index = i;
-				for (int j=numparam-1; j>-1; j--) {
-					I = (index)%KVector[j];
-					J = (index - I)/KVector[j];
-					indexvector[j] = J;
-					index = I;
-				}
 				
-				//get param values
-				for (int j=0; j<numparam; ++j) {
-					a = Values[j][ indexvector[j] ].first;
-					b = Values[j][ indexvector[j] ].second;
-					TmpValues[j].first = a;
-					TmpValues[j].second = b;
-					ParamSends[loopcounter*(2*numparam+1) + 2*j] = a;//for sending to worker, to write to data file
-					ParamSends[loopcounter*(2*numparam+1) + 2*j+1] = b;
+				////////////////////////////////////////
+				//          write the start files.  only need to do this once per worker.
+				////////////////////////////////////////
+				
+				std::string curbase_dir=dir[proc_count-1];
+				curbase_dir.append("/start");
+		#ifdef timingstep2
+				t1 = omp_get_wtime();
+		#endif	
+				std::cout << curbase_dir << "\n";
+				fout.open(curbase_dir.c_str());
+				for (int j=0; j< int(startvector.size()); ++j) {
+					fout << startvector[j];
+					if (startvector[j].length() > 0) {
+						fout << ";";
+					}
+					
+					fout  << "\n";
 				}
-				ParamSends[loopcounter*(2*numparam+1) + 2*numparam] = i;//the line number in the mc file
-			}
-			
-			
-#ifdef timingstep2
-			t1 = omp_get_wtime();
-#endif			
-			//write the mc line
-			for (int j=0; j<numparam; ++j) {
-				mcfout << TmpValues[j].first << " " << TmpValues[j].second << " ";
-			}
-			mcfout << "\n";
-			
-#ifdef timingstep2
-			t_write+= omp_get_wtime() - t1;
-			writecounter++;
-#endif
-			
-			//increment
-			localcounter++;
-			loopcounter++;//for keeping track of folder to write to
-			if (i>biggestnumsent){
-				biggestnumsent=i;
-			}
-		}		//re: for int i=lastnumsent[proc_count]	  
+				fout.close();
+		#ifdef timingstep2
+				t_write+= omp_get_wtime() - t1;
+				writecounter++;
+		#endif
+				
+				
+
+				/////////////////////////
+				//     make initial data to send to the workers
+				////////////////////////////
+				
+				
+		numtoprocess_first[proc_count-1] = std::min( numfilesatatime, std::max(terminationint-lastnumsent[proc_count-1],0) );
+				for (int i = lastnumsent[proc_count-1]; (i < lastnumsent[proc_count-1]+numfilesatatime) && (i<terminationint  ); ++i){
+					
+					
+					//determine the parameter values for this file
+					if (userdefined){
+						//already made the values above
+						TmpValues = Values[loopcounter];  // dont worry, loopcounter is incremented...
+						for (int j=0; j<numparam; ++j) {
+							ParamSends[loopcounter*(2*numparam+1)+2*j] = TmpValues[j].first;//
+							ParamSends[loopcounter*(2*numparam+1)+2*j+1] = TmpValues[j].second;//
+						}
+						ParamSends[loopcounter*(2*numparam+1)+2*numparam] = i;//the line number in mc file
+					}
+					else {//not user defined
+						//form index for matrix of parameter values
+						index = i;
+						for (int j=numparam-1; j>-1; j--) {
+							I = (index)%KVector[j];
+							J = (index - I)/KVector[j];
+							indexvector[j] = J;
+							index = I;
+						}
+						
+						//get param values
+						for (int j=0; j<numparam; ++j) {
+							a = Values[j][ indexvector[j] ].first;
+							b = Values[j][ indexvector[j] ].second;
+							TmpValues[j].first = a;
+							TmpValues[j].second = b;
+							ParamSends[loopcounter*(2*numparam+1) + 2*j] = a;//for sending to worker, to write to data file
+							ParamSends[loopcounter*(2*numparam+1) + 2*j+1] = b;
+						}
+						ParamSends[loopcounter*(2*numparam+1) + 2*numparam] = i;//the line number in the mc file
+					}
+					
+					
+		#ifdef timingstep2
+					t1 = omp_get_wtime();
+		#endif			
+					//write the mc line, but only if on an automated mesh
+					if (!userdefined) {
+						for (int j=0; j<numparam; ++j) {
+							mc_out_stream << TmpValues[j].first << " " << TmpValues[j].second << " ";
+						}
+						mc_out_stream << "\n";
+					}
+					
+					
+		#ifdef timingstep2
+					t_write+= omp_get_wtime() - t1;
+					writecounter++;
+		#endif
+					
+					//increment
+					loopcounter++;//for keeping track of folder to write to			
+				}		//re: for int i=lastnumsent[proc_count]	  
+		
 	}//re: for int proc_count=1:numprocs
 	
+	biggestnumsent = smallestnumsent + (numprocs-1)*numfilesatatime - 1;
 	
 	//to let the workers know its ok to move on, and to let head node know workers are done with initial solve
 	MPI_Bcast(&biggestnumsent, 1, MPI_INT, 0, MPI_COMM_WORLD);
-//	std::cout << "bcast indicating all workers done w init\n";
+#ifdef verbosestep2
+	std::cout << "bcast indicating all workers done w init\n";
+#endif
 	
 	
-	double tempsends[numfilesatatime*(2*numparam+1)];
 	
-	/* Seed the slaves; send one unit of work to each slave. */
+	
+	
+	
+	
+	///////////////////////////
+	//
+	//         Initially Seed the slaves; send one unit of work to each slave. 
+	//
+	///////////////////////////////////
+	
+	
 	for (rank = 1; rank < numprocs; ++rank) {  //no rank 0, because 0 is head node
+		double tempsends[numfilesatatime*(2*numparam+1)];
+		memset(tempsends, 0, numfilesatatime*(2*numparam+1)*sizeof(double) );
 		
 		localcounter=0;
-		for (int i=(rank-1)*numfilesatatime; i<rank*numfilesatatime; ++i) {
-			for (int j=0; j<2*numparam+1; ++j) {
-				tempsends[localcounter*(2*numparam+1)+j] = ParamSends[i*(2*numparam+1)+j];
-			}	  
-			localcounter++;
+		if (numtoprocess_first[rank-1]!=0) {
+			for (int i=lastnumsent[rank-1]; i<lastnumsent[rank-1] + numtoprocess_first[rank-1];++i){      //old:  (rank-1)*numfilesatatime; i<rank*numfilesatatime; ++i) {
+				for (int j=0; j<2*numparam+1; ++j) {
+					tempsends[localcounter*(2*numparam+1)+j] = ParamSends[i*(2*numparam+1)+j];
+				}	  
+				localcounter++;
+			}
 		}
-		lastnumsent[rank] = int(tempsends[2*numparam]);
-		
+
+		int sendymcsendsend;
+		if (numtoprocess_first[rank-1] == 0) {
+			sendymcsendsend = norunflag;
+		}
+		else {
+			sendymcsendsend = numtoprocess_first[rank-1];
+		}
+
 		
 		
 #ifdef verbosestep2
@@ -430,7 +546,7 @@ void master(std::vector<std::string> dir,
 				 numfilesatatime*(2*numparam+1),                 /* one data item */
 				 MPI_DOUBLE,           /* data item is an integer */
 				 rank,              /* destination process rank */
-				 numfilesatatime,           /* user chosen message tag */
+				 sendymcsendsend,           /* user chosen message tag */
 				 MPI_COMM_WORLD);   /* default communicator */
 #ifdef timingstep2
 		t_send += omp_get_wtime()-t1;
@@ -440,8 +556,7 @@ void master(std::vector<std::string> dir,
 	
 	
 	
-	
-	
+	std::cout << smallestnumsent << " " << biggestnumsent << "\n";
 	
 	
 	
@@ -469,6 +584,7 @@ void master(std::vector<std::string> dir,
 	
 	while (countingup < terminationint) {
 		
+		smallestnumsent = countingup;
 		//figure out how many files to do
 		numtodo = numfilesatatime;
 		if (numtodo+countingup>=terminationint) {
@@ -492,29 +608,34 @@ void master(std::vector<std::string> dir,
 		t_receive+= omp_get_wtime() - t1;
 		receivecounter++;
 #endif
-		
-		
 #ifdef verbosestep2
 		std::cout << "received from : " << status.MPI_SOURCE << "\n";
 #endif
 		
 		
 		
+		// make tempsends in the step2 loop
+		double tempsends[numfilesatatime*(2*numparam+1)];
+		memset(tempsends, 0, numfilesatatime*(2*numparam+1)*sizeof(double) );
 		
-	    
 		localcounter=0;
 	    for (int i = (status.MPI_SOURCE-1)*numfilesatatime; i < (status.MPI_SOURCE-1)*numfilesatatime+numtodo; ++i){
-			
-			FormNextValues(numfilesatatime, userdefined,numparam,localcounter,Values,countingup,KVector,tempsends);
-						
+			if (userdefined) {
+				FormNextValues_mc(numfilesatatime,numparam,localcounter,countingup,mc_in_stream,tempsends);
+			}
+			else {
+				FormNextValues(numfilesatatime,numparam,localcounter,Values,countingup,KVector,tempsends);
+			}			
 			
 #ifdef timingstep2
 			t1 = omp_get_wtime();
-#endif			//write the mc line
-			for (int j=0; j<numparam; ++j) {
-				mcfout << tempsends[localcounter*(2*numparam+1)+2*j] << " " << tempsends[localcounter*(2*numparam+1)+2*j+1] << " ";
+#endif			//write the mc line if not userdefined
+			if (!userdefined) {
+				for (int j=0; j<numparam; ++j) {
+					mc_out_stream << tempsends[localcounter*(2*numparam+1)+2*j] << " " << tempsends[localcounter*(2*numparam+1)+2*j+1] << " ";
+				}
+				mc_out_stream << "\n";
 			}
-			mcfout << "\n";
 #ifdef timingstep2
 			t_write+= omp_get_wtime()-t1;
 			writecounter++;
@@ -522,7 +643,7 @@ void master(std::vector<std::string> dir,
 			//increment
 			localcounter++;
 			countingup++;
-	    } //re: write files in the step2 loop
+	    } //re: make tempsends in the step2 loop
 		
 		
 		
@@ -543,7 +664,7 @@ void master(std::vector<std::string> dir,
 		
 		
 		
-		lastnumsent[status.MPI_SOURCE] = int(tempsends[(2*numparam)]);
+		lastnumsent[status.MPI_SOURCE] = smallestnumsent;//int(tempsends[(2*numparam)]);
 		
 		if ((lastoutcounter%saveprogresseverysomany)==0) {
 #ifdef timingstep2
@@ -557,10 +678,13 @@ void master(std::vector<std::string> dir,
 				lastout.open(lastoutfilename0.c_str());
 			}
 			
-			
+			std::stringstream tempss;
 			for (int i=1; i<numprocs; ++i) {
-				lastout << lastnumsent[i] << "\n";
+				tempss << lastnumsent[i] << "\n";
 			}		
+			lastout << tempss.str();
+			tempss.clear();
+			tempss.str("");
 			lastout.close();
 			
 #ifdef timingstep2
@@ -617,7 +741,7 @@ void master(std::vector<std::string> dir,
 #ifdef timingstep2
 		t1 = omp_get_wtime();
 #endif
-		MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, rank, 0, MPI_COMM_WORLD);//added arbitraryfloat to make number send match number received.  db.
+		MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, rank, 0, MPI_COMM_WORLD);//send everybody the kill signal.
 #ifdef timingstep2
 		t_send += omp_get_wtime()-t1;
 		sendcounter++;
@@ -630,7 +754,8 @@ void master(std::vector<std::string> dir,
 	t1 = omp_get_wtime();
 #endif
 	
-	mcfout.close();
+	mc_out_stream.close();
+	mc_in_stream.close();
 	fout.open(finishedfile.c_str());
 	fout << 1;
 	fout.close();
@@ -656,26 +781,33 @@ void master(std::vector<std::string> dir,
 
 
 
+
+
+
+/////////////////////////////
+//
+//   some subfunctions
+//
+////////////////////////
+
+
+
+
+
 void FormNextValues(int numfilesatatime,
-						int userdefined,
-						int numparam,
-						int localcounter,	
-						std::vector< std::vector< std::pair<double,double> > > Values,
-						int countingup,
-					  std::vector< int > KVector,
-					  double tempsends[]){
+					int numparam,
+					int localcounter,	
+					std::vector< std::vector< std::pair<double,double> > > Values,
+					int countingup,
+					std::vector< int > KVector,
+					double tempsends[]){
+	
 	int index, I,J;
 	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
 	indexvector.resize(numparam);
 	
-	if (userdefined){
-		for (int j=0; j<numparam; ++j) {
-			tempsends[localcounter*(2*numparam+1)+2*j] = Values[countingup][j].first;//
-			tempsends[localcounter*(2*numparam+1)+2*j+1] = Values[countingup][j].second;//
-		}
-		tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
-	}
-	else {
+
+
 		//get subscripts (zero-based) for the index, countingup
 		index = countingup;
 		for (int j=numparam-1; j>-1; --j) {
@@ -695,7 +827,39 @@ void FormNextValues(int numfilesatatime,
 			//					tempsends[localcounter*(2*numparam+1)+2*j+1] = b;
 		}
 		tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
+
+	return;
+}
+
+
+
+void FormNextValues_mc(int numfilesatatime,
+						int numparam,
+						int localcounter,	
+						int countingup,
+					   std::ifstream & mc_in_stream,
+						double tempsends[]){
+
+	std::string temp;
+	getline(mc_in_stream,temp);
+	std::vector< std::pair<double, double> > CValues;
+	std::stringstream ss;
+	ss << temp;
+	for (int i = 0; i < numparam;++i){
+		double creal;
+		double cimaginary;
+		ss >> creal;
+		ss >> cimaginary;
+		CValues.push_back(std::pair<double, double>(creal,cimaginary));
 	}
+
+	for (int j=0; j<numparam; ++j) {
+			tempsends[localcounter*(2*numparam+1)+2*j] = CValues[j].first;//
+			tempsends[localcounter*(2*numparam+1)+2*j+1] = CValues[j].second;//
+		}
+		tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
+
+
 	
 	return;
 	

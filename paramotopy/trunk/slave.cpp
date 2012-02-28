@@ -59,8 +59,17 @@ void slave(std::vector<std::string> dir,
 	int linenumber;
 	int numparam = ParamNames.size();
 	int myid;
+
+	
+	
 	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 	MPI_Status status;
+	
+	void *v;
+    int flag;
+    int norunflag;
+	MPI_Comm_get_attr( MPI_COMM_WORLD, MPI_TAG_UB, &v, &flag );
+	norunflag = *(int*)v - 1;
 	
 	double datareceived[numfilesatatime*(2*numparam+1)]; //for catching from the mpi
 	std::stringstream myss;
@@ -88,9 +97,15 @@ void slave(std::vector<std::string> dir,
 	args_noparse[7] = "0";
 	args_noparse[8] = "0";
 	args_noparse[9] = "0";
-	args_noparse[10] = "1";
+	args_noparse[10] = "3";
 	
 	
+	//setup the vector of filesizes
+	std::vector<int> filesizes;
+	filesizes.resize(numfiles);
+	for (int i=0; i<numfiles; ++i) {
+		filesizes[i] = 0;
+	}
 	
 	std::vector<std::string> Numoutvector; 
 	std::vector<std::string> arroutvector;
@@ -101,7 +116,10 @@ void slave(std::vector<std::string> dir,
 	
 	std::vector<std::string> runningfile; //for storing the data between writes.
 	runningfile.resize(numfiles);
-	int writethreshold = 256; //how often to check file sizes...
+	for (int i=0; i<numfiles; ++i) {
+		runningfile[i].reserve(524288);
+	}
+//	int writethreshold = 1; //how often to check file sizes...
 	
 	
 	myss << base_dir << "/step2/DataCollected/c"
@@ -148,7 +166,6 @@ void slave(std::vector<std::string> dir,
 	
 	
 	blaint = chdir(initrunfolder.c_str());
-	
 #ifdef timingstep2
 	t1 = omp_get_wtime();
 #endif
@@ -157,9 +174,6 @@ void slave(std::vector<std::string> dir,
 	t_bertini += omp_get_wtime() - t1;
 	bertinicounter++;
 #endif
-	
-//	std::cout << currentSeed<<"\n";
-	//		std::cout << "done with the first pass, worker " << myid << "\n";
 	
 	
 	
@@ -200,9 +214,9 @@ void slave(std::vector<std::string> dir,
 	
 	
 	
-	int loopcounter = 0;  //is for counting how many solves this worker has performed, for data collection file incrementing
+	long loopcounter = 0;  //is for counting how many solves this worker has performed, for data collection file incrementing
 	blaint = chdir(dir[myid-1].c_str());  //used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
-	
+	std::string target_file;
 	while (1) {
 		
 		/* Receive a message from the master */
@@ -224,16 +238,17 @@ void slave(std::vector<std::string> dir,
 #ifdef verbosestep2
 			std::cout << "received kill tag to rank " << myid << "\nkilling now\n";
 #endif
+			
 			for (int j = 0; j < numfiles;++j){
 				
-				std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
+				target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
 #ifdef timingstep2
 				t1= omp_get_wtime();
 #endif
 				WriteData(runningfile[j], 
 						  target_file,
 						  ParamNames);
-				runningfile[j] = "";				
+				runningfile[j].clear();// = "";				
 #ifdef timingstep2
 				t_write += omp_get_wtime() - t1;
 				writecounter++;
@@ -245,8 +260,10 @@ void slave(std::vector<std::string> dir,
 		
 		
 		
-		int localcounter = 0;
-		for (int k = (myid-1)*numfilesatatime; k < (myid-1)*numfilesatatime+int(status.MPI_TAG); ++k){
+		
+		if (int(status.MPI_TAG) != norunflag) {
+		long localcounter = 0;
+		for (int k = 0; k < int(status.MPI_TAG); ++k){
 			
 			
 			// unpack some data for passing around; perhaps should rewrite stuff to make this unnecessary
@@ -258,7 +275,6 @@ void slave(std::vector<std::string> dir,
 			
 			
 			// Call Bertini
-			//		blaint = chdir(dir[k].c_str());  //used to move down.  now just stay in after initially moving into working folder.
 #ifdef timingstep2
 			t1= omp_get_wtime();
 #endif
@@ -283,7 +299,7 @@ void slave(std::vector<std::string> dir,
 #ifdef timingstep2
 			t1 = omp_get_wtime();
 #endif
-			blaint = bertini_main(12,args_noparse);
+//			blaint = bertini_main(12,args_noparse);
 #ifdef timingstep2
 			t_bertini += omp_get_wtime() - t1;
 			bertinicounter++;
@@ -297,19 +313,8 @@ void slave(std::vector<std::string> dir,
 			for (int j = 0; j < numfiles;++j){
 				
 				std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
-
 				
-				
-				
-#ifdef verbosestep2
-				std::cout << target_file << " " << TheFiles[j].filename << "\n";
-				std::cout << "allparams: " << AllParams[numparam-1].first << "\n";
-				std::cout << "writing data to " << target_file << " from worker " << myid << " with folder" << k <<"\n";
-#endif
-				
-				
-				
-				//write data to file
+				//get data from file
 #ifdef timingstep2
 				t1= omp_get_wtime();
 #endif
@@ -323,8 +328,14 @@ void slave(std::vector<std::string> dir,
 #endif				
 				
 
-				
-				if (int(runningfile[j].size()) > 64000){
+				//if big enough
+				if (int(runningfile[j].size()) > 65536){
+					filesizes[j] += int(runningfile[j].size());
+#ifdef verbosestep2
+					std::cout << target_file << " " << TheFiles[j].filename << "\n";
+					std::cout << "allparams: " << AllParams[numparam-1].first << "\n";
+					std::cout << "writing data to " << target_file << " from worker " << myid << " with folder" << k <<"\n";
+#endif
 #ifdef timingstep2
 					t1= omp_get_wtime();
 #endif
@@ -336,7 +347,11 @@ void slave(std::vector<std::string> dir,
 					t_write += omp_get_wtime() - t1;
 					writecounter++; //increment the counter
 #endif
-					runningfile[j] = ""; //reset the string
+					runningfile[j].clear();//reset the string
+					if (filesizes[j] > 131072) { //update the file count
+						TheFiles[j].filecount+=1;
+						filesizes[j] = 0;
+					}
 				}
 				
 
@@ -350,14 +365,11 @@ void slave(std::vector<std::string> dir,
 			
 			++localcounter;
 			++loopcounter;
-			if (loopcounter==writethreshold){//every 256 loops, check file sizes
-				UpdateFileCount(TheFiles,numfiles,DataCollectedbase_dir);
-				loopcounter=0;
-			}
+
 			
 			
 		}//re: for (int k = 0; k < int(status.MPI_TAG);++k)
-		
+		}
 #ifdef verbosestep2
 		std::cout << "\n\n" << myid << " " << linenumber << " \n";
 #endif
@@ -380,7 +392,7 @@ void slave(std::vector<std::string> dir,
 	timingout.open(timingname.c_str(),std::ios::out);
 	timingout << myid << "\n"
 	<< "bertini: " << t_bertini << " " << bertinicounter << "\n"
-	<< "write: " << t_write+t_read << " " << writecounter << "\n"
+	<< "write: " << t_write+t_read << " " << writecounter+readcounter << "\n"
 	<< "send: " << t_send << " " << sendcounter << "\n"
 	<< "receive: " << t_receive << " " << receivecounter << "\n"
 	<< "total: " << omp_get_wtime() - t_start << "\n";
