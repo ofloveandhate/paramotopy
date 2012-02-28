@@ -468,11 +468,11 @@ void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
     thecommand.append(fileloc);
     system(thecommand.c_str());
       
+	  
 
-
-    std::ifstream fin2(paramfilename.c_str());
-    Values = MakeValues(numparam,fin2);
-    fin2.close();
+//    std::ifstream fin2(paramfilename.c_str());
+//    Values = MakeValues(numparam,fin2);
+//    fin2.close();
     
   }
   else{

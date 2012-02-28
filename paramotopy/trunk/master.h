@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
+
+
 #include "step2readandwrite.h"
 
 #ifndef __MASTER_H__
@@ -26,7 +28,6 @@ void master(std::vector<std::string> dir,
 			int saveprogresseverysomany);
 
 void FormNextValues(int numfilesatatime,
-						int userdefined,
 						int numparam,
 						int localcounter,	
 						std::vector< std::vector< std::pair<double,double> > > Values,
@@ -34,5 +35,11 @@ void FormNextValues(int numfilesatatime,
 					  std::vector< int > KVector,
 						double tempsends[]);
 	
+void FormNextValues_mc(int numfilesatatime,
+					   int numparam,
+					   int localcounter,	
+					   int countingup,
+					   std::ifstream & mc_in_stream,
+					   double tempsends[]);
 
 #endif

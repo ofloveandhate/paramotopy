@@ -1,5 +1,5 @@
 
-OPT=-O3 -funroll-loops -fexpensive-optimizations -Wall -fopenmp #-Dtimingstep2 -Dverbosestep2#Define the file suffixes for C++ source files
+OPT=-O3 -funroll-loops -fexpensive-optimizations -Wall -fopenmp -Dtimingstep2 -Dverbosestep2##Define the file suffixes for C++ source files
 .SUFFIXES:
 .SUFFIXES: .cpp $(SUFFIXES)
 

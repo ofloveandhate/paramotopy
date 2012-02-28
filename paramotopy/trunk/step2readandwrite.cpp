@@ -100,7 +100,7 @@ fin.close();
 
 
 
-void GetLastNumSent(std::string base_dir,
+int GetLastNumSent(std::string base_dir,
 					std::vector< int > & lastnumsent,
 					int numprocs){
 	
@@ -113,7 +113,7 @@ void GetLastNumSent(std::string base_dir,
 	fin.open(lastoutfilename0.c_str());
 	std::vector< int > lastnumsent0;
 	lastnumsent0.push_back(0);
-	int tmpint;
+	int tmpint, smallest = 0;
 	if (fin.is_open()){
 		int lastoutcounter=1;
 		for (int i=1; i<numprocs; ++i) {
@@ -159,6 +159,7 @@ void GetLastNumSent(std::string base_dir,
 	
 	int vectortosave = -1;
 	if ( (int(lastnumsent1.size())<numprocs) && int(lastnumsent0.size())<numprocs ) {//failed overall...suck.
+		return 0;
 		//both vectors fail.  initialize fresh run.
 	}
 	else if (int(lastnumsent0.size())<numprocs){//failed during writing of 0?
@@ -183,17 +184,26 @@ void GetLastNumSent(std::string base_dir,
 	//not possible for them to be the same.  vectortosave==(-1) if neither size matched.  fresh run if -1
 	lastnumsent.push_back(0);
 	if (vectortosave==0) {
+		smallest = lastnumsent0[0];
 		for (int i=1; i<numprocs; ++i) {
 			lastnumsent.push_back(lastnumsent0[i]);
-		}		
+			if (lastnumsent0[i] < smallest) {
+				smallest = lastnumsent0[i];
+			}
+		}	
+
 	}
 	else if (vectortosave==1){
+		smallest = lastnumsent1[0];
 		for (int i=1; i<numprocs; ++i) {
 			lastnumsent.push_back(lastnumsent1[i]);
+			if (lastnumsent1[i] < smallest) {
+				smallest = lastnumsent1[i];
+			}
 		}
+		
 	}
-	
-	
+	return smallest;
 }
 
 
@@ -435,6 +445,47 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 	
 	fout << writess.str();
 	fout.close();
+	
+}
+
+
+
+int GetMcNumLines(std::string base_dir, int numparam){
+	std::string mcfname = base_dir;
+	mcfname.append("/mc");
+	int num_lines, num_words;
+	std::string command = "wc ";
+	command.append(mcfname);
+	command.append(" > wc.out");
+	
+	system(command.c_str());
+	
+	std::string wcname = "wc.out";
+
+	
+	std::string temp;
+	std::ifstream fin(wcname.c_str());
+	std::stringstream myss;
+	
+	getline(fin,temp);
+	fin.close();
+	system("rm wc.out");
+	
+	myss << temp;
+	myss >> num_lines;
+	myss >> num_words;
+	
+	int checking;
+	checking = num_words/(2*numparam);  //there is a pair of real/complex values for each parameter value.
+	
+	if (checking > num_lines) {
+		return checking;
+	}
+		else {
+			return num_lines;
+		}
+
+	
 	
 }
 

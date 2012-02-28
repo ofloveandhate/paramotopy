@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#define timingstep2
 
 
 #ifndef __STEP2READANDWRITE_H__
@@ -36,7 +35,7 @@ void GetStartConfig(std::string base_dir,
 					std::vector< std::string > & startvector,
 					std::vector< std::string > & configvector);
 
-void GetLastNumSent(std::string base_dir,
+int GetLastNumSent(std::string base_dir,
 					std::vector< int > & lastnumsent,
 					int numprocs);
 
@@ -59,5 +58,8 @@ void WriteDotOut(std::vector<std::string> & arroutvector,
 void WriteNumDotOut(std::vector<std::string> Numoutvector,
 					std::vector<std::pair<double,double> > AllParams,
 					int numparam);
+
+int GetMcNumLines(std::string base_dir, int numparam);
+
 
 #endif
