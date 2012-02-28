@@ -63,14 +63,12 @@ void CallBertiniStep2(std::string param_dir);
 std::string MakeTargetFilename(std::string base_dir,
 			       ToSave *TheFile,
 			       int index);
-			       //	       bool & append);
+
 
 void TouchFilesToSave(ToSave *TheFiles,int numfilespossible,
 		      std::string base_dir);
 
 
-//void UpdateFileCount(ToSave *TheFiles, int numfiles,
-//		     std::string DataCollectedBaseDir);
 
 
 void SetFileCount(ToSave *TheFiles, int numfiles,

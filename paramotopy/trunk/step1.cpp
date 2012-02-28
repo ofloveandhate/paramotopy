@@ -252,7 +252,7 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 			<< Prefs[0].numprocs << "\n";
 		
 		
-			std::cout << "Enter step2 number of folders per processor: ";
+			std::cout << "Enter step2 number of files at a time per processor: ";
 			std::cin >> Prefs[0].numfilesatatime;
 
 			outprefstream << Prefs[0].numfilesatatime << "\n";
@@ -263,6 +263,10 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 			Prefs[0].numfilesatatime = 1;
 		}
 	
+		
+		std::cout << "Would you like to use /dev/shm for temp files?\n0) No.\n1) Yes.\n:";
+		std::cin >> Prefs[0].devshm;		
+		outprefstream << Prefs[0].devshm << "\n";
 
 		std::cout << "Select the files to save.\n";
 		int selection = 0;
@@ -296,9 +300,14 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 		}
 		
 		
-		std::cout << "Save progress every ? iterations: ";
-		std::cin >> Prefs[0].saveprogresseverysomany;
-		outprefstream << "\n" << Prefs[0].saveprogresseverysomany << "\n";
+//		std::cout << "Save progress every ? iterations: ";
+		Prefs[0].saveprogresseverysomany = 1;
+		
+		std::cout << "Threshold in bytes for new data file \n (recommend tens of megs [67108864 = 2^20]): ";
+		std::cin >> Prefs[0].newfilethreshold;
+		
+		
+		outprefstream << "\n" << Prefs[0].newfilethreshold << "\n";
 		
 		outprefstream.close();
 		
@@ -343,6 +352,14 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 			ss.str("");
 		}
 		
+		Prefs[0].saveprogresseverysomany = 1;
+		
+		getline(prefstream,tmp);
+		ss << tmp;
+		ss >> Prefs[0].devshm;
+		ss.clear();
+		ss.str("");
+		
 		getline(prefstream,tmp);
 		ss << tmp;
 		int tmpint;
@@ -362,11 +379,13 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 		ss.str("");
 		getline(prefstream,tmp);
 		ss << tmp;
-		ss >> Prefs[0].saveprogresseverysomany;
+		ss >> Prefs[0].newfilethreshold;
 		ss.clear();
 		ss.str("");
 		
 		prefstream.close();
+		
+		
 	}//re: if prefstream.isopen
 	
 	
@@ -382,14 +401,18 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 			Prefs[0].machinefile = homedir;
 		}
 		std::cout << "running parallel.\nmachine file: " << Prefs[0].machinefile << "\n" 
+		<< "using /dev/shm: " << Prefs[0].devshm << "\n"
 		<< "num processors: " << Prefs[0].numprocs << "\n" 
-		<< "num folders per proc: " << Prefs[0].numfilesatatime << "\n"
-		<< "saveprogressevery: " << Prefs[0].saveprogresseverysomany << "\n\n\n\n";
+		<< "num files per proc: " << Prefs[0].numfilesatatime << "\n"
+		<< "newfilethreshold: " << Prefs[0].newfilethreshold << "\n\n\n\n";
 	}
 	else {
 		Prefs[0].numprocs = 1;
 		Prefs[0].numfilesatatime = 1;	
-		std::cout <<"serial setup on this machine.\nnum processors, numfilesatatime set to 1.\n\n\n\n";
+		
+		std::cout <<"serial setup on this machine.\n" 
+		<< "using /dev/shm: " << Prefs[0].devshm << "\n"
+		<< "num processors, numfilesatatime set to 1.\n\n\n\n";
 	}
 
 	

@@ -18,6 +18,8 @@ struct preferences{
 	int numprocs;
 	int numfilesatatime;
 	int saveprogresseverysomany;
+	int newfilethreshold;
+	int devshm;
 };
 
 
