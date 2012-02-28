@@ -478,6 +478,11 @@ else{
 			ss42 << Prefs[0].saveprogresseverysomany;
 			ss42 << " ";
 			
+			ss42 << Prefs[0].newfilethreshold;
+			ss42 << " ";
+			
+			ss42 << Prefs[0].devshm;
+			ss42 << " ";
 			
 			mpicommand.append(ss42.str());
 			

@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
 
   int numfilesatatime;//added march7,11 db
   int saveprogresseverysomany;
-	
+	int devshm, newfilethreshold;
   int myid;
   int numprocs;
   int namelen;
@@ -133,6 +133,8 @@ int main(int argc, char* argv[]){
     }
 	  
 	  commandss >> saveprogresseverysomany;
+	  commandss >> newfilethreshold;
+	  commandss >> devshm;
 	  commandss.clear();
 	  commandss.str("");
 
