@@ -32,8 +32,8 @@ void WriteData(std::string outstring,
 
 
 void GetStartConfig(std::string base_dir,
-					std::vector< std::string > & startvector,
-					std::vector< std::string > & configvector);
+					std::string & startvector,
+					std::string & configvector);
 
 int GetLastNumSent(std::string base_dir,
 					std::vector< int > & lastnumsent,

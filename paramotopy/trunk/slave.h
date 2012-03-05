@@ -42,7 +42,10 @@ void slave(std::vector<std::string> dir,
 		   int numfiles,
 		   std::vector<std::string> ParamNames, 
 		   std::string filename,
-		   int numfilesatatime);
+		   int numfilesatatime,
+		   std::string called_dir,
+		   std::string templocation,
+		   int newfilethreshold);
 
 
 #endif
