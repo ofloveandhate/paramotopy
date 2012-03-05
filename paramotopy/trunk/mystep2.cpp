@@ -48,42 +48,45 @@ extern "C" {
 
 int main(int argc, char* argv[]){
 
-  int numfilesatatime;//added march7,11 db
-  int saveprogresseverysomany;
+	int numfilesatatime;//added march7,11 db
+	int saveprogresseverysomany;
 	int devshm, newfilethreshold;
-  int myid;
-  int numprocs;
-  int namelen;
-  char   processor_name[MPI_MAX_PROCESSOR_NAME];
-  int headnode=0;
+	int myid;
+	int numprocs;
+	int namelen;
+	char   processor_name[MPI_MAX_PROCESSOR_NAME];
+	int headnode=0;
 
-  std::ifstream fin;
-
-
-	
-  std::string proc_name_str;
-  MPI_Init(&argc,&argv);
-  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myid);
-  MPI_Get_processor_name(processor_name,&namelen);
-  proc_name_str = processor_name;
-	
-
-	
-  
-//  bool firstrun = true;
-  ToSave *TheFiles;
-  std::string filename;
-  int numsubfolders;
-  int numfiles;
-  int numparam;
+	std::ifstream fin;
 
 
-  std::vector<std::vector<std::pair<double,double> > > AllParams;
-  std::vector<std::string> ParamNames;
-  std::stringstream commandss;  //we put info on and off this stringstream, to get from strings to numbers.
+
+	std::string proc_name_str;
+	MPI_Init(&argc,&argv);
+	MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+	MPI_Get_processor_name(processor_name,&namelen);
+	proc_name_str = processor_name;
 
 	
+	std::string called_dir = stackoverflow_getcwd();	
+
+
+
+
+	//  bool firstrun = true;
+	ToSave *TheFiles;
+	std::string filename;
+	int numsubfolders;
+	int numfiles;
+	int numparam;
+
+
+	std::vector<std::vector<std::pair<double,double> > > AllParams;
+	std::vector<std::string> ParamNames;
+	std::stringstream commandss;  //we put info on and off this stringstream, to get from strings to numbers.
+
+
 	
     ///////////////////
     //
@@ -165,36 +168,52 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
   
-
-	
-    numsubfolders = (numprocs-1)*numfilesatatime;
 	std::string base_dir="bfiles_";
 	base_dir.append(filename);
-	std::string DataCollectedbase_dir = base_dir;
-	DataCollectedbase_dir.append("/step2/DataCollected/");
+	
+	std::string templocation;
+	if (devshm==1) {
+		templocation = "/dev/shm";
+	}
+	else {
+		templocation = called_dir;
+	}
+
+	if (myid==headnode) {
+		SetUpFolders(base_dir,
+					 numprocs,
+					 numfilesatatime,
+					 templocation);
+	}
+	
+	
+    numsubfolders = (numprocs-1)*numfilesatatime;
+
+//	std::string DataCollectedbase_dir = base_dir;
+//	DataCollectedbase_dir.append("/step2/DataCollected/");
 	std::vector<std::string> tmpfolderlocs;
 //	int foldersdone=0;
 	for (int i = 1; i < numprocs ;++i){  //used to have numbersubfolders here for upper limit on loop
 		std::stringstream tmpfolder;
-		tmpfolder << base_dir << "/step2/tmp/" << i ;
+		tmpfolder << templocation << "/" << base_dir << "/step2/tmp/" << i ;
 		tmpfolderlocs.push_back(tmpfolder.str());
 	}
 	
 	
 	
 	
-	if (myid==headnode) {
-		SetUpFolders(base_dir,
-					 numprocs,
-					 numfilesatatime);
-	}
-	
+
 	
 	
 	
 	//the main body of the program is here:
   if (myid==headnode){
-		master(tmpfolderlocs,filename, numfilesatatime, saveprogresseverysomany);
+	  master(tmpfolderlocs,
+			 filename, 
+			 numfilesatatime, 
+			 saveprogresseverysomany,
+			 called_dir,
+			 templocation);
   }
   else{
     slave(tmpfolderlocs,
@@ -202,7 +221,10 @@ int main(int argc, char* argv[]){
 		  numfiles, 
 		  ParamNames,
 		  base_dir,
-		  numfilesatatime);
+		  numfilesatatime,
+		  called_dir,
+		  templocation,
+		  newfilethreshold);
   }
 
 

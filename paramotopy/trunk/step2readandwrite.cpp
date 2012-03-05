@@ -64,10 +64,12 @@ void WriteData(std::string outstring,
 
 
 void GetStartConfig(std::string base_dir,
-					std::vector< std::string > & startvector,
-					std::vector< std::string > & configvector){
+					std::string & start,
+					std::string & config){
 	
 
+	std::stringstream tempss;
+	
 std::ifstream fin;
 //get start file in memory
 std::string copyme;
@@ -76,21 +78,26 @@ startstring.append("/step1/nonsingular_solutions");
 fin.open(startstring.c_str());
 while (!fin.eof()) {
 	getline(fin,copyme);
-	startvector.push_back(copyme);
+	tempss << copyme << "\n";
 }
 fin.close();
 //end get start in memory
-
+	start = tempss.str();
+	tempss.clear();
+	tempss.str("");
 
 
 //read in config2 file
 fin.open("config2");
 while (!fin.eof()) {
 	getline(fin,copyme);
-	configvector.push_back(copyme);
+	tempss << copyme << "\n";
 }
 fin.close();
 //end read config2
+	config = tempss.str();
+	tempss.clear();
+	tempss.str("");
 	
 	
 }

@@ -25,7 +25,9 @@
 void master(std::vector<std::string> dir,
 			std::string filename,
 			int numfilesatatime,
-			int saveprogresseverysomany);
+			int saveprogresseverysomany,
+			std::string called_dir,
+			std::string templocation);
 
 void FormNextValues(int numfilesatatime,
 						int numparam,

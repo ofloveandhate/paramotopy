@@ -45,12 +45,15 @@ extern "C" {
 
 
 
-void slave(std::vector<std::string> dir, 
+void slave(std::vector<std::string> tmpfolderlocs, 
 		   ToSave *TheFiles, 
 		   int numfiles,
 		   std::vector<std::string> ParamNames, 
 		   std::string base_dir,
-		   int numfilesatatime){
+		   int numfilesatatime,
+		   std::string called_dir,
+		   std::string templocation,
+		   int newfilethreshold){
 	
 	
 	std::string up = "../../../..";
@@ -122,7 +125,7 @@ void slave(std::vector<std::string> dir,
 //	int writethreshold = 1; //how often to check file sizes...
 	
 	
-	myss << base_dir << "/step2/DataCollected/c"
+	myss << called_dir << "/" << base_dir << "/step2/DataCollected/c"
 	<< myid << "/";
 	std::string DataCollectedbase_dir = myss.str();//specific to this worker, as based on myid
 	std::vector<std::pair<double,double> >  AllParams;
@@ -137,7 +140,9 @@ void slave(std::vector<std::string> dir,
 	int readcounter = 0, writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
-	std::string timingname = base_dir;
+	std::string timingname = called_dir;
+	timingname.append("/");
+	timingname.append(base_dir);
 	myss << myid;
 	timingname.append("/timing/slavetiming");
 	timingname.append(myss.str());
@@ -148,10 +153,88 @@ void slave(std::vector<std::string> dir,
 	
 	
 	std::string initrunfolder;
-	myss << base_dir <<  "/step2/tmp/init" << myid;
+	myss << templocation << "/" << base_dir <<  "/step2/tmp/init" << myid;
 	myss >> initrunfolder;
 	myss.clear();
 	myss.str("");
+	mkdirunix(initrunfolder.c_str());
+	
+	std::string workingfolder;
+	myss << templocation << "/" << base_dir <<  "/step2/tmp/" << myid;
+	myss >> workingfolder;
+	myss.clear();
+	myss.str("");
+	mkdirunix(workingfolder.c_str());
+//	tmpfolderlocs[myid-1].c_str()
+	
+	int vectorlengths[2] = {0};
+	
+	///////
+	//
+	//      get the start and config files from master
+	//
+	///////////
+#ifdef verbosestep2
+	std::cout << "telling workers the number of chars to expect.\n";
+#endif
+#ifdef timingstep2
+	t1 = omp_get_wtime();
+#endif	
+	MPI_Bcast(&vectorlengths, 2, MPI_INT, 0, MPI_COMM_WORLD);
+#ifdef timingstep2
+	t_send += omp_get_wtime()-t1;
+	sendcounter++;
+#endif
+	
+	char start_char[vectorlengths[0]];
+	char input_char[vectorlengths[1]];
+#ifdef verbosestep2
+	std::cout << "sending start and config.\n";
+#endif
+#ifdef timingstep2
+	t1 = omp_get_wtime();
+#endif	
+	MPI_Bcast(&start_char, vectorlengths[0], MPI_CHAR, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&input_char, vectorlengths[1], MPI_CHAR, 0, MPI_COMM_WORLD);	
+#ifdef timingstep2
+	t_send += omp_get_wtime()-t1;
+	sendcounter++;
+	sendcounter++;
+#endif
+	///////
+	//
+	//      now have the start and config files.  need to write to file.
+	//
+	///////////
+	
+	//input
+	std::ofstream fout;
+	std::string initruninput = initrunfolder;
+	initruninput.append("/input");
+	fout.open(initruninput.c_str());	  
+	fout << input_char;
+	fout.close();	
+	
+	
+	//start
+	std::string initrunstart = initrunfolder;
+	initrunstart.append("/start");
+	fout.open(initrunstart.c_str());
+	fout << start_char;
+	fout.close();
+	
+	
+
+	
+	
+	
+	//////////////////////////
+	//
+	//     done writing the config, start, and input files
+	//
+	///////////////////////
+	
+	
 	
 	
 	int arbitraryint =0 ;
@@ -163,7 +246,6 @@ void slave(std::vector<std::string> dir,
 	t_receive+= omp_get_wtime() - t1;
 	receivecounter++;
 #endif
-	
 	
 	blaint = chdir(initrunfolder.c_str());
 #ifdef timingstep2
@@ -192,7 +274,7 @@ void slave(std::vector<std::string> dir,
 #endif	
 	
 	
-	blaint = chdir(up.c_str());
+//	blaint = chdir(up.c_str());
 	
 	//		std::cout << "done reading \n";
 	myss << currentSeed;
@@ -211,11 +293,16 @@ void slave(std::vector<std::string> dir,
 	t_receive+= omp_get_wtime() - t1;
 	receivecounter++;
 #endif
-	
+
 	
 	
 	long loopcounter = 0;  //is for counting how many solves this worker has performed, for data collection file incrementing
-	blaint = chdir(dir[myid-1].c_str());  //used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
+	blaint = chdir(workingfolder.c_str());  //used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
+	
+	
+	std::cout << myid << " " << stackoverflow_getcwd() << "\n";
+
+	
 	std::string target_file;
 	while (1) {
 		
@@ -241,7 +328,9 @@ void slave(std::vector<std::string> dir,
 			
 			for (int j = 0; j < numfiles;++j){
 				
-				target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
+				target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);	
+				std::cout << myid << " " << target_file << "\n";
+				
 #ifdef timingstep2
 				t1= omp_get_wtime();
 #endif
@@ -278,7 +367,10 @@ void slave(std::vector<std::string> dir,
 #ifdef timingstep2
 			t1= omp_get_wtime();
 #endif
-			if (loopcounter<numfilesatatime) {
+			if (loopcounter==0){    //<numfilesatatime) {
+				fout.open("start");
+				fout << start_char;
+				fout.close();
 				WriteDotOut(arroutvector,
 							degoutvector,
 							namesoutvector,
@@ -299,12 +391,11 @@ void slave(std::vector<std::string> dir,
 #ifdef timingstep2
 			t1 = omp_get_wtime();
 #endif
-//			blaint = bertini_main(12,args_noparse);
+			blaint = bertini_main(12,args_noparse);
 #ifdef timingstep2
 			t_bertini += omp_get_wtime() - t1;
 			bertinicounter++;
 #endif
-			//		blaint = chdir(up.c_str()); //used to move up.  now stay down there.   no sense in moving, when each worker is just writing its own files.
 			
 			
 			
@@ -312,7 +403,6 @@ void slave(std::vector<std::string> dir,
 			// Collect the Data
 			for (int j = 0; j < numfiles;++j){
 				
-				std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
 				
 				//get data from file
 #ifdef timingstep2
@@ -330,6 +420,7 @@ void slave(std::vector<std::string> dir,
 
 				//if big enough
 				if (int(runningfile[j].size()) > 65536){
+					std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
 					filesizes[j] += int(runningfile[j].size());
 #ifdef verbosestep2
 					std::cout << target_file << " " << TheFiles[j].filename << "\n";
@@ -348,7 +439,7 @@ void slave(std::vector<std::string> dir,
 					writecounter++; //increment the counter
 #endif
 					runningfile[j].clear();//reset the string
-					if (filesizes[j] > 131072) { //update the file count
+					if (filesizes[j] > newfilethreshold) { //update the file count
 						TheFiles[j].filecount+=1;
 						filesizes[j] = 0;
 					}
@@ -386,7 +477,7 @@ void slave(std::vector<std::string> dir,
 		
 	}//re: while (1)
 	
-	blaint = chdir(up.c_str()); //used to move up inside loop.  now stay down there for loop, move up here.   no sense in moving, when each worker is just writing its own files.
+	blaint = chdir(up.c_str()); //used to move inside loop.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
 	
 #ifdef timingstep2
 	timingout.open(timingname.c_str(),std::ios::out);

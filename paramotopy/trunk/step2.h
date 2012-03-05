@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <stdexcept>
 
 #ifndef __STEPTWO_H__
 #define __STEPTWO_H__
@@ -26,53 +26,54 @@ struct ToSave{
 
 
 void SetUpFolders(std::string base_dir,
-			 int numprocs,
-			 int numfilesatatime);
+				  int numprocs,
+				  int numfilesatatime,
+				  std::string templocation);
 
-void WriteStep2(std::vector< std::string > configvector, 
-		std::ofstream & fout,
-		std::vector<std::pair<double, double> > CValues,
-		std::vector<std::string> FunctVector, 
-		std::vector<std::string> VarGroupVector,
-		std::vector<std::string> ParamVector,
-		std::vector<std::string> ParamStrings,
-		std::vector<std::string> Consts,
-		std::vector<std::string> ConstantStrings,
-		std::vector<std::pair<double,double> > RandomValues,
-		int numfunct,
-		int numvar,
-		int numparam,
-		int numconsts);
+std::string WriteStep2(std::string config,
+				std::vector<std::pair<double, double> > CValues,
+				std::vector<std::string> FunctVector, 
+				std::vector<std::string> VarGroupVector,
+				std::vector<std::string> ParamVector,
+				std::vector<std::string> ParamStrings,
+				std::vector<std::string> Consts,
+				std::vector<std::string> ConstantStrings,
+				std::vector<std::pair<double,double> > RandomValues,
+				int numfunct,
+				int numvar,
+				int numparam,
+				int numconsts);
 
-void MakeConstantsStep2(std::ofstream & fout,
-			std::vector< std::pair<double,double> > RandomValues,
-		        std::vector< std::pair<double,double> > CValues,
-			std::vector<std::string> ParamStrings,
-			std::vector<std::string> Consts,
-			std::vector<std::string> ConstantStrings,
-			int numparam);
+void MakeConstantsStep2(std::stringstream & inputstringstream,
+						std::vector< std::pair<double,double> > RandomValues,
+						std::vector< std::pair<double,double> > CValues,
+						std::vector<std::string> ParamStrings,
+						std::vector<std::string> Consts,
+						std::vector<std::string> ConstantStrings,
+						int numparam);
 
 
-//void CallCopyStartStep2(std::string base_dir, std::string param_dir);
-// antiquated 11.27.04 DAB
+
 
 void CallBertiniStep2(std::string param_dir);
 
 
 
 std::string MakeTargetFilename(std::string base_dir,
-			       ToSave *TheFile,
-			       int index);
+							   ToSave *TheFile,
+							   int index);
 
 
 void TouchFilesToSave(ToSave *TheFiles,int numfilespossible,
-		      std::string base_dir);
+					  std::string base_dir);
 
 
 
 
 void SetFileCount(ToSave *TheFiles, int numfiles,
-		  std::string DataCollectedBaseDir);
+				  std::string DataCollectedBaseDir);
+
+std::string stackoverflow_getcwd();
 
 
 #endif

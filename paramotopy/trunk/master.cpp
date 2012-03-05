@@ -27,10 +27,12 @@
 
 
 
-void master(std::vector<std::string> dir,
+void master(std::vector<std::string> tmpfolderlocs,
 			std::string filename,
 			int numfilesatatime,
-			int saveprogresseverysomany){//added mcfin,filename, etc 3/7/11 db
+			int saveprogresseverysomany,
+			std::string called_dir,
+			std::string templocation){
 	
 	
 #ifdef verbosestep2
@@ -177,15 +179,80 @@ void master(std::vector<std::string> dir,
 	
 	
 	
-	std::vector< std::string > startvector;
-	std::vector< std::string > configvector;
+
+	
+	
+	
+	
+	///////////////////
+	//
+	//       get the start and config files, bcast them
+	//
+	///////////////////
+//	std::vector< std::string > startvector;
+//	std::vector< std::string > configvector;
+	std::string start;
+	std::string config;
+	
 	// read in the start and config files
 	GetStartConfig(base_dir,
-				   startvector,
-				   configvector);
+				   start,
+				   config);
 	
 	
+	// for the step 2.1 solve, we need random values
+	std::vector<std::pair<double, double> > tmprandomvalues = MakeRandomValues(numparam);
+	std::string inputstring = WriteStep2(config,
+										 tmprandomvalues, //  <------- this, in this call, has been replaced from TmpValues to tmprandomvalues.
+										 FunctVector,     // 
+										 VarGroupVector,  //    write for the initial 2.1 solve 
+										 ParamVector,
+										 ParamStrings,
+										 Consts,
+										 ConstantStrings,
+										 RandomValues,
+										 numfunct,
+										 numvar,
+										 numparam,
+										 numconsts);	
 	
+	int vectorlengths[2] = {0};
+	vectorlengths[0] = start.size();
+	vectorlengths[1] = inputstring.size();
+
+
+
+	
+	
+#ifdef verbosestep2
+	std::cout << "telling workers the number of chars to expect.\n";
+#endif
+#ifdef timingstep2
+	t1 = omp_get_wtime();
+#endif	
+	MPI_Bcast(&vectorlengths, 2, MPI_INT, 0, MPI_COMM_WORLD);
+#ifdef timingstep2
+	t_send += omp_get_wtime()-t1;
+	sendcounter++;
+#endif
+	
+	
+#ifdef verbosestep2
+	std::cout << "sending start, config, and input.\n";
+#endif
+#ifdef timingstep2
+	t1 = omp_get_wtime();
+#endif	
+	char *start_send = (char*) start.c_str();
+	char *input_send = (char*) inputstring.c_str();
+
+	MPI_Bcast(&start_send[0], start.size(), MPI_CHAR, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&input_send[0], inputstring.size(), MPI_CHAR, 0, MPI_COMM_WORLD);
+#ifdef timingstep2
+	t_send += omp_get_wtime()-t1;
+	sendcounter++;
+	sendcounter++;
+#endif
 	
 	
 	
@@ -206,8 +273,6 @@ void master(std::vector<std::string> dir,
 	
 	
 	
-	// for the step 2.1 solve, we need random values
-	std::vector<std::pair<double, double> > tmprandomvalues = MakeRandomValues(numparam);
 
 	
 	
@@ -245,59 +310,6 @@ void master(std::vector<std::string> dir,
 	//
 	//////////////////////////
 	
-	
-	
-
-	
-	
-	for (int ii=1; ii<numprocs; ++ii) {
-		std::stringstream myss;
-		myss << base_dir << "/step2/tmp/init" << ii;
-		std::string initrunfolder = "";
-		myss >> initrunfolder;
-		myss.clear();
-		myss.str("");
-		mkdirunix(initrunfolder.c_str());
-		std::string initruninput = initrunfolder;
-		initruninput.append("/input");
-		
-		
-		
-		std::cout << initruninput << "\n";
-		
-		fout.open(initruninput.c_str());	  
-		WriteStep2(configvector,
-				   fout,
-				   tmprandomvalues, //  <------- this, in this call, has been replaced from TmpValues to tmprandomvalues.
-				   FunctVector,     // 
-				   VarGroupVector,  //    write for the initial 2.1 solve 
-				   ParamVector,
-				   ParamStrings,
-				   Consts,
-				   ConstantStrings,
-				   RandomValues,
-				   numfunct,
-				   numvar,
-				   numparam,
-				   numconsts);
-		fout.close();
-		
-		
-		//write the start files.  only need to do this once.
-		std::string initrunstart = initrunfolder;
-		initrunstart.append("/start");
-
-		fout.open(initrunstart.c_str());
-		for (int j=0; j<int(startvector.size()); ++j) {
-			fout << startvector[j];
-			if (startvector[j].length() > 0) {
-				fout << ";";
-			}
-			
-			fout  << "\n";
-		}
-		fout.close();		
-	}
 	
 	
 	
@@ -396,30 +408,30 @@ void master(std::vector<std::string> dir,
 	for (int proc_count=1;proc_count<(numprocs);++proc_count){
 		
 				
-				////////////////////////////////////////
-				//          write the start files.  only need to do this once per worker.
-				////////////////////////////////////////
-				
-				std::string curbase_dir=dir[proc_count-1];
-				curbase_dir.append("/start");
-		#ifdef timingstep2
-				t1 = omp_get_wtime();
-		#endif	
-				std::cout << curbase_dir << "\n";
-				fout.open(curbase_dir.c_str());
-				for (int j=0; j< int(startvector.size()); ++j) {
-					fout << startvector[j];
-					if (startvector[j].length() > 0) {
-						fout << ";";
-					}
-					
-					fout  << "\n";
-				}
-				fout.close();
-		#ifdef timingstep2
-				t_write+= omp_get_wtime() - t1;
-				writecounter++;
-		#endif
+//				////////////////////////////////////////
+//				//          write the start files.  only need to do this once per worker.
+//				////////////////////////////////////////
+//				
+//				std::string curbase_dir=tmpfolderlocs[proc_count-1];
+//				curbase_dir.append("/start");
+//		#ifdef timingstep2
+//				t1 = omp_get_wtime();
+//		#endif	
+//				std::cout << curbase_dir << "\n";
+//				fout.open(curbase_dir.c_str());
+//				for (int j=0; j< int(startvector.size()); ++j) {
+//					fout << startvector[j];
+//					if (startvector[j].length() > 0) {
+//						fout << ";";
+//					}
+//					
+//					fout  << "\n";
+//				}
+//				fout.close();
+//		#ifdef timingstep2
+//				t_write+= omp_get_wtime() - t1;
+//				writecounter++;
+//		#endif
 				
 				
 

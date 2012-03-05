@@ -385,6 +385,7 @@ int main(int argC, char *args[]){
     }//re: switch (intChoice)
     
   }//re: while(currentChoice!=Quit)
-  
+	delete[] TheFiles;
+	delete[] Prefs;
   return 0;
 }//re: main function

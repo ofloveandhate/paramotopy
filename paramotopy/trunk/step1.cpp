@@ -676,6 +676,21 @@ void MakeFunctions(std::ofstream & fout,
     
   }
 }
+void MakeFunctions(std::stringstream & inputstringstream, 
+				   std::vector<std::string> FunctVector){
+	
+	inputstringstream << "\n";
+	for (int i = 0; i < int(FunctVector.size());++i){
+		inputstringstream << "f" << i+1
+		<< " = "
+		<< FunctVector[i]
+		<< ";\n";
+		
+	}
+}
+
+
+
 
 void MakeVariableGroups(std::ofstream & fout, 
 			std::vector<std::string> VarGroupVector){
@@ -705,6 +720,8 @@ void MakeDeclareConstants(std::ofstream & fout,
   }
 }
 
+
+
 void MakeDeclareFunctions(std::ofstream & fout, int size){
   fout << "function ";
   for (int i = 1; i <=size;++i){
@@ -717,7 +734,18 @@ void MakeDeclareFunctions(std::ofstream & fout, int size){
     }    
   }
 }
-
+void MakeDeclareFunctions(std::stringstream & inputstringstream, int size){
+	inputstringstream << "function ";
+	for (int i = 1; i <=size;++i){
+		inputstringstream << "f" << i;
+		if (i != size){
+			inputstringstream << ", ";
+		}
+		else{
+			inputstringstream << ";\n";
+		}    
+	}
+}
 
 
 
@@ -842,10 +870,10 @@ void MakeConfig(std::ifstream & fin, std::ofstream & fout){
   
 }
 
-void MakeConfig(std::vector< std::string > configvector, std::ofstream & fout){
-	for (int i=0; i< int(configvector.size());++i) {
-		fout << configvector[i] << "\n";
-	}	
+void MakeConfig(std::string config, std::stringstream & inputstringstream){
+//	for (int i=0; i< int(configvector.size());++i) {
+		inputstringstream << config;
+//	}	
 }
 
 void WriteMeshToMonteCarlo(int level, 

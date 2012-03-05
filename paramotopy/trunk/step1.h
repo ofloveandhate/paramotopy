@@ -110,9 +110,7 @@ void WriteMeshToMonteCarlo(int level, std::vector<std::vector<std::pair<double,d
 
 
 void MakeConfig(std::ifstream & fin, std::ofstream & fout);
-
-//polymorphism kicks ass
-void MakeConfig(std::vector< std::string > configvector, std::ofstream & fout);
+void MakeConfig(std::string config, std::stringstream & inputstringstream);
 
 
 void WriteStep1(std::string filename, 
@@ -127,6 +125,8 @@ void WriteStep1(std::string filename,
 
 void MakeFunctions(std::ofstream & fout, 
 		   std::vector<std::string> FunctVector);
+void MakeFunctions(std::stringstream & inputstringstream, 
+				   std::vector<std::string> FunctVector);
 
 
 void MakeVariableGroups(std::ofstream & fout, 
@@ -139,7 +139,7 @@ void MakeDeclareConstants(std::ofstream & fout,
 
 
 void MakeDeclareFunctions(std::ofstream & fout, int size);
-
+void MakeDeclareFunctions(std::stringstream & inputstringstream, int size);
 
 void MakeConstants(std::ofstream & fout, 
 		   std::vector<std::string> ParamStrings, 
@@ -180,7 +180,7 @@ void WriteStep1(std::string filename,
 		std::vector<std::pair<double, double> > & RandomValues);
 
 // assuming we open the input file stream and the output filestream
-void MakeConfig(std::ifstream & fin, std::ofstream & fout);
+//duplicate void MakeConfig(std::ifstream & fin, std::ofstream & fout);
 
 void WriteMeshToMonteCarlo(int level, 
 	       std::vector<std::vector<std::pair<double, double> > > Values, 

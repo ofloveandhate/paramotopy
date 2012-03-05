@@ -17,11 +17,14 @@
 
 
 void SetUpFolders(std::string base_dir,
-			 int numprocs,
-			 int numfilesatatime){
+				int numprocs,
+				int numfilesatatime,
+				  std::string templocation){
 	
 	
-	std::string filenamestep2=base_dir;
+	std::string filenamestep2=templocation;
+	filenamestep2.append("/");
+	filenamestep2.append(base_dir);
 	filenamestep2.append("/step2/tmp/");
 	std::string DataCollectedbase_dir = base_dir;
 	DataCollectedbase_dir.append("/step2/DataCollected/");
@@ -32,7 +35,7 @@ void SetUpFolders(std::string base_dir,
 	  mkdirunix(timingdir.c_str());
 #endif
 	  
-	std::cout << "setting up folders, " << numprocs << " procs.\n";
+	std::cout << "setting up temp folders, " << numprocs << " procs.\n";
 	  //make the tmp folders.  
 	  for (int i=1; i<numprocs; ++i) { //everybody gets one
 		  std::stringstream ss;
@@ -62,62 +65,63 @@ void SetUpFolders(std::string base_dir,
 
 
 
-void WriteStep2(std::vector< std::string > configvector, 
-		std::ofstream & fout,
-		std::vector<std::pair<double, double> > CValues,
-		std::vector<std::string> FunctVector, 
-		std::vector<std::string> VarGroupVector,
-		std::vector<std::string> ParamVector,
-		std::vector<std::string> ParamStrings,
-		std::vector<std::string> Consts,
-		std::vector<std::string> ConstantStrings,
-		std::vector<std::pair<double,double> > RandomValues,
-		int numfunct,
-		int numvar,
-		int numparam,
-		int numconsts){
+std::string WriteStep2(std::string config, 
+					   std::vector<std::pair<double, double> > CValues,
+					   std::vector<std::string> FunctVector, 
+					   std::vector<std::string> VarGroupVector,
+					   std::vector<std::string> ParamVector,
+					   std::vector<std::string> ParamStrings,
+					   std::vector<std::string> Consts,
+					   std::vector<std::string> ConstantStrings,
+					   std::vector<std::pair<double,double> > RandomValues,
+					   int numfunct,
+					   int numvar,
+					   int numparam,
+					   int numconsts){
   
-  MakeConfig(configvector, fout);
-	fout.precision(16);
-  fout << "\n\nINPUT\n\n";
+	std::stringstream inputstringstream;
+	
+  MakeConfig(config, inputstringstream);
+//	fout.precision(16);
+  inputstringstream << "\n\nINPUT\n\n";
   // Variable Group portion
-  fout << "variable ";  
+  inputstringstream << "variable ";  
   for (int i = 0; i < int(VarGroupVector.size());++i){
-    fout << VarGroupVector[i] 
-	 << ( i != int(VarGroupVector.size())-1? ",":";\n\n" );    
+    inputstringstream << VarGroupVector[i] 
+					  << ( i != int(VarGroupVector.size())-1? ",":";\n\n" );    
     
     
   }
   // constant portion for here and rand in the parameter homotopy
-	fout << "constant ";
+	inputstringstream << "constant ";
 	for (int i = 0; i < int(ParamStrings.size());++i){
-		fout << "rand" << ParamStrings[i]
-		<< (i!= int(ParamStrings.size())-1?",":";\n");
+		inputstringstream << "rand" << ParamStrings[i]
+						<< (i!= int(ParamStrings.size())-1?",":";\n");
 	}
-	fout << "constant ";
+	inputstringstream << "constant ";
 	for (int i = 0; i < int(ParamStrings.size());++i){
-	fout << "here" << ParamStrings[i]
-	 << (i!= int(ParamStrings.size()) -1?",":";\n");
+	inputstringstream << "here" << ParamStrings[i]
+			<< (i!= int(ParamStrings.size()) -1?",":";\n");
 	}
 
 
   // user given constants
   if (Consts.size()!=0){
-    fout << Consts[0] << "\n";
+    inputstringstream << Consts[0] << "\n";
   }
 
   // Define Path Variable and the parameter homotopies
   
-  fout << "pathvariable t;\n"
+  inputstringstream << "pathvariable t;\n"
        << "parameter ";
   for (int i =0;i < int(ParamStrings.size());++i){
-    fout << ParamStrings[i] << (i!= int(ParamStrings.size())-1?",":";\n");
+    inputstringstream << ParamStrings[i] << (i!= int(ParamStrings.size())-1?",":";\n");
   }
 
   // Declare Functions
-  MakeDeclareFunctions(fout,numfunct);
+  MakeDeclareFunctions(inputstringstream,numfunct);
   
-  MakeConstantsStep2(fout,
+  MakeConstantsStep2(inputstringstream,
 		     RandomValues,
 		     CValues,
 		     ParamStrings,
@@ -125,23 +129,23 @@ void WriteStep2(std::vector< std::string > configvector,
 		     ConstantStrings,
 		     numparam);
   
-  MakeFunctions(fout,FunctVector);
-  fout << "END;\n";
+  MakeFunctions(inputstringstream,FunctVector);
+  inputstringstream << "END;\n";
   
-  
+	return inputstringstream.str();
 }
 
 
-void MakeConstantsStep2(std::ofstream & fout,
-			std::vector< std::pair<double,double> > RandomValues,
-		        std::vector< std::pair<double,double> > CValues,
-			std::vector<std::string> ParamStrings,
-			std::vector<std::string> Consts,
-			std::vector<std::string> ConstantStrings,
-			int numparam){
+void MakeConstantsStep2(std::stringstream & inputstringstream,
+						std::vector< std::pair<double,double> > RandomValues,
+						std::vector< std::pair<double,double> > CValues,
+						std::vector<std::string> ParamStrings,
+						std::vector<std::string> Consts,
+						std::vector<std::string> ConstantStrings,
+						int numparam){
   
   for (int i = 0; i < int(ParamStrings.size()); ++i){
-    fout << "rand" 
+    inputstringstream << "rand" 
 	 << ParamStrings[i]
 	 << " = "
 	 << RandomValues[i].first << " + " << RandomValues[i].second
@@ -149,19 +153,19 @@ void MakeConstantsStep2(std::ofstream & fout,
   }
 
  for (int i = 0; i < int(ParamStrings.size()); ++i){
-    fout << "here" 
+    inputstringstream << "here" 
 	 << ParamStrings[i]
 	 << " = "
 	 << CValues[i].first << " + " << CValues[i].second
 	 << "*I;\n";
   }
   for (int i = 0; i < int(ConstantStrings.size());++i){
-    fout << ConstantStrings[i]
+    inputstringstream << ConstantStrings[i]
 	 << "\n";
   }
   
   for (int i = 0; i < int(ParamStrings.size()); ++i){
-    fout << ParamStrings[i]
+    inputstringstream << ParamStrings[i]
 	 << "= t*rand"
 	 << ParamStrings[i]
 	 << " + (1-t)*here"
@@ -209,14 +213,13 @@ void MakeConstantsStep2(std::ofstream & fout,
 
 
 std::string MakeTargetFilename(std::string base_dir,
-			       ToSave * TheFiles,
-			       int index){
+							   ToSave * TheFiles,
+							   int index){
   std::stringstream ss;
   
 	
 	
-  ss << "../../../../"
-	 << base_dir
+  ss << base_dir
      << TheFiles[index].filename
      << TheFiles[index].filecount;
   return ss.str();
@@ -275,6 +278,44 @@ void SetFileCount(ToSave *TheFiles, int numfiles,
       TheFiles[i].filecount=cfilecount;
     }    
   }
+}
+
+
+
+
+//  this function, to get the current directory, is directly from stackoverflow
+//
+//
+std::string stackoverflow_getcwd()
+{
+    const size_t chunkSize=255;
+    const int maxChunks=10240; // 2550 KiBs of current path are more than enough
+	
+    char stackBuffer[chunkSize]; // Stack buffer for the "normal" case
+    if(getcwd(stackBuffer,sizeof(stackBuffer))!=NULL)
+        return stackBuffer;
+    if(errno!=ERANGE)
+    {
+        // It's not ERANGE, so we don't know how to handle it
+        throw std::runtime_error("Cannot determine the current path.");
+        // Of course you may choose a different error reporting method
+    }
+    // Ok, the stack buffer isn't long enough; fallback to heap allocation
+    for(int chunks=2; chunks<maxChunks ; chunks++)
+    {
+        // With boost use scoped_ptr; in C++0x, use unique_ptr
+        // If you want to be less C++ but more efficient you may want to use realloc
+        std::auto_ptr<char> cwd(new char[chunkSize*chunks]); 
+        if(getcwd(cwd.get(),chunkSize*chunks)!=NULL)
+            return cwd.get();
+        if(errno!=ERANGE)
+        {
+            // It's not ERANGE, so we don't know how to handle it
+            throw std::runtime_error("Cannot determine the current path.");
+            // Of course you may choose a different error reporting method
+        }   
+    }
+    throw std::runtime_error("Cannot determine the current path; the path is apparently unreasonably long");
 }
 
 

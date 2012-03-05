@@ -241,16 +241,22 @@ std::string base_dir = "bfiles_";
 base_dir.append(filename);
 
 
-
 // make the tmp files directory/folder
+	std::string filenamestep2;
+	if (Prefs[0].devshm==1) {
+		filenamestep2= "/dev/shm";
+	}
+	else {
+		filenamestep2 = stackoverflow_getcwd();
+	}
+	filenamestep2.append("/bfiles_");
+	filenamestep2.append(filename);
+	filenamestep2.append("/step2/tmp/");
+	mkdirunix(filenamestep2.c_str());
+
+
+
 std::string curline;	
-std::string filenamestep2="bfiles_";
-filenamestep2.append(filename);
-filenamestep2.append("/step2/tmp/");
-mkdirunix(filenamestep2.c_str());
-
-
-
 
 
 //make the DataCollected directory.
@@ -268,7 +274,7 @@ else{
 	for (int i = 1; i < Prefs[0].numprocs;++i){
 		std::stringstream CurDataCollectedBaseDir;
 		CurDataCollectedBaseDir <<  DataCollectedBaseDir
-		<< "c" << i << "/";
+								<< "c" << i << "/";
 		mkdirunix(CurDataCollectedBaseDir.str().c_str());
 		SetFileCount(TheFiles,numfilespossible,CurDataCollectedBaseDir.str());
 		TouchFilesToSave(TheFiles,numfilespossible,
