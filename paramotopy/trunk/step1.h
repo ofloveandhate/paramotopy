@@ -20,6 +20,7 @@ struct preferences{
 	int saveprogresseverysomany;
 	int newfilethreshold;
 	int devshm;
+	int stifle;
 };
 
 

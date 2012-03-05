@@ -268,6 +268,12 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 		std::cin >> Prefs[0].devshm;		
 		outprefstream << Prefs[0].devshm << "\n";
 
+		
+		std::cout << "Stifle step2 output (to /dev/null) ?\n0) No.\n1) Yes.\n:";
+		std::cin >> Prefs[0].stifle;		
+		outprefstream << Prefs[0].stifle << "\n";
+		
+		
 		std::cout << "Select the files to save.\n";
 		int selection = 0;
 		while (selection!=numfilespossible){
@@ -357,6 +363,12 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 		getline(prefstream,tmp);
 		ss << tmp;
 		ss >> Prefs[0].devshm;
+		ss.clear();
+		ss.str("");
+		
+		getline(prefstream,tmp);
+		ss << tmp;
+		ss >> Prefs[0].stifle;
 		ss.clear();
 		ss.str("");
 		
