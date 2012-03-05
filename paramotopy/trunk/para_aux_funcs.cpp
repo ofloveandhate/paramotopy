@@ -489,6 +489,10 @@ else{
 			
 			ss42 << Prefs[0].devshm;
 			ss42 << " ";
+
+			if (Prefs[0].stifle==1){
+				ss42 << " > /dev/null ";	
+			}
 			
 			mpicommand.append(ss42.str());
 			

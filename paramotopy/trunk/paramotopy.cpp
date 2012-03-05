@@ -30,7 +30,7 @@
 int main(int argC, char *args[]){
   
 //	get_curr_dir_name();
-	int prefversion = 13; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+	int prefversion = 14; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 	
