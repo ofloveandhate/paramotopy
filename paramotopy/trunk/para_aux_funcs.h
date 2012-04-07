@@ -18,6 +18,8 @@
 
 int GetUserChoice();
 
+
+
 std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
 													std::vector<std::string> ParamStrings);
 
@@ -44,6 +46,8 @@ void TryToRecoverPrevRun(std::vector< std::pair<double,double> > & RandomValues,
 						 preferences *Prefs,
 						 OPTIONS & currentChoice,
 						 std::vector<std::string> ParamStrings);
+
+bool test_if_finished(std::string base_dir);
 
 #endif
 

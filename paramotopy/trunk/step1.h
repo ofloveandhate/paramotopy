@@ -5,6 +5,16 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
+#include "random.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h> 
+#include <sstream>
+#include <fstream>
+#include <string>
 
 #ifndef __STEPONE_H__
 #define __STEPONE_H__
@@ -23,6 +33,8 @@ struct preferences{
 	int stifle;
 };
 
+int get_int_choice(std::string display_string,int min_value,int max_value);
+
 
 /** Function to write the shell script that calls bertini in the step 1 process */
 void WriteShell1(int architecture,int usemachine);
@@ -31,11 +43,11 @@ void WriteShell1Parallel(int architecture, int usemachine);
 
 //void WriteShell2();
 
-void WriteShell3(int architecture);
+//void WriteShell3(int architecture);
 
 
 void ParseData(int & numfunct, 
-	       int & numvar, int & numparam, int & numconsts,
+	       int & numvargroup, int & numparam, int & numconsts,
 	       std::vector<std::string> & FunctVector,
 	       std::vector<std::string> & VarGroupVector, 
 	       std::vector<std::string> & ParamVector, 
@@ -48,6 +60,7 @@ void ParseData(int & numfunct,
 	       std::ifstream & fin, std::vector< int > & NumMeshPoints,
 	       std::string filename);
 
+int GetNumVariables(int numvargroup, std::vector<std::string> VarGroupVector);
 
 bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector);
 /*
@@ -65,13 +78,13 @@ int GetPrefVersion();
    Read the user-given values found in the configuration file and set
    the parameters to the appropriate values
    @param numfunct - number of functions
-   @param numvar - number of variable groups
+   @param numvargroup - number of variable groups
    @param numparam - number of parameters
    @param fin - the file input stream
 */
 
 
-void ReadSizes(int & numfunct, int & numvar, int & numparam, int & numconsts,
+void ReadSizes(int & numfunct, int & numvargroup, int & numparam, int & numconsts,
 	       std::ifstream & fin);
 
 
@@ -87,7 +100,7 @@ std::vector<std::string> ReadFunctions(int numfunct, std::ifstream & fin);
     @param fin - the file input stream
 */
 
-std::vector<std::string> ReadVarGroups(int numvar, std::ifstream & fin);
+std::vector<std::string> ReadVarGroups(int numvargroup, std::ifstream & fin);
 
 std::vector<std::string> ReadConstants(std::ifstream & fin);
 
@@ -95,7 +108,7 @@ std::vector<std::string> ReadConstantStrings(int numconsts,
 					     std::ifstream & fin);
 
 /** Read in the parameters from the given input file stream
-    @param numvar - the number of variables
+    @param numvargroup - the number of variables
     @param fin - the file input stream
 */
 
