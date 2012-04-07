@@ -15,10 +15,10 @@
 
 
 int GetUserChoice(){
-	int intChoice = 0;
-	while (intChoice < 1 || intChoice > 9){
-		
-	std::cout << "\n\nHere are your choices : \n"
+	
+	std::stringstream menu;
+	
+	menu << "\n\nYour choices : \n\n"
 	<< "1) Parse an appropriate input file. \n"
 	<< "2) Randomize start points. \n"
 	<< "3) Save random start points. \n"
@@ -26,16 +26,16 @@ int GetUserChoice(){
 	<< "5) Write Step 1.\n"
 	<< "6) Write and Run Step 1.\n"
 	<< "7) Run Step 2.\n"
-	<< "8) Determine Preferences for this machine.\n"
-	<< "9) Quit the program.\n\n"
-	<< "Enter the integer value of your choice : "; 
-		
-	std::cin >> intChoice;
-	std::cout << "\n\n";	
-    }
+    << "8) Gather Failed Path Data.\n"
+	<< "9) Determine Preferences for this machine.\n"
+	<< "*\n"
+	<< "0) Quit the program.\n\n"
+	<< "Enter the integer value of your choice : ";
+	
+	int intChoice = get_int_choice(menu.str(), 0, 9);//= -1;
+	
 	return intChoice;	
 }
-
 
 
 
@@ -504,7 +504,7 @@ else{
 		
 		
 		
-}		
+}//re: step2case
 
 
 
@@ -517,7 +517,7 @@ void TryToRecoverPrevRun(std::vector< std::pair<double,double> > & RandomValues,
 						 OPTIONS & currentChoice,
 						 std::vector<std::string> ParamStrings){
 
-bool finished = false;
+bool finished;
 std::ifstream fin;
 //check out previous runs...
 std::string blank;
@@ -574,20 +574,29 @@ fin.close();
 
 
 
+	finished = test_if_finished(base_dir);
 
-std::string finishedfile = "bfiles_";
-finishedfile.append(filename);
-finishedfile.append("/finished");
-fin.open(finishedfile.c_str());
-if (fin.is_open()){
-	finished = true;
-}
-fin.close();
+//	std::string finishedfile = "bfiles_";
+//	finishedfile.append(filename);
+//	finishedfile.append("/finished");
+//	fin.open(finishedfile.c_str());
+//	if (fin.is_open()){
+//		finished = true;
+//	}
+//	fin.close();
+//	
+//	
 if (finished) {
-	std::cout << "\n\n\nthis run appears done.  proceed anyway?  1 yes, 0 no.\n: ";
-	int tmpint;
+	int tmpint = -1;
 	
-	std::cin >> tmpint;
+	while ( (std::cout << "\n\n\nthis run appears done.  proceed anyway?  1 yes, 0 no.\n: ") &&
+		   ( !(std::cin >> tmpint) || tmpint < 0 || tmpint > 1) ){
+		
+		std::cout << "Not a valid choice -- try again please:";
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+	
 	if (tmpint==0) {
 		currentChoice=Quit;
 		finished = true;
@@ -595,6 +604,8 @@ if (finished) {
 	else {
 		finished = false;
 	}
+	
+	
 }		
 
 
@@ -641,3 +652,19 @@ if ( (( int(lastnumsent1.size()) ==Prefs[0].numprocs) || ( int(lastnumsent0.size
 }
 
 
+bool test_if_finished(std::string base_dir){
+	
+	bool finished = false;
+	
+	std::string finishedfile = base_dir;
+	finishedfile.append("/finished");
+	struct stat filestatus;
+	
+	if (stat( finishedfile.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
+		finished = true;
+	}
+	return finished;
+}
+
+
+	

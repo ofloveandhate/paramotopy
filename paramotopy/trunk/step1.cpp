@@ -1,14 +1,21 @@
 #include "step1.h"
-#include "random.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h> 
-#include <sstream>
-#include <fstream>
-#include <string>
+
+
+//  use this function to get inout fro the user and ensure it is an interger (actually fails to detect non-integer numeric inputs
+int get_int_choice(std::string display_string,int min_value,int max_value){
+	
+	int userinput = min_value - 1;
+	
+	while (  (std::cout << display_string) && 
+		   ( !(std::cin >> userinput) || userinput < min_value || userinput > max_value))
+	{
+		std::cout << "Invalid entry -- try again:\n";
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+	return userinput;
+}
+
 
 
 void WriteShell1(int architecture,int usemachine){
@@ -51,51 +58,7 @@ void WriteShell1Parallel(int architecture,int usemachine){
 	chmod((const char*) fname,0755);
 }
 
-//void WriteShell2(){
-//	const char* fname = "cpstartstep2.sh";
-//	std::ofstream fout(fname);
-//	fout << "#!/bin/bash\n\ncp ./$1/step1/nonsingular_solutions ./$2/start \n";
-//    //cd ./$2 \n";
-//	//fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi \nrm start";
-//	fout.close();
-//	chmod((const char*) fname,0777);
-//}
 
-void WriteShell3(int architecture){
-	
-	std::string home;
-
-
-	if (architecture==0){
-		home = ".";
-		home.append("/callbertinistep2.sh");
-	}
-	else {
-		home = ".";
-		home.append("/callbertinistep2.sh");
-	}
-	
-	const char* fname = home.c_str();
-//	std::cout << "writing callbertinistep2 to " << fname<< "\n";
-//	
-	std::ofstream fout(fname);
-	switch (architecture) {
-		case 0:
-			fout << "#!/bin/bash\n\n cd ./$1 \n";
-			
-			fout << "$HOME/bertini";//$HOME/
-			break;
-		case 1:
-			fout << "#!/bin/bash\n\n cd ./${1} \n";
-			
-			fout << "$HOME/bertini";
-			break;
-	}
-	//  fout << "if [ ! -e nonsingular_solutions ] \nthen \nbertini \nfi";
-	//\nrm start";
-	fout.close();
-	chmod((char*) fname,0755);
-}
 
 
 void CallBertiniStep1(std::string base_dir){
@@ -164,14 +127,14 @@ void SetPrefVersion(int version){
 bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector){
 	bool parallel;
 	std::string tmp, preflocation;
-	std::stringstream ss;
+	std::stringstream ss, menustream;
 	std::ifstream prefstream;
 	std::string homedir = getenv("HOME");
 	preflocation = homedir;
 	preflocation.append("/.poly.prefs");
 	prefstream.open(preflocation.c_str());
 	
-	int numfilespossible = 7; //now 7; was 8	
+	int numfilespossible = 7; //now 7; was 8.  changed when made failed paths mandatory	
 	std::vector< std::string > FileNames;
 	FileNames.resize(numfilespossible);
 	FileNames[0] = "real_solutions";
@@ -211,40 +174,43 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 		
 		parallel = false;
 		
-		int parselect = -1;
+	
 		
-		std::cout << "Select your command for running parallel processes:\n"
+		menustream << "Select your command for running parallel processes:\n"
 				<< "0) mpirun\n"
 				<< "1) aprun\n"
-				<< "2) other... (not a functioning selection yet)\n:";
-		std::cin >> Prefs[0].architecture;
-		outprefstream << Prefs[0].architecture << "\n";
+				<< "2) other... (not a functioning selection yet)\n:";		
 		
-		while(parselect < 0 || parselect > 1){
-			std::cout << "Run Parallel?\n"
-			<< "0) No.\n"
-			<< "1) Yes.\n"
-			<<  "Enter choice : ";
-			std::cin >> parselect;
-			if (parselect==0)
-				parallel=false;
-			else
-				parallel=true;
-		}
+		Prefs[0].architecture = get_int_choice(menustream.str(), 0, 2);
+		outprefstream << Prefs[0].architecture << "\n";
+		menustream.clear();
+		menustream.str("");
+		
 		
 
+		menustream << "Run Parallel?\n"
+				<< "0) No.\n"
+				<< "1) Yes.\n"
+				<<  "Enter choice : ";
+		int parselect = get_int_choice(menustream.str(), 0, 1);
+		
+		if (parselect==0)
+			parallel=false;
+		else
+			parallel=true;
+		
+		
 		if (parallel){
-			std::cout << "Does your machine use a machinefile?\n0) No.\n1) Yes.\n: ";
-			std::cin >> Prefs[0].usemachine;
+			Prefs[0].usemachine = get_int_choice("Does your machine use a machinefile?\n0) No.\n1) Yes.\n: ",0,1);
 			
 			if (Prefs[0].usemachine==1) {
+				
 				
 				std::cout << "Enter the machine file to be used, relative to your home directory: ";
 				std::cin >> Prefs[0].machinefile;
 			}
 
-			std::cout << "Enter the number of processes to be run: ";
-			std::cin >> Prefs[0].numprocs;
+			Prefs[0].numprocs = get_int_choice( "Enter the number of processes to be run: ",0,9000000);
 		}
 		outprefstream << parselect << "\n";
 		if (parallel){
@@ -252,8 +218,7 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 			<< Prefs[0].numprocs << "\n";
 		
 		
-			std::cout << "Enter step2 number of files at a time per processor: ";
-			std::cin >> Prefs[0].numfilesatatime;
+			Prefs[0].numfilesatatime = get_int_choice("Enter step2 number of files at a time per processor: ",0,9000000);
 
 			outprefstream << Prefs[0].numfilesatatime << "\n";
 		
@@ -263,14 +228,11 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 			Prefs[0].numfilesatatime = 1;
 		}
 	
-		
-		std::cout << "Would you like to use /dev/shm for temp files?\n0) No.\n1) Yes.\n:";
-		std::cin >> Prefs[0].devshm;		
+		//put a test for /dev/shm here, to make the next input conditional
+		Prefs[0].devshm = get_int_choice("Would you like to use /dev/shm for temp files?\n0) No.\n1) Yes.\n:",0,1);		
 		outprefstream << Prefs[0].devshm << "\n";
 
-		
-		std::cout << "Stifle step2 output (to /dev/null) ?\n0) No.\n1) Yes.\n:";
-		std::cin >> Prefs[0].stifle;		
+		Prefs[0].stifle = get_int_choice("Stifle step2 output (to /dev/null) ?\n0) No.\n1) Yes.\n:",0,1);	
 		outprefstream << Prefs[0].stifle << "\n";
 		
 		
@@ -283,17 +245,15 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 				}
 			}
 			std::cout << numfilespossible << ") Done.\n";
-			std::cout << "Select the file you would like to save : ";
-			std::cin >> selection;
-			while (selection < 0 || selection > numfilespossible){
-				std::cout << "Invalid selection.  Select again : ";
-				std::cin >> selection;
-			}
+			
+			
+			selection = get_int_choice("Select the file you would like to save : ",0,numfilespossible);
+			
+			
 			if (selection!=numfilespossible){ 
 				std::cout << "Selection = " << selection
 				<< ", setting saved to true.\n";
 				FilePrefVector[selection]=true;
-//				TheFiles[selection].saved=true;
 			}
 		}
 		//done setting files to save for this run.
@@ -309,8 +269,12 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 //		std::cout << "Save progress every ? iterations: ";
 		Prefs[0].saveprogresseverysomany = 1;
 		
-		std::cout << "Threshold in bytes for new data file \n (recommend tens of megs [67108864 = 2^20]): ";
-		std::cin >> Prefs[0].newfilethreshold;
+		Prefs[0].newfilethreshold = get_int_choice("Threshold in bytes for new data file \n (press 0 for default of 67108864 = 2^26): ",0,2147483647);
+		if (Prefs[0].newfilethreshold == 0) {
+			Prefs[0].newfilethreshold = 67108864;
+		}
+		//		std::cout << "Threshold in bytes for new data file \n (recommend tens of megs [67108864 = 2^26]): ";
+//		std::cin >> Prefs[0].newfilethreshold;
 		
 		
 		outprefstream << "\n" << Prefs[0].newfilethreshold << "\n";
@@ -437,7 +401,7 @@ bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & 
 
 
 
-void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
+void ParseData(int & numfunct, int & numvargroup, int & numparam, int & numconsts,
 	       std::vector<std::string> & FunctVector,
 	       std::vector<std::string> & VarGroupVector, 
 	       std::vector<std::string> & ParamVector, 
@@ -466,11 +430,11 @@ void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
      END
    */
 //  std::cout << "Good here 1\n";
-  ReadSizes(numfunct,numvar,numparam,numconsts,fin);
+  ReadSizes(numfunct,numvargroup,numparam,numconsts,fin);
 //  std::cout << "Good here 2\n";
   FunctVector = ReadFunctions(numfunct,fin);
 //  std::cout << "Good here 3\n";
-  VarGroupVector = ReadVarGroups(numvar,fin);
+  VarGroupVector = ReadVarGroups(numvargroup,fin);
 //  std::cout << "Good here 4\n";
   if (numconsts!=0){
     Consts=ReadConstants(fin);
@@ -505,21 +469,16 @@ void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
       
 	  
 
-//    std::ifstream fin2(paramfilename.c_str());
-//    Values = MakeValues(numparam,fin2);
-//    fin2.close();
-    
+
   }
   else{
     
     ParamVector = ReadParameters(numparam,fin);
-    //  ParamInfo = MakeParamInfo(ParamVector, numparam);
     ParamStrings = MakeParameterStrings(ParamVector);
     Values = MakeValues(ParamVector,NumMeshPoints);
   }
   
-  
-  
+  fin.close();  
   // temporary output of the parsed data
   RandomValues = MakeRandomValues(ParamStrings.size());
 
@@ -537,9 +496,29 @@ void ParseData(int & numfunct, int & numvar, int & numparam, int & numconsts,
   for (int i = 0; i < int(ParamVector.size());++i){
     std::cout << ParamVector[i] << "\n";
   }
+	
 
-  fin.close();
 }
+
+
+//uses the strstr comparison to find all commas, and hence count the number of variables in the paramotopy run.
+int GetNumVariables(int numvargroup, std::vector<std::string> VarGroupVector){
+	
+	int count = 0;
+	size_t comma_found;
+	
+	
+	for (int i=0; i<numvargroup; ++i) {
+		count++;
+		comma_found = VarGroupVector[i].find(",");
+		while ( comma_found != std::string::npos ) {
+			count++;
+			comma_found = VarGroupVector[i].find(",",comma_found+1,1);
+		}	
+	}
+	return count;
+}
+
 
 
 void mkdirunix(std::string mydir){
@@ -561,7 +540,7 @@ void mkdirstep1(std::string inputfilename){
   
 }
 
-void ReadSizes(int & numfunct, int & numvar, int & numparam, int & numconsts, 
+void ReadSizes(int & numfunct, int & numvargroup, int & numparam, int & numconsts, 
 	       std::ifstream & fin){
   
   std::string tmp;
@@ -569,7 +548,7 @@ void ReadSizes(int & numfunct, int & numvar, int & numparam, int & numconsts,
   std::stringstream ss;
   ss << tmp;
   ss >> numfunct;
-  ss >> numvar;
+  ss >> numvargroup;
   ss >> numparam;
   ss >> numconsts;
 }
@@ -584,9 +563,9 @@ std::vector<std::string> ReadFunctions(int numfunct, std::ifstream & fin){
   }
   return MyFunctions;
 }
-std::vector<std::string> ReadVarGroups(int numvar, std::ifstream & fin){
+std::vector<std::string> ReadVarGroups(int numvargroup, std::ifstream & fin){
   std::vector<std::string> MyVarGroups;
-  for (int i = 0; i < numvar; ++i){
+  for (int i = 0; i < numvargroup; ++i){
     std::string tmp;
     getline(fin,tmp);
     MyVarGroups.push_back(tmp);
