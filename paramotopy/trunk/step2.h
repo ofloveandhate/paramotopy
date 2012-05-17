@@ -13,13 +13,7 @@
 #ifndef __STEPTWO_H__
 #define __STEPTWO_H__
 
-struct ToSave{
-  
-  std::string filename;
-  bool saved;
-  int filecount;
 
-};
 
 
 

@@ -19,7 +19,7 @@
 #include "slave.h"
 
 
-
+//from the bertini library.
 extern "C" {
 	int bertini_main(int argC, char *args[]);
 }
@@ -56,6 +56,9 @@ void slave(std::vector<std::string> tmpfolderlocs,
 		   int newfilethreshold){
 	
 	
+
+	
+	
 	std::string up = "../../../..";
 	std::string currentSeedstring;
 	int blaint, currentSeed = 0;
@@ -67,6 +70,8 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	
 	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 	MPI_Status status;
+	
+
 	
 	void *v;
     int flag;
@@ -125,14 +130,20 @@ void slave(std::vector<std::string> tmpfolderlocs,
 //	int writethreshold = 1; //how often to check file sizes...
 	
 	
-	myss << called_dir << "/" << base_dir << "/step2/DataCollected/c"
-	<< myid << "/";
+	myss << called_dir << "/" << base_dir << "/step2/DataCollected/c" << myid << "/";
+
+	
 	std::string DataCollectedbase_dir = myss.str();//specific to this worker, as based on myid
+	
+
+	
 	std::vector<std::pair<double,double> >  AllParams;
 	AllParams.resize(numparam);//preallocate
 	myss.clear();
 	myss.str("");
 	
+	std::cout << DataCollectedbase_dir << "\n";
+
 	
 	
 #ifdef timingstep2
@@ -140,9 +151,10 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	int readcounter = 0, writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
-	std::string timingname = called_dir;
-	timingname.append("/");
-	timingname.append(base_dir);
+//	std::string timingname = called_dir;
+//	timingname.append("/");
+//	timingname.append(base_dir);
+	std::string timingname = base_dir;
 	myss << myid;
 	timingname.append("/timing/slavetiming");
 	timingname.append(myss.str());
@@ -175,7 +187,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	//
 	///////////
 #ifdef verbosestep2
-	std::cout << "telling workers the number of chars to expect.\n";
+	std::cout << "receiving from master the number of chars to expect.\n";
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
@@ -189,7 +201,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	char start_char[vectorlengths[0]];
 	char input_char[vectorlengths[1]];
 #ifdef verbosestep2
-	std::cout << "sending start and config.\n";
+	std::cout << "sending start and config files.\n";
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
@@ -297,7 +309,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	
 	
 	long loopcounter = 0;  //is for counting how many solves this worker has performed, for data collection file incrementing
-	blaint = chdir(workingfolder.c_str());  //used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
+	blaint = chdir(workingfolder.c_str());  //formerly, used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
 	
 	
 	std::cout << myid << " " << stackoverflow_getcwd() << "\n";
@@ -416,7 +428,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 				t_read += omp_get_wtime() - t1;
 				readcounter++; //increment the counter
 #endif				
-				
+
 
 				//if big enough
 				if (int(runningfile[j].size()) > 65536){
