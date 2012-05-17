@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-
+#include "para_aux_funcs.h"
 
 #include "step2readandwrite.h"
 

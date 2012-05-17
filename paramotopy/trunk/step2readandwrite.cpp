@@ -41,6 +41,7 @@ void WriteData(std::string outstring,
 			   std::string target_file,
 			   std::vector<std::string> ParamStrings){
 	
+	
 	std::ofstream fout;
 	// test if file target file is open
 	

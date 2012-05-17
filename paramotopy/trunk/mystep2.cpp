@@ -20,12 +20,13 @@
 #include "step2readandwrite.h"
 #include "master.h"
 #include "slave.h"
+#include "para_aux_funcs.h"
 
 
 
 /*
  the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
- and denominator of the number.  I pass the input by casting via (char *) blabla
+ and denominator of the number.  I pass the input by casting via (char *) 
  */
 extern "C" {
 	void computeNumDenom(char **numer, char **denom, char *s);
@@ -48,13 +49,14 @@ extern "C" {
 
 int main(int argc, char* argv[]){
 
+	
 	int numfilesatatime;//added march7,11 db
 	int saveprogresseverysomany;
 	int devshm, newfilethreshold;
 	int myid;
 	int numprocs;
 	int namelen;
-	char   processor_name[MPI_MAX_PROCESSOR_NAME];
+	char processor_name[MPI_MAX_PROCESSOR_NAME];
 	int headnode=0;
 
 	std::ifstream fin;
@@ -115,8 +117,7 @@ int main(int argc, char* argv[]){
         commandss >> blank;  // name of program, ./mystep2
 		commandss >> filename;  // name of input file to polysaurus
 		commandss >> numfiles; // number of files to save
-	  std::string base_dir = "bfiles_";
-	  base_dir.append(filename);
+	  std::string base_dir=make_base_dir_name(filename);
 
 	  TheFiles = new ToSave[numfiles];
 	  for (int i = 0; i < numfiles;++i){
@@ -163,13 +164,12 @@ int main(int argc, char* argv[]){
 	// didn't provide filename or any arguments ...
 		std::cerr << "Nothing passed as an argument ... this"
 			  << " should never pop up as this program is only "
-			  << "ever called from polysaurus...\n";
+			  << "ever called from paramotopy...\n";
 		  MPI_Finalize();
 		return 1;
 	}
   
-	std::string base_dir="bfiles_";
-	base_dir.append(filename);
+	std::string base_dir=make_base_dir_name(filename);
 	
 	std::string templocation;
 	if (devshm==1) {
@@ -201,13 +201,9 @@ int main(int argc, char* argv[]){
 	
 	
 	
-	
-
-	
-	
-	
-	//the main body of the program is here:
+     //the main body of the program is here:
   if (myid==headnode){
+	  
 	  master(tmpfolderlocs,
 			 filename, 
 			 numfilesatatime, 
@@ -216,6 +212,7 @@ int main(int argc, char* argv[]){
 			 templocation);
   }
   else{
+
     slave(tmpfolderlocs,
 		  TheFiles, 
 		  numfiles, 
@@ -228,12 +225,14 @@ int main(int argc, char* argv[]){
   }
 
 
+
+
+
   delete[] TheFiles;
   MPI_Finalize();//wrap it up
-	
+	return 0;
 
 }//re: main
-
 
 
 

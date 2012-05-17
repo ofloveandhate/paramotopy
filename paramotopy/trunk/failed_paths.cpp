@@ -1,15 +1,62 @@
 #include "failed_paths.h"
 
-int failedpaths_case(int numparam, int numvariables, std::string base_dir){
+
+//the master function for doing stuff to the failed points.  called by paramotopy's main.
+
+//returned integer indicates success or something.
+int failedpaths_case(int numparam, 
+					 int numvariables, 
+					 std::string base_dir,
+					 std::string filename,
+					 int & iteration){
+	
+	 
+	std::cout << base_dir;
+	bool finished = test_if_finished(base_dir);  //make sure the run was completed.  
+	
+	if (finished == false) {
+		std::cout << "\n\nthe run for " << filename << " appears not completed.  please complete the run.\n";
+		return -1;  //run was not completed, ought not continue.
+	}
 	
 	
+	//first, get the folders that contain the data.  
 	std::vector< std::string > foldervector = get_folders_for_fail(base_dir);
 
 	
+	int totalfails;                                                          //will contain the number of points that had failures.
+	std::vector< std::vector< std::pair<double,double> > > fail_vector;      //will contain the actual points in parameter space, that had fails.
+	std::vector< int > index_vector;                                         //will contain the indexes of the points that had failures.
+	find_failed_paths(index_vector, fail_vector, totalfails, numparam, numvariables, base_dir, foldervector);
 	
-	int totalfails = find_failed_paths(numparam, numvariables, base_dir, foldervector);
+	
+	if (totalfails == 0) {
+		std::cout << "congratulations, your run had 0 path failures total!\n";
+		return 0;
+	}
+	else {
+	std::cout << "There were " << totalfails << " total points which had path failures.\n";
+	
+	
+	
+	// now have the number of points in original sample which had at least one failed path. 
+	// also have the points themselves, as well as the indexes associated with those points in the starting sample.
+	
+	
+	//copy the original paramotopy input file,
+	
+	
+	//run a (step1) run to get new start point.
+	
+	//run a step2 on the failed points.
+	
+	//rerun this?
+	iteration++;
+	//failedpaths_case(numparam,numvariables,base_dir,filename,iteration);
 	
 	return 0;
+	}
+	
 }
 
 
@@ -17,7 +64,13 @@ int failedpaths_case(int numparam, int numvariables, std::string base_dir){
 
 
 
-int find_failed_paths(int numparam, int numvariables, std::string base_dir,std::vector< std::string > foldervector){
+int find_failed_paths(std::vector< int > & index_vector, 
+					  std::vector< std::vector< std::pair<double,double> > > & fail_vector, 
+					  int & totalfails, 
+					  int numparam, 
+					  int numvariables, 
+					  std::string base_dir,
+					  std::vector< std::string > foldervector){
 
 	//	Data members used throughout the program  
 	
@@ -28,12 +81,12 @@ int find_failed_paths(int numparam, int numvariables, std::string base_dir,std::
 	std::stringstream ss, intstream;
 	int linenumber;
 
-	std::vector< std::vector< std::pair<double,double> > > fail_vector;
+	
 	std::vector< std::pair<double,double> > tempparam; 
 	tempparam.resize(numparam);	
 	std::string tempname;
 	
-	int totalfails = 0;
+	totalfails = 0; //initialize to 0;
 	
 	
 	
@@ -55,14 +108,13 @@ int find_failed_paths(int numparam, int numvariables, std::string base_dir,std::
 			getline(fin,tmpstr); // gets the parameter names.  no need to keep
 			
 			while ( getline(fin,tmpstr) ) { // get line.  either blank (no more) or a # (line num or index)
-//				std::cout << tmpstr << "\n";
 				if (tmpstr.length()==0 ){  // if true, then blank.  file ought to be done
 					break;
 				}
 				else { //not blank.  work to do
 					
 					ss << tmpstr;
-					ss >> linenumber; //make the line number
+					ss >> linenumber; //get the line number
 					ss.clear();
 					ss.str("");
 					
@@ -77,8 +129,7 @@ int find_failed_paths(int numparam, int numvariables, std::string base_dir,std::
 					ss.clear();
 					ss.str("");
 					
-//					std::cout << tempparam[0].first << "\n";
-					
+				
 					
 					int tempfailnum = 0;
 					while (1) {
@@ -102,6 +153,7 @@ int find_failed_paths(int numparam, int numvariables, std::string base_dir,std::
 //							std::cout << tempparam[ii].first << " " << tempparam[ii].second << " ";
 //						} 
 //						std::cout << "\n";
+						index_vector.push_back(linenumber);
 						fail_vector.push_back(tempparam);
 						totalfails_thisfolder++;
 					}
@@ -126,7 +178,7 @@ int find_failed_paths(int numparam, int numvariables, std::string base_dir,std::
 		totalfails += totalfails_thisfolder;
 	}	//re:for (int bla=0; bla<foldervector.size(); ++bla)
 	
-	return totalfails;
+	return 0;
 }
 
 
@@ -140,10 +192,10 @@ std::vector< std::string > get_folders_for_fail(std::string base_dir){
 	folderstream.open(foldername.c_str());
 	std::string tmpstr;
 	std::vector< std::string > foldervector;
-	std::cout << "folders to analyze for failed paths:\n";
+//	std::cout << "folders to analyze for failed paths:\n";
 	while (getline(folderstream,tmpstr)) {
 		foldervector.push_back(tmpstr);
-		std::cout << tmpstr << "\n";
+//		std::cout << tmpstr << "\n";
 	}
 	folderstream.close();
 

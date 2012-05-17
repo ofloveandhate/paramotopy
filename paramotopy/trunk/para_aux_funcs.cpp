@@ -1,19 +1,122 @@
 #include "para_aux_funcs.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h> 
-#include <sstream>
-#include <fstream>
-#include <string>
-#include "random.h"
-#include "mtrand.h"
+
+
+
+//  use this function to get inout fro the user and ensure it is an interger (actually fails to detect non-integer numeric inputs
+int get_int_choice(std::string display_string,int min_value,int max_value){
+	
+	int userinput = min_value - 1;
+	
+	while (  (std::cout << display_string) && 
+		   ( !(std::cin >> userinput) || userinput < min_value || userinput > max_value))
+	{
+		std::cout << "Invalid entry -- try again:\n";
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+	return userinput;
+}
+
+
+std::string make_base_dir_name(std::string filename){
+	
+	std::string base_dir = "";
+	
+	std::string remainder = filename;
+	size_t found;
+	found = remainder.find('/');
+	while (found!=std::string::npos) {  //if found the delimiter '/'
+		
+		base_dir.append(remainder.substr(0,found+1));  //the part of the path to scan for mystep2
+		std::cout << base_dir << "\n";
+		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
+		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
+		
+		
+
+	}// re:while
+	base_dir.append("bfiles_");
+	base_dir.append(remainder);
+		
+	return base_dir;
+}
+
+
+//locates the step2program.
+int Find_Program_Step2(preferences *Prefs){
+	
+	
+	bool found_step2_program = false;
+	struct stat filestatus;
+	
+	if (stat( "./mystep2", &filestatus ) ==0){  // if have the mystep2 program in current directory, set location of it to here.
+		Prefs[0].step2location = ".";
+		found_step2_program = true;
+	}
+	else{  //if mystep2 is not in the current directory, then scan the path for it.
+		
+		char * temp_path;
+		temp_path = getenv ("PATH");
+		if (temp_path!=NULL){
+			std::string path = std::string(temp_path);
+			//have the path variable.  will scan for the mystep2 program.
+			
+			
+			
+			size_t found;
+			found = path.find(':');
+			while (found!=std::string::npos) {  //if found the delimiter ':'
+				std::string path_to_detect = path.substr(0,found);  //the part of the path to scan for mystep2
+				path = path.substr(found+1,path.length()-found);    // the remainder of the path.  will scan later.
+				found = path.find(':');                             // get the next indicator of the ':' delimiter.
+				
+				
+				if ( stat( path_to_detect.append("/mystep2").c_str() , &filestatus)==0){
+					//found the mystep2 program!
+					
+					Prefs[0].step2location = path_to_detect;
+					found_step2_program = true;
+					break;
+					
+				}  
+				else{
+					//did not find it yet...	
+				}
+			}// re:while
+		}//re: if temp_path!=null
+		else{ //the path variable was null.  WTF?
+			
+			
+		}
+		
+		
+	}
+	
+	if (found_step2_program == false){
+		std::string path_to_detect;
+		std::cout << "mystep2 program not found in current directory or PATH.\nplease supply the path to mystep2.\nabsolute path is best, but relative works, too.\n";
+		std::cin >> path_to_detect;
+		std::string temp_path = path_to_detect;
+		while (stat(temp_path.append("/mystep2").c_str(),&filestatus) !=0) {
+			std::cout << "mystep2 program not found at that location.  please supply the path to mystep2:\n";
+			std::cin >> path_to_detect;	
+			temp_path = path_to_detect;
+		}
+		Prefs[0].step2location = path_to_detect;
+	}
+	
+	std::cout << "step2 program is located at '" << Prefs[0].step2location << "'\n";
+	return 0;
+}//    re: find_program_step2
 
 
 
 
+
+
+
+
+//the main choice function for paramotopy.
 int GetUserChoice(){
 	
 	std::stringstream menu;
@@ -27,484 +130,18 @@ int GetUserChoice(){
 	<< "6) Write and Run Step 1.\n"
 	<< "7) Run Step 2.\n"
     << "8) Gather Failed Path Data.\n"
-	<< "9) Determine Preferences for this machine.\n"
+	<< "\n"
+	<< "9) Preferences.\n"
 	<< "*\n"
 	<< "0) Quit the program.\n\n"
 	<< "Enter the integer value of your choice : ";
 	
 	int intChoice = get_int_choice(menu.str(), 0, 9);//= -1;
 	
-	return intChoice;	
-}
+	return intChoice;
+}  //   re: getuserchoice
 
 
-
-
-
-
-
-std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
-													std::vector<std::string> ParamStrings){
-
-	MTRand drand(time(0));
-	int randchoice;
-	std::cout << "1) Default range [0 to 1)\n"
-	<< "2) User-specified range\n"
-	<< "Enter in if you would like to use the standard "
-	<< "default range for random floats or if you would "
-	<< "like to specify the range : ";
-	std::cin >> randchoice;
-	while (randchoice != 1 && randchoice != 2){
-		std::cout << "Please enter 1 for the default range or 2 for"
-		<< " a user-specified range : ";
-		std::cin >> randchoice;
-	}
-	if (randchoice == 1){
-		RandomValues = MakeRandomValues(ParamStrings.size());
-	}
-	if (randchoice == 2){
-		
-		int paramrandchoice = 1;	
-		while (paramrandchoice != 0){ 
-			std::cout << "0 - Done specifying random values\n";
-			for (int i = 0; i < int(ParamStrings.size());++i){
-				std::cout << i+1 << " - " << ParamStrings[i]
-				<< "\n";
-			}
-			std::cout << "Enter the parameter you want to rerandomize : ";
-			std::cin >> paramrandchoice;
-			while (paramrandchoice < 0 || paramrandchoice > int(ParamStrings.size())){
-				
-				std::cout << "0 - Done specifying random values\n";
-				for (int i = 0; i < int(ParamStrings.size());++i){
-					std::cout << i+1 << " - " << ParamStrings[i]
-					<< "\n";
-				}
-				std::cout << "Enter the parameter you want to rerandomize : ";
-				std::cin >> paramrandchoice;
-			}
-			if (paramrandchoice !=0){
-				std::cout << "Enter a low range followed "
-				<< "by a high range for the"
-				<< " real and imaginary parts "
-				<< "of the chosen parameter."
-				<< "\n";
-				
-				double creallow;
-				double crealhigh;
-				double cimaginarylow;
-				double cimaginaryhigh;
-				std::cout << "\n" << "Real Low : ";
-				std::cin >> creallow;
-				std::cout << "Real High : ";
-				std::cin >> crealhigh;
-				std::cout << "Imaginary Low : ";
-				std::cin >> cimaginarylow;
-				std::cout << "Imaginary High : ";
-				std::cin >> cimaginaryhigh;	  
-				double crandreal = drand();
-				double crandimaginary = drand();
-				crandreal*=(crealhigh-creallow);
-				crandimaginary*=(cimaginaryhigh-cimaginarylow);
-				crandreal+=creallow;
-				crandimaginary+=cimaginarylow;
-				RandomValues[paramrandchoice-1].first=crandreal;
-				RandomValues[paramrandchoice-1].second=crandimaginary;
-			}
-		}
-	}
-	PrintRandom(RandomValues,ParamStrings);//in random.cpp
-	
-	
-	
-	
-	return RandomValues;
-}
-
-
-
-
-void save_random_case(std::vector< std::pair<double,double> > RandomValues,
-					  std::ofstream & fout,
-					  int numparam){
-std::string randpointfilename;
-std::cout << "Enter the filename you want to save the random start points to : ";
-std::cin >> randpointfilename;
-
-fout.open(randpointfilename.c_str());
-
-for (int i = 0; i < numparam; ++i){
-	fout << RandomValues[i].first << " "
-	<< RandomValues[i].second << "\n";
-}
-fout.close();
-	
-	return;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void load_random_case(std::ifstream & fin3, 
-					  std::vector< std::pair<double,double> > & RandomValues,
-					  std::vector<std::string> ParamStrings){
-
-	std::string randfilename;
-	int cancelthis = 0;
-	
-fin3.close();
-while ( !fin3.is_open() ) {
-	std::cout << "Enter the filename of the random points you"
-	<< " want to load (% to cancel): ";
-	std::cin >> randfilename;
-	
-	size_t found=randfilename.find('%');
-	if (found!=std::string::npos) {
-		if ( int(found) == 0) {
-			std::cout << "canceling load.\n" << std::endl;
-			cancelthis = 1;
-			break;
-		}
-		
-	}
-	
-	
-	fin3.open(randfilename.c_str());
-	}
-	
-	if (!cancelthis) {
-		
-		std::string mytemp;
-		int ccount=0;
-		std::cout << "\n\n";
-		while(getline(fin3,mytemp)){
-			std::stringstream myss;
-			myss << mytemp;
-			double crandreal;
-			double crandimaginary;
-			myss >> crandreal;
-			myss >> crandimaginary;
-			RandomValues[ccount].first = crandreal;
-			RandomValues[ccount].second = crandimaginary;
-			std::cout << ParamStrings[ccount]
-			<< " = "
-			<< RandomValues[ccount].first 
-			<< " + "
-			<< RandomValues[ccount].second
-			<< "*I\n";
-			++ccount;
-		}
-		std::cout << "\n";
-		fin3.close();
-	}
-	PrintRandom(RandomValues,ParamStrings);//in random.cpp
-
-	return;
-}
-
-
-
-
-
-
-
-void step2_case(int numfilespossible,
-				ToSave *TheFiles,
-				std::string filename,
-				bool parallel,
-				preferences *Prefs,
-				int numparam, 
-				std::vector< std::pair<double,double> > RandomValues,
-				std::vector<std::string> ParamStrings){
-
-
- 
-
-// open the bfiles_filename/mc file that contains the monte carlo points
-// in order in accordance to the order of the paramstrings in ParamStrings
-
-
-	std::ifstream fin;
-	std::ofstream fout;
-
-std::string base_dir = "bfiles_";
-base_dir.append(filename);
-
-
-// make the tmp files directory/folder
-	std::string filenamestep2;
-	if (Prefs[0].devshm==1) {
-		filenamestep2= "/dev/shm";
-	}
-	else {
-		filenamestep2 = stackoverflow_getcwd();
-	}
-	filenamestep2.append("/bfiles_");
-	filenamestep2.append(filename);
-	filenamestep2.append("/step2/tmp/");
-	mkdirunix(filenamestep2.c_str());
-
-
-
-std::string curline;	
-
-
-//make the DataCollected directory.
-std::string DataCollectedBaseDir=base_dir;
-DataCollectedBaseDir.append("/step2/DataCollected/");
-mkdirunix(DataCollectedBaseDir.c_str());
-
-//touch files to save, in folders to save data.
-
-if (!parallel){
-	SetFileCount(TheFiles,numfilespossible,DataCollectedBaseDir);
-	TouchFilesToSave(TheFiles,numfilespossible,DataCollectedBaseDir);
-}
-else{
-	for (int i = 1; i < Prefs[0].numprocs;++i){
-		std::stringstream CurDataCollectedBaseDir;
-		CurDataCollectedBaseDir <<  DataCollectedBaseDir
-								<< "c" << i << "/";
-		mkdirunix(CurDataCollectedBaseDir.str().c_str());
-		SetFileCount(TheFiles,numfilespossible,CurDataCollectedBaseDir.str());
-		TouchFilesToSave(TheFiles,numfilespossible,
-						 CurDataCollectedBaseDir.str());
-		
-		}
-		}
-		
-		
-		
-		
-		
-		
-		std::string randpointfilename;
-		randpointfilename = base_dir;
-		randpointfilename.append("/randstart");
-		
-		fout.open(randpointfilename.c_str());
-		
-		for (int i = 0; i < numparam; ++i){
-			fout << RandomValues[i].first << " "
-			<< RandomValues[i].second << "\n";
-			
-		}
-		fout.close();
-		
-		
-		
-		
-		
-		//actually run that shit
-		
-		
-		if (!parallel) {//this section needs a lot of work
-			//			std::string filenamestep2="bfiles_";
-			//			filenamestep2.append(filename);
-			//			filenamestep2.append("/step2/tmp/");
-			//			
-			//			std::ifstream finconfig2("config2");
-			//			while (!finconfig2.eof()) {
-			//				getline(finconfig2,copyme);
-			//				configvector.push_back(copyme);
-			//			}
-			//			finconfig2.close();
-			//				
-			//			int i=0;
-			////			bool firsttime = true;	  
-			//			while(i<Values.size()){
-			//			  
-			//			  
-			//				  std::vector<std::string> bertinitmpdir;
-			//				  std::vector< std::string > configvector;
-			//				  std::string copyme;
-			//				  
-			//
-			//
-			//				  
-			//					std::stringstream ss;
-			//					ss <<filenamestep2;      
-			//					ss << i;
-			//					std::string curbasedir=ss.str();
-			//					curbasedir.append("/");
-			//					ss << "/input";
-			//					fout.open(ss.str().c_str());	  
-			//					
-			//					WriteStep2(configvector,
-			//						   fout,
-			//						   Values[i],
-			//						   FunctVector, 
-			//						   VarGroupVector,
-			//						   ParamVector,
-			//						   ParamStrings,
-			//						   Consts,
-			//						   ConstantStrings,
-			//						   RandomValues,
-			//						   numfunct,
-			//						   numvar,
-			//						   numparam,
-			//						   numconsts);
-			//					fout.close();
-			//					// Copy the nonsingular_solutions file from
-			//					// the step1 run to bfiles_filename/curbasedir/start
-			//			//	    std::cout << "curbasedir = " << curbasedir << "\n";
-			//			//	    std::cout << "base_dir = " << base_dir << "\n";
-			//					CallCopyStartStep2(base_dir,curbasedir);
-			//					
-			//					
-			//					// Run Step2 on the current input file
-			//					WriteShell3();
-			//					//   std::cout << "i = " << i << " and pushing onto bertinitmpdir\n";
-			//					//	    std::cout << "numsubfolders = " << numsubfolders
-			//					//		      << ", eof = " << ( fin.eof()? "true\n":"false\n");
-			//					//	    std::cout << "loop condition to continue going = "
-			//					//	      << (i+1 < numsubfolders && !fin.eof()?"true\n":"false\n");
-			//					bertinitmpdir.push_back(curbasedir);
-			//			  
-			//			}//re:while loop
-			//
-			//			  UpdateFileCount(TheFiles, numfilespossible,DataCollectedBaseDir);
-			//
-			//			  for (int i = 0; i  < bertinitmpdir.size();++i){
-			//				bool append;
-			//				CallBertiniStep2(bertinitmpdir[i]);	  
-			//				for (int j = 0; j < numfilespossible;++j){
-			//				  if (TheFiles[j].saved){
-			//						// Store into appropriate files
-			//						std::string target_file_base_dir = base_dir;
-			//						target_file_base_dir.append("/step2/DataCollected/");
-			//						std::string target_file =
-			//						  MakeTargetFilename(target_file_base_dir,
-			//									 TheFiles,
-			//									 j);
-			//
-			//						std::string orig_file = bertinitmpdir[i];
-			//						orig_file.append(TheFiles[j].filename);
-			//						WriteData(runid, 
-			//							  orig_file, 
-			//							  target_file,
-			//							  //	  append,
-			//							  ParamStrings,
-			//							  CValuesVect[i]);	    		
-			//
-			//				  } // end if saved
-			//				}// end j
-			//				
-			//				std::ofstream lastrunfile;
-			//				std::string lastrunfilename;
-			//				lastrunfilename="bfiles_";
-			//				lastrunfilename.append(filename);
-			//				lastrunfilename.append("/step2/tmp/lastrun");
-			//				
-			//				lastrunfile.open(lastrunfilename.c_str());
-			//				lastrunfile << runid;
-			//				lastrunfile.close();
-			//				++runid;	    
-			//			  }// end i	    
-			//			  
-		}// end not parallel
-		
-		else{//parallel case...
-			
-			std::string mpicommand;
-			if (Prefs[0].architecture==0) {
-				
-				mpicommand = "mpirun ";
-				if (Prefs[0].usemachine==1){
-					mpicommand.append("-machinefile ");
-					mpicommand.append(Prefs[0].machinefile);
-				}
-				mpicommand.append(" -np ");
-			}
-			else {
-				mpicommand = "aprun -n ";
-			}
-			
-			std::stringstream ssnumproc;
-			ssnumproc << Prefs[0].numprocs;
-			mpicommand.append(ssnumproc.str());
-			mpicommand.append(" ./mystep2 ");	    
-			mpicommand.append(filename);
-			mpicommand.append(" ");
-			int numfilestosave=0;
-			for (int i = 0; i < numfilespossible;++i){
-				if (TheFiles[i].saved){
-					++numfilestosave;
-				}
-			}
-			ssnumproc.str("");
-			ssnumproc.clear();
-			ssnumproc << numfilestosave;
-			mpicommand.append(ssnumproc.str());
-			mpicommand.append(" ");
-			
-			for (int i = 0; i < numfilespossible;++i){
-				if (TheFiles[i].saved){
-					mpicommand.append(TheFiles[i].filename);
-					mpicommand.append(" ");
-					std::stringstream r;
-					r << TheFiles[i].filecount;
-					mpicommand.append(r.str());
-					mpicommand.append(" ");
-				}
-			}
-			
-			
-			std::stringstream ss42;//nice variable name matt
-			ss42 << Prefs[0].numfilesatatime;
-			ss42 << " ";
-			mpicommand.append(ss42.str());
-			
-			
-			ss42.str("");
-			ss42.clear();
-			ss42 << ParamStrings.size();
-			ss42 << " ";
-			mpicommand.append(ss42.str());
-			for (int i = 0; i < int(ParamStrings.size());++i){
-				mpicommand.append(ParamStrings[i]);
-				mpicommand.append(" ");
-			}
-			
-			
-			ss42.str("");
-			ss42.clear();
-			
-			
-			ss42 << Prefs[0].saveprogresseverysomany;
-			ss42 << " ";
-			
-			ss42 << Prefs[0].newfilethreshold;
-			ss42 << " ";
-			
-			ss42 << Prefs[0].devshm;
-			ss42 << " ";
-
-			if (Prefs[0].stifle==1){
-				ss42 << " > /dev/null ";	
-			}
-			
-			mpicommand.append(ss42.str());
-			
-			std::cout << "\n\n\n\n\n\n\n\n" << mpicommand << "\n\n\n\n\n\n\n\n\n";
-			system(mpicommand.c_str());
-			
-		} // end parallel case
-		
-		
-		
-		
-}//re: step2case
 
 
 

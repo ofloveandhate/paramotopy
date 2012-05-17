@@ -19,7 +19,9 @@
 #include "step2.h"
 #include "para_aux_funcs.h"
 #include "paramotopy_enum.h"
+#include "menu_cases.h"
 #include "failed_paths.h"
+#include "preferences.h"
 #include <mpi.h>
 #include <unistd.h>
 
@@ -30,8 +32,14 @@
 
 int main(int argC, char *args[]){
 	
+	
+	
+	
+	
+	
+	
 	//	get_curr_dir_name();
-	int prefversion = 14; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+	int prefversion = 15; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 	
 	
 	
@@ -40,7 +48,8 @@ int main(int argC, char *args[]){
 	
 	OPTIONS currentChoice = Start;
 	std::string filename;
-	std::string base_dir ="bfiles_";
+	std::string path_to_inputfile;
+	std::string base_dir ="";
 	bool parsed = false;
 	std::ifstream fin;
 	std::ifstream finconfig;
@@ -134,7 +143,8 @@ int main(int argC, char *args[]){
 	TheFiles[7].saved=true;
 	TheFiles[7].filecount=0;
 	
-	preferences *Prefs = new preferences[1];
+	preferences *Prefs = new preferences[1]; //move back into place
+	
 	Prefs[0].machinefile = "";
 	Prefs[0].architecture = 0;
 	Prefs[0].numprocs = -1;
@@ -142,13 +152,15 @@ int main(int argC, char *args[]){
 	Prefs[0].numfilesatatime = -1;
 	Prefs[0].saveprogresseverysomany = 0;
 	
+	Find_Program_Step2(Prefs);
+	
 	bool parallel = true;
 	bool rerun = false;//for parallel preferences
 	
 	int currprefversion;
 	currprefversion = GetPrefVersion();
 	if (currprefversion!=prefversion) {
-		std::cout << "prefs version incompatible.  lets make a new prefs!\n";
+		std::cout << "prefs version incompatible.  let's make a new prefs!\n";
 		rerun = true;
 	}
 	
@@ -166,7 +178,7 @@ int main(int argC, char *args[]){
 	WriteShell1Parallel(Prefs[0].architecture, Prefs[0].usemachine);	
 	
 	
-	
+
 	
 	
 	
@@ -200,8 +212,8 @@ int main(int argC, char *args[]){
 		}
 		
 		
-		base_dir="bfiles_";
-		base_dir.append(filename);
+		
+		
 		fin.open(filename.c_str());
 		if (fin.is_open()){
 			finopened = true;
@@ -217,8 +229,11 @@ int main(int argC, char *args[]){
 	ParseData(numfunct,numvargroup,numparam,numconsts,FunctVector,VarGroupVector,ParamVector,ParamStrings,Consts,ConstantStrings,Values,RandomValues,userdefined,fin,NumMeshPoints,filename);
 	fin.close();
 	numvariables = GetNumVariables(numvargroup, VarGroupVector);
+	
 	std::cout << numvariables << " total variables detected.\nDone parsing.\n";
 	parsed=true;
+	base_dir=make_base_dir_name(filename);
+	
 	PrintRandom(RandomValues,ParamStrings);
 	
 
@@ -230,7 +245,7 @@ int main(int argC, char *args[]){
 						currentChoice, //could simply quit
 						ParamStrings); //for printing to screen
     
-	
+	int iteration = 0;
 	int intChoice=-1;	
 	while(currentChoice!=Quit){
 		
@@ -250,8 +265,6 @@ int main(int argC, char *args[]){
 					
 					std::cout << "Enter in the input file's name : ";
 					std::cin >> filename;
-					base_dir="bfiles_";
-					base_dir.append(filename);
 					fin.close();
 					fin.open(filename.c_str());
 					if (fin.is_open()) {
@@ -272,8 +285,10 @@ int main(int argC, char *args[]){
 						  NumMeshPoints,
 						  filename);
 				fin.close();
+				
 				parsed=true;
 				numvariables = GetNumVariables(numvargroup, VarGroupVector);
+				base_dir=make_base_dir_name(filename);
 
 				PrintRandom(RandomValues,ParamStrings);
 				break;
@@ -368,7 +383,9 @@ int main(int argC, char *args[]){
 			case 8: 
 				currentChoice = FailedPaths;
 				
-				failedpaths_case(numparam, numvariables, base_dir);
+				iteration = 0;
+				//                                                         0 here because first iteration of failed path analysis
+				failedpaths_case(numparam, numvariables, base_dir,filename,iteration);  // should this return any info to paramotopy?  q posed may 7 2012
 				
 				break;
 				
@@ -379,6 +396,9 @@ int main(int argC, char *args[]){
 				parallel =  DeterminePreferences(Prefs, rerun, FilePrefVector);
 				SetPrefVersion(prefversion);
 				rerun = false;
+				
+				
+				
 				
 				WriteShell1(Prefs[0].architecture, Prefs[0].usemachine);
 				WriteShell1Parallel(Prefs[0].architecture, Prefs[0].usemachine);	

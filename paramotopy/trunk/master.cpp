@@ -34,7 +34,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 			std::string called_dir,
 			std::string templocation){
 	
-	
+
 #ifdef verbosestep2
 	std::cout << "starting initial stuff master\n";
 #endif
@@ -45,14 +45,15 @@ void master(std::vector<std::string> tmpfolderlocs,
 	int numprocs, rank;
 	int terminationint;//how many solves to do total.
 	
+	int myid;
+	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
 	
 	MPI_Status status;
 	std::ifstream fin;
 	std::ofstream fout;
 	int numtodo;
-	std::string base_dir = "bfiles_";
-	base_dir.append(filename);	
+	std::string base_dir=make_base_dir_name(filename);
 	std::string finishedfile = base_dir;
 	finishedfile.append("/finished");
 	std::string lastoutfilename0 = base_dir;
@@ -225,7 +226,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 #ifdef verbosestep2
-	std::cout << "telling workers the number of chars to expect.\n";
+	std::cout << myid << " master is telling workers the number of chars to expect.\n";
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
@@ -545,17 +546,13 @@ void master(std::vector<std::string> tmpfolderlocs,
 
 		
 		
-#ifdef verbosestep2
-		std::cout << "to process : " << rank << "with numfilesatatime " << numfilesatatime 
-		<< "\n";
-#endif
 		
 		
 #ifdef timingstep2
 		t1 = omp_get_wtime();
 #endif
 		MPI_Send(&tempsends,      /* message buffer */
-				 numfilesatatime*(2*numparam+1),                 /* one data item */
+				 numfilesatatime*(2*numparam+1),                 /* number of data items */
 				 MPI_DOUBLE,           /* data item is an integer */
 				 rank,              /* destination process rank */
 				 sendymcsendsend,           /* user chosen message tag */
@@ -567,9 +564,10 @@ void master(std::vector<std::string> tmpfolderlocs,
 	}//re: initial sends
 	
 	
-	
-	std::cout << smallestnumsent << " " << biggestnumsent << "\n";
-	
+#ifdef verbosestep2
+	std::cout << "smallest index seeded: " << smallestnumsent << "\n"
+			  << "largest index seeded:  " << biggestnumsent << "\n";
+#endif
 	
 	
 	
@@ -805,7 +803,9 @@ void master(std::vector<std::string> tmpfolderlocs,
 
 
 
+// the master is responsible for generating the data points to work on, and distributing them to the workers.  
 
+// FormNextValues generates parameter points from a mesh-style set
 void FormNextValues(int numfilesatatime,
 					int numparam,
 					int localcounter,	
@@ -844,13 +844,13 @@ void FormNextValues(int numfilesatatime,
 }
 
 
-
-void FormNextValues_mc(int numfilesatatime,
-						int numparam,
-						int localcounter,	
-						int countingup,
-					   std::ifstream & mc_in_stream,
-						double tempsends[]){
+//FormNextValues_mc generates points to send, from a user-defined set
+void FormNextValues_mc(int numfilesatatime,   //how many points in parameter space to set up
+						int numparam,  //the number of parameters in the run
+						int localcounter,	//another integer counter
+						int countingup,  //an integer counter
+					   std::ifstream & mc_in_stream, //the input file stream we will read from
+						double tempsends[]){ //tempsends holds the values to send
 
 	std::string temp;
 	getline(mc_in_stream,temp);
@@ -862,9 +862,10 @@ void FormNextValues_mc(int numfilesatatime,
 		double cimaginary;
 		ss >> creal;
 		ss >> cimaginary;
-		CValues.push_back(std::pair<double, double>(creal,cimaginary));
+		CValues.push_back(std::pair<double, double>(creal,cimaginary));//really should eliminate CValues
 	}
 
+	//set the values in the array
 	for (int j=0; j<numparam; ++j) {
 			tempsends[localcounter*(2*numparam+1)+2*j] = CValues[j].first;//
 			tempsends[localcounter*(2*numparam+1)+2*j+1] = CValues[j].second;//

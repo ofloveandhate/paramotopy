@@ -15,25 +15,13 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include "para_aux_funcs.h"
 
 #ifndef __STEPONE_H__
 #define __STEPONE_H__
 
 
-struct preferences{
-	
-	std::string machinefile;
-	int architecture;
-	int usemachine;
-	int numprocs;
-	int numfilesatatime;
-	int saveprogresseverysomany;
-	int newfilethreshold;
-	int devshm;
-	int stifle;
-};
 
-int get_int_choice(std::string display_string,int min_value,int max_value);
 
 
 /** Function to write the shell script that calls bertini in the step 1 process */
@@ -62,16 +50,6 @@ void ParseData(int & numfunct,
 
 int GetNumVariables(int numvargroup, std::vector<std::string> VarGroupVector);
 
-bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector);
-/*
- read the user's preferences for parallelism on the machine.
-	@param rerun - a bool to flag redetermining the preferences
-*/
-
-
-void SetPrefVersion(int version);
-
-int GetPrefVersion();
 
 
 /**
