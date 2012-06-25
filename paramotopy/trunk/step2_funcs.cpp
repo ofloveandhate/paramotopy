@@ -3,8 +3,8 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include "step1.h"
-#include "step2.h"
+#include "step1_funcs.h"
+#include "step2_funcs.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>

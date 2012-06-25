@@ -8,7 +8,7 @@ OPT= -Wall -fopenmp -Dtimingstep2=1 -Dverbosestep2=1 #-funroll-loops -fexpensive
 
 # Define the object files to be used
 
-OBJScommon = mtrand.o random.o step2.o step1.o para_aux_funcs.o paramotopy_enum.h
+OBJScommon = mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o paramotopy_enum.h
 OBJSparamain = failed_paths.o preferences.o menu_cases.o
 OBJSsteptwo = step2readandwrite.o master.o slave.o
            
@@ -23,16 +23,14 @@ MCC =	mpic++	 #mpic++
 CC =	g++	
 
 # Describe how to build the executable file
-all:	paramotopy mystep2
+all:	paramotopy step2
 
 paramotopy:	 paramotopy.o $(OBJScommon) $(OBJSparamain)
 	$(MCC) $(INCLUDE) $(OPT) -o paramotopy paramotopy.cpp $(OBJScommon) $(OBJSparamain)
-mystep2:	mystep2.o $(OBJScommon) $(OBJSsteptwo)
-	$(MCC) $(INCLUDE) $(OPT) -o mystep2 mystep2.cpp $(OBJScommon) $(OBJSsteptwo) -L./ -lbertini -lm -lmpfr -lgmp -static #-static
+step2:	step2.o $(OBJScommon) $(OBJSsteptwo)
+	$(MCC) $(INCLUDE) $(OPT) -o step2 step2.cpp $(OBJScommon) $(OBJSsteptwo) -L./ -lbertini -lm -lmpfr -lgmp -static #-static
 	
 	
-#mystep2shared:
-#	$(MCC) -L$(HOME)/lib $(OPT) -o mystep2 mystep2.cpp mtrand.o random.o step2.o step1.o -Bdynamic -lbertini -Bstatic -lm  -Bstatic -lmpfr  -Bstatic -lgmp #-static 
 
 # Describe how to create the object file
 .cpp.o: 

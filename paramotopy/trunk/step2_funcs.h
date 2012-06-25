@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include "step1.h"
+#include "step1_funcs.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

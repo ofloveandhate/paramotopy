@@ -14,9 +14,9 @@
 #include <sstream>
 #include <cmath>
 #include "mtrand.h"
-#include "step1.h"
+#include "step1_funcs.h"
 #include "random.h"
-#include "step2.h"
+#include "step2_funcs.h"
 #include "para_aux_funcs.h"
 #include "paramotopy_enum.h"
 #include "menu_cases.h"

@@ -49,7 +49,7 @@ int Find_Program_Step2(preferences *Prefs){
 	bool found_step2_program = false;
 	struct stat filestatus;
 	
-	if (stat( "./mystep2", &filestatus ) ==0){  // if have the mystep2 program in current directory, set location of it to here.
+	if (stat( "./step2", &filestatus ) ==0){  // if have the mystep2 program in current directory, set location of it to here.
 		Prefs[0].step2location = ".";
 		found_step2_program = true;
 	}
@@ -71,7 +71,7 @@ int Find_Program_Step2(preferences *Prefs){
 				found = path.find(':');                             // get the next indicator of the ':' delimiter.
 				
 				
-				if ( stat( path_to_detect.append("/mystep2").c_str() , &filestatus)==0){
+				if ( stat( path_to_detect.append("/step2").c_str() , &filestatus)==0){
 					//found the mystep2 program!
 					
 					Prefs[0].step2location = path_to_detect;
@@ -94,11 +94,11 @@ int Find_Program_Step2(preferences *Prefs){
 	
 	if (found_step2_program == false){
 		std::string path_to_detect;
-		std::cout << "mystep2 program not found in current directory or PATH.\nplease supply the path to mystep2.\nabsolute path is best, but relative works, too.\n";
+		std::cout << "step2 program not found in current directory or PATH.\nplease supply the path to step2.\nabsolute path is best, but relative works, too.\n";
 		std::cin >> path_to_detect;
 		std::string temp_path = path_to_detect;
 		while (stat(temp_path.append("/mystep2").c_str(),&filestatus) !=0) {
-			std::cout << "mystep2 program not found at that location.  please supply the path to mystep2:\n";
+			std::cout << "step2 program not found at that location.  please supply the path to step2:\n";
 			std::cin >> path_to_detect;	
 			temp_path = path_to_detect;
 		}
