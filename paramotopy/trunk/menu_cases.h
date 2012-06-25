@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include "mtrand.h"
 #include "paramotopy_enum.h"
-#include "step1.h"
-#include "step2.h"
+#include "step1_funcs.h"
+#include "step2_funcs.h"
 
 
 #ifndef __MENU_CASES__

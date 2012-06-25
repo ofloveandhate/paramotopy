@@ -1,7 +1,4 @@
-//#include "random.h"
-//#include "mtrand.h"
-//#include "step1.h"
-//#include "step2.h"
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>

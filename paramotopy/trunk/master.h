@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include "step1.h"
-#include "step2.h"
+#include "step1_funcs.h"
+#include "step2_funcs.h"
 #include "mtrand.h"
 #include "random.h"
 #include <sys/wait.h>

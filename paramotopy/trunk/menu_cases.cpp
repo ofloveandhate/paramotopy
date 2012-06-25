@@ -392,7 +392,7 @@ void step2_case(int numfilespossible,
 		mpicommand.append(ssnumproc.str());
 		mpicommand.append(" ");
 		mpicommand.append(Prefs[0].step2location);
-		mpicommand.append("/mystep2 ");	    
+		mpicommand.append("/step2 ");	    
 		mpicommand.append(filename);
 		mpicommand.append(" ");
 		int numfilestosave=0;

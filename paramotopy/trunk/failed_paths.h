@@ -1,7 +1,7 @@
 #include "random.h"
 #include "mtrand.h"
-#include "step1.h"
-#include "step2.h"
+#include "step1_funcs.h"
+#include "step2_funcs.h"
 #include "para_aux_funcs.h"
 #include <vector>
 #include <map>
