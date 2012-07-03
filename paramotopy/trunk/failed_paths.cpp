@@ -27,7 +27,7 @@ int failedpaths_case(int numparam,
 	int totalfails;                                                          //will contain the number of points that had failures.
 	std::vector< std::vector< std::pair<double,double> > > fail_vector;      //will contain the actual points in parameter space, that had fails.
 	std::vector< int > index_vector;                                         //will contain the indexes of the points that had failures.
-	find_failed_paths(index_vector, fail_vector, totalfails, numparam, numvariables, base_dir, foldervector);
+	int num_points_inspected = find_failed_paths(index_vector, fail_vector, totalfails, numparam, numvariables, base_dir, foldervector);
 	
 	
 	if (totalfails == 0) {
@@ -35,7 +35,7 @@ int failedpaths_case(int numparam,
 		return 0;
 	}
 	else {
-	std::cout << "There were " << totalfails << " total points which had path failures.\n";
+	std::cout << "There were " << totalfails << " points with path failures, out of\n " << num_points_inspected << " total points.\n";
 	
 	
 	
@@ -79,7 +79,7 @@ int find_failed_paths(std::vector< int > & index_vector,
 	std::ofstream fout;
 
 	std::stringstream ss, intstream;
-	int linenumber;
+	int linenumber, num_points_inspected = 0;
 
 	
 	std::vector< std::pair<double,double> > tempparam; 
@@ -112,7 +112,7 @@ int find_failed_paths(std::vector< int > & index_vector,
 					break;
 				}
 				else { //not blank.  work to do
-					
+					++num_points_inspected;
 					ss << tmpstr;
 					ss >> linenumber; //get the line number
 					ss.clear();
@@ -121,7 +121,7 @@ int find_failed_paths(std::vector< int > & index_vector,
 					getline(fin,tmpstr); //  gets the parameter values for this line.  need to save if have fails
 					ss << tmpstr;
 
-					
+					//set the temporary parameter values
 					for (int i = 0; i < numparam; ++i) {
 						ss >> tempparam[i].first;
 						ss >> tempparam[i].second;
@@ -178,7 +178,7 @@ int find_failed_paths(std::vector< int > & index_vector,
 		totalfails += totalfails_thisfolder;
 	}	//re:for (int bla=0; bla<foldervector.size(); ++bla)
 	
-	return 0;
+	return num_points_inspected;
 }
 
 

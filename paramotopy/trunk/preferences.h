@@ -24,16 +24,14 @@
 
 
 
-bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector);
+//bool DeterminePreferences(preferences *Prefs, bool rerun, std::vector< bool > & FilePrefVector);
 /*
  read the user's preferences for parallelism on the machine.
  @param rerun - a bool to flag redetermining the preferences
  */
 
 
-void SetPrefVersion(int version);
 
-int GetPrefVersion();
 
 
 #endif

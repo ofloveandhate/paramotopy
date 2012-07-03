@@ -54,20 +54,20 @@ void CallBertiniStep2(std::string param_dir);
 
 
 std::string MakeTargetFilename(std::string base_dir,
-							   ToSave *TheFile,
+							   ToSave *TheFiles,
 							   int index);
 
 
-void TouchFilesToSave(ToSave *TheFiles,int numfilespossible,
+void TouchFilesToSave(ProgSettings paramotopy_settings,
 					  std::string base_dir);
 
 
 
 
-void SetFileCount(ToSave *TheFiles, int numfiles,
+void SetFileCount(ProgSettings & paramotopy_settings,
 				  std::string DataCollectedBaseDir);
 
-std::string stackoverflow_getcwd();
+
 
 
 #endif
