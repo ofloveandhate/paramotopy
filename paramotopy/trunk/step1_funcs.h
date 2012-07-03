@@ -16,6 +16,8 @@
 #include <fstream>
 #include <string>
 #include "para_aux_funcs.h"
+#include "xml_preferences.h"
+
 
 #ifndef __STEPONE_H__
 #define __STEPONE_H__
@@ -25,9 +27,9 @@
 
 
 /** Function to write the shell script that calls bertini in the step 1 process */
-void WriteShell1(int architecture,int usemachine);
-
-void WriteShell1Parallel(int architecture, int usemachine);
+//void WriteShell1(int architecture,int usemachine);
+//
+//void WriteShell1Parallel(int architecture, int usemachine);
 
 //void WriteShell2();
 
@@ -143,9 +145,7 @@ void mkdirunix(std::string mydir);
 
 void mkdirstep1(std::string inputfilename);
 
-void CallBertiniStep1(std::string base_dir);
-
-void CallBertiniStep1Parallel(std::string base_dir,std::string machinefile, int numprocs);
+void CallBertiniStep1(ProgSettings paramotopy_settings, std::string base_dir);
 
 /** Store what the parameters are as strings in a vector 
     @param ToParse -  the string, space delimited, that has the

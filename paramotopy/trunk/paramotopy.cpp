@@ -21,12 +21,14 @@
 #include "paramotopy_enum.h"
 #include "menu_cases.h"
 #include "failed_paths.h"
-#include "preferences.h"
+#include "xml_preferences.h"
+//#include "preferences.h"
+#include "tinyxml.h"
 #include <mpi.h>
-#include <unistd.h>
 
 
 
+#define prefversion = 15; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 
@@ -39,26 +41,20 @@ int main(int argC, char *args[]){
 	
 	
 	//	get_curr_dir_name();
-	int prefversion = 15; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 	
 	
 	
 	
 	// Data members used throughout the program  
-	
+	std::string homedir = getenv("HOME");
 	OPTIONS currentChoice = Start;
-	std::string filename;
-	std::string path_to_inputfile;
+	std::string filename, path_to_inputfile;
 	std::string base_dir ="";
 	bool parsed = false;
-	std::ifstream fin;
-	std::ifstream finconfig;
+	std::ifstream fin, finconfig;
 	std::ofstream fout;
-	int numfunct;
-	int numvariables;
-	int numvargroup;
-	int numparam;
-	int numconsts;
+	
+	int numfunct, numvariables, numvargroup, numparam, numconsts;
 	//  MTRand drand(time(0));
 	
 	
@@ -98,7 +94,7 @@ int main(int argC, char *args[]){
 	std::string tmpbase;
 	std::string tmpstr;
 	
-	std::string dirfilename;
+	std::string dirfilename;   
 	std::string mcfname;  
 	std::vector< int > NumMeshPoints;//added Nov16,2010 DAB
 	
@@ -112,71 +108,24 @@ int main(int argC, char *args[]){
 	std::cout << "\n*******************************\n"
 	<< "Welcome to the Paramotopy main program.\n\n";
 	
-	int numfilespossible = 8; // 
-	std::vector< bool >  FilePrefVector;
-	FilePrefVector.resize(numfilespossible-1);
+//	int numfilespossible = 8; // 
+//	std::vector< bool >  FilePrefVector;
+//	FilePrefVector.resize(numfilespossible-1);
+//	
 	
 	
-	ToSave *TheFiles = new ToSave[numfilespossible];
-	TheFiles[0].filename="real_solutions";
-	TheFiles[0].saved=false;
-	TheFiles[0].filecount=0;
-	TheFiles[1].filename="nonsingular_solutions";
-	TheFiles[1].saved=false;
-	TheFiles[1].filecount=0;
-	TheFiles[2].filename="singular_solutions";
-	TheFiles[2].saved=false;
-	TheFiles[2].filecount=0;
-	TheFiles[3].filename="raw_data";
-	TheFiles[3].saved=false;
-	TheFiles[3].filecount=0;
-	TheFiles[4].filename="raw_solutions";
-	TheFiles[4].saved=false;
-	TheFiles[4].filecount=0;
-	TheFiles[5].filename="main_data";
-	TheFiles[5].saved=false;
-	TheFiles[5].filecount=0;
-	TheFiles[6].filename="midpath_data";
-	TheFiles[6].saved=false;
-	TheFiles[6].filecount=0;
-	TheFiles[7].filename="failed_paths";
-	TheFiles[7].saved=true;
-	TheFiles[7].filecount=0;
+	std::string prefdir = homedir;
+	prefdir.append("/.paramotopy");
+	mkdirunix(prefdir);
 	
-	preferences *Prefs = new preferences[1]; //move back into place
+	std::string settingsfilename = homedir;
+	settingsfilename.append("/.paramotopy/paramotopyprefs.xml");
+	ProgSettings paramotopy_settings(settingsfilename);
 	
-	Prefs[0].machinefile = "";
-	Prefs[0].architecture = 0;
-	Prefs[0].numprocs = -1;
-	Prefs[0].usemachine = 0;
-	Prefs[0].numfilesatatime = -1;
-	Prefs[0].saveprogresseverysomany = 0;
+
 	
-	Find_Program_Step2(Prefs);
-	
-	bool parallel = true;
-	bool rerun = false;//for parallel preferences
-	
-	int currprefversion;
-	currprefversion = GetPrefVersion();
-	if (currprefversion!=prefversion) {
-		std::cout << "prefs version incompatible.  let's make a new prefs!\n";
-		rerun = true;
-	}
-	
-	parallel = DeterminePreferences(Prefs, rerun, FilePrefVector);
-	while (Prefs[0].numfilesatatime <= 0 ||  (Prefs[0].numprocs<=0)){
-		rerun = true;
-		parallel = DeterminePreferences(Prefs, rerun, FilePrefVector);
-		rerun = false;
-	}
-	SetPrefVersion(prefversion);
-	
-	
-	
-	WriteShell1(Prefs[0].architecture, Prefs[0].usemachine);
-	WriteShell1Parallel(Prefs[0].architecture, Prefs[0].usemachine);	
-	
+	paramotopy_settings.load();
+
 	
 
 	
@@ -236,15 +185,11 @@ int main(int argC, char *args[]){
 	
 	PrintRandom(RandomValues,ParamStrings);
 	
-
-	
-	TryToRecoverPrevRun(RandomValues,//get values -- the real purpose of this function
-						filename,
-						base_dir,
-						Prefs, //numprocs
-						currentChoice, //could simply quit
-						ParamStrings); //for printing to screen
-    
+	if (test_if_finished(base_dir)){
+		std::cout	<< "\t*** * * * * * * * * * * * * ***\n"
+					<< "\t***this run appears finished***\n"
+					<< "\t*** * * * * * * * * * * * * ***\n";
+	}
 	int iteration = 0;
 	int intChoice=-1;	
 	while(currentChoice!=Quit){
@@ -350,14 +295,8 @@ int main(int argC, char *args[]){
 						   RandomValues);
 				
 				
-				if (parallel) {
-					CallBertiniStep1Parallel(base_dir,Prefs[0].machinefile,Prefs[0].numprocs);
-				}
-				else {
-					CallBertiniStep1(base_dir);
-				}
-				
-				
+					CallBertiniStep1(paramotopy_settings, base_dir);
+
 				break;
 				
 				
@@ -366,17 +305,15 @@ int main(int argC, char *args[]){
 				
 				
 				currentChoice = Step2;
-				for (int i =0; i<numfilespossible-1; ++i) {
-					TheFiles[i].saved = FilePrefVector[i];
-				}     
-				step2_case(numfilespossible,
-						   TheFiles,
-						   filename,
-						   parallel,
-						   Prefs,
-						   numparam,
-						   RandomValues,
-						   ParamStrings);
+
+				
+				steptwo_case(filename,
+							 paramotopy_settings,
+							 numparam, 
+							 RandomValues,
+							 ParamStrings);
+				
+
 				break;
 				
 				
@@ -391,20 +328,9 @@ int main(int argC, char *args[]){
 				
 			case 9:
 				currentChoice=DetPrefs;
-				rerun = true;
-				FilePrefVector.clear();
-				parallel =  DeterminePreferences(Prefs, rerun, FilePrefVector);
-				SetPrefVersion(prefversion);
-				rerun = false;
+
+				paramotopy_settings.MainMenu();
 				
-				
-				
-				
-				WriteShell1(Prefs[0].architecture, Prefs[0].usemachine);
-				WriteShell1Parallel(Prefs[0].architecture, Prefs[0].usemachine);	
-				// Write the shell script
-				
-				//WriteShell3(architecture);
 				break;
 				
 			case 0:
@@ -416,7 +342,6 @@ int main(int argC, char *args[]){
 		}//re: switch (intChoice)
 		
 	}//re: while(currentChoice!=Quit)
-	delete[] TheFiles;
-	delete[] Prefs;
+
 	return 0;
 }//re: main function

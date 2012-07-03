@@ -59,7 +59,6 @@ void slave(std::vector<std::string> tmpfolderlocs,
 
 	
 	
-	std::string up = "../../../..";
 	std::string currentSeedstring;
 	int blaint, currentSeed = 0;
 	int linenumber;
@@ -158,6 +157,8 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	myss << myid;
 	timingname.append("/timing/slavetiming");
 	timingname.append(myss.str());
+
+
 	myss.clear();
 	myss.str("");
 #endif 
@@ -180,7 +181,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 //	tmpfolderlocs[myid-1].c_str()
 	
 	int vectorlengths[2] = {0};
-	
+
 	///////
 	//
 	//      get the start and config files from master
@@ -489,7 +490,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 		
 	}//re: while (1)
 	
-	blaint = chdir(up.c_str()); //used to move inside loop.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
+	blaint = chdir(called_dir.c_str()); //used to move inside loop.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
 	
 #ifdef timingstep2
 	timingout.open(timingname.c_str(),std::ios::out);

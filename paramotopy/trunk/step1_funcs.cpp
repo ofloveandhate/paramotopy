@@ -1,83 +1,45 @@
 #include "step1_funcs.h"
 
-
-
-
-
-
-void WriteShell1(int architecture,int usemachine){
-	const char* fname = "callbertinistep1.sh";
-	std::ofstream fout(fname);
-	fout << "#!/bin/bash\n\ncd $1/step1 bertini";
-	fout.close();
-	chmod((const char*) fname,0755);
+void WriteConfigFile(std::string base_dir, ProgSettings paramotopy_settings){
+	
 }
 
-void WriteShell1Parallel(int architecture,int usemachine){
-	const char* fname = "callbertinistep1parallel.sh";
-	std::ofstream fout(fname);
-	switch (architecture) {
-		case 0:
-			if (usemachine==1) {
+void CallBertiniStep1(ProgSettings paramotopy_settings, std::string base_dir){
+	
+	std::string startingfolder = stackoverflow_getcwd();  //move to the running folder
+	std::stringstream command;
+	std::stringstream runfolder;
+	runfolder << base_dir << "/step1";
 
-				fout << "#!/bin/bash\n\ncd $1/step1 \nmpiexec -machinefile $2 -np $3 $HOME/bertiniparallel";
-			}
-			else {
-				fout << "#!/bin/bash\n\ncd $1/step1 \nmpiexec -np $2 $HOME/bertiniparallel";
-
-			}
+	chdir(runfolder.str().c_str());
+	
+	if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue==1) {
+		command << paramotopy_settings.settings["MainSettings"]["architecture"].value() << " ";
+		if (paramotopy_settings.settings["MainSettings"]["usemachine"].intvalue==1){
+			std::string homedir = getenv("HOME");
+			homedir.append("/");
 
 			
-			break;
-		case 1:
-			if (usemachine==1) {
-				
-				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -machinefile $2 -np $3 $HOME/lustrefs/./bertiniparallel";
-			}
-			else {
-				fout << "#!/bin/bash\n\ncd $1/step1 \naprun -n $2 /mnt/lustre_server/users/GRAD511/dbrake/bertiniparallel";
-				
-			}			
-			
-			break;
+			command << "-machinefile " 
+					<< homedir
+					<< paramotopy_settings.settings["MainSettings"]["machinefile"].value() 
+					<< " ";
+		}
+		command << " -n " <<  paramotopy_settings.settings["MainSettings"]["numprocs"].value();
+	
+		command << " $HOME/bertiniparallel";
 	}
-	fout.close();
-	chmod((const char*) fname,0755);
+	else{
+		command << "$HOME/bertini";
+	}
+	
+	system(command.str().c_str());
+	
+	chdir(startingfolder.c_str());  // return to the initial folder
+	return;
 }
 
 
-
-
-void CallBertiniStep1(std::string base_dir){
-   
-  std::string mystr = "./callbertinistep1.sh";
-
-  mystr.append(" ");
-  mystr.append(base_dir);
-  system(mystr.c_str());
-}
-
-void CallBertiniStep1Parallel(std::string base_dir,std::string machinefile, int numprocs){
-	std::stringstream ss;
-	std::string mystr = "./callbertinistep1parallel.sh";
-	std::string tmp;
-	mystr.append(" ");
-	mystr.append(base_dir);
-	mystr.append(" ");
-	mystr.append(machinefile);
-	mystr.append(" ");
-	ss << numprocs;
-	ss >> tmp;
-	mystr.append(tmp);
-	std::cout << mystr << "\n";
-	
-	system(mystr.c_str());
-	
-	
-#ifdef verbosestep1
-	std::cout << mystr << "\n";
-#endif
-}
 
 
 

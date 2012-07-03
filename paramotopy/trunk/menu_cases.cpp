@@ -176,11 +176,8 @@ void load_random_case(std::ifstream & fin3,
 
 
 
-void step2_case(int numfilespossible,
-				ToSave *TheFiles,
-				std::string filename,
-				bool parallel,
-				preferences *Prefs,
+void steptwo_case(std::string filename,
+				ProgSettings paramotopy_settings,
 				int numparam, 
 				std::vector< std::pair<double,double> > RandomValues,
 				std::vector<std::string> ParamStrings){
@@ -200,7 +197,7 @@ void step2_case(int numfilespossible,
 	
 	// make the tmp files directory/folder
 	std::string filenamestep2;
-	if (Prefs[0].devshm==1) {
+	if (paramotopy_settings.settings["MainSettings"]["devshm"].intvalue==1) {
 		filenamestep2= "/dev/shm";
 	}
 	else {
@@ -223,28 +220,23 @@ void step2_case(int numfilespossible,
 	
 	//touch files to save, in folders to save data.
 	
-	if (!parallel){
-		SetFileCount(TheFiles,numfilespossible,DataCollectedBaseDir);
-		TouchFilesToSave(TheFiles,numfilespossible,DataCollectedBaseDir);
+	if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue == 0){
+		SetFileCount(paramotopy_settings,DataCollectedBaseDir);
+		TouchFilesToSave(paramotopy_settings,DataCollectedBaseDir);
 	}
 	else{
-		for (int i = 1; i < Prefs[0].numprocs;++i){
+		for (int i = 1; i < paramotopy_settings.settings["MainSettings"]["numprocs"].intvalue ;++i){
 			std::stringstream CurDataCollectedBaseDir;
 			CurDataCollectedBaseDir <<  DataCollectedBaseDir
 			<< "c" << i << "/";
 			mkdirunix(CurDataCollectedBaseDir.str().c_str());
-			SetFileCount(TheFiles,numfilespossible,CurDataCollectedBaseDir.str());
-			TouchFilesToSave(TheFiles,numfilespossible,
+			SetFileCount(paramotopy_settings,CurDataCollectedBaseDir.str());
+			TouchFilesToSave(paramotopy_settings,
 							 CurDataCollectedBaseDir.str());
-			
 		}
 	}
 	
-	
-	
-	
-	
-	
+	//write a file containing the random values.
 	std::string randpointfilename;
 	randpointfilename = base_dir;
 	randpointfilename.append("/randstart");
@@ -263,9 +255,7 @@ void step2_case(int numfilespossible,
 	
 	
 	//actually run that shit
-	
-	
-	if (!parallel) {//this section needs a lot of work
+	if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue == 0) {//this section needs a lot of work
 		//			std::string filenamestep2="bfiles_";
 		//			filenamestep2.append(filename);
 		//			filenamestep2.append("/step2/tmp/");
@@ -372,91 +362,48 @@ void step2_case(int numfilespossible,
 	}// end not parallel
 	
 	else{//parallel case...
+		//////////////////////////////////////////////pickuphere
+		std::stringstream mpicommand;
 		
-		std::string mpicommand;
-		if (Prefs[0].architecture==0) {
-			
-			mpicommand = "mpiexec ";
-			if (Prefs[0].usemachine==1){
-				mpicommand.append("-machinefile ");
-				mpicommand.append(Prefs[0].machinefile);
-			}
-			mpicommand.append(" -np ");
-		}
-		else {
-			mpicommand = "aprun -n ";
-		}
+		mpicommand << paramotopy_settings.settings["MainSettings"]["architecture"].value() << " -n ";
+
+		mpicommand << paramotopy_settings.settings["MainSettings"]["numprocs"].value() << " ";
+		mpicommand << paramotopy_settings.settings["MainSettings"]["step2location"].value() << "/step2 ";	    
+		mpicommand << filename << " ";
 		
-		std::stringstream ssnumproc;
-		ssnumproc << Prefs[0].numprocs;
-		mpicommand.append(ssnumproc.str());
-		mpicommand.append(" ");
-		mpicommand.append(Prefs[0].step2location);
-		mpicommand.append("/step2 ");	    
-		mpicommand.append(filename);
-		mpicommand.append(" ");
 		int numfilestosave=0;
-		for (int i = 0; i < numfilespossible;++i){
-			if (TheFiles[i].saved){
-				++numfilestosave;
+		settingmap::iterator iter;
+		std::stringstream commandss;
+		
+		for (iter=paramotopy_settings.settings["SaveFiles"].begin() ; iter!=paramotopy_settings.settings["SaveFiles"].end()  ;++iter){
+			if ((*iter).second.intvalue==1) {//supposed to retrieve the integer value for the file setting
+				numfilestosave++;
+				commandss << (*iter).first << " " << (*iter).second.filenumber << " ";// << filename incrementedfilenumber ;  incrementedfilenumber set in touchfiletosave()
 			}
 		}
-		ssnumproc.str("");
-		ssnumproc.clear();
-		ssnumproc << numfilestosave;
-		mpicommand.append(ssnumproc.str());
-		mpicommand.append(" ");
+
+		mpicommand << numfilestosave << " ";
+		mpicommand << commandss.str();
 		
-		for (int i = 0; i < numfilespossible;++i){
-			if (TheFiles[i].saved){
-				mpicommand.append(TheFiles[i].filename);
-				mpicommand.append(" ");
-				std::stringstream r;
-				r << TheFiles[i].filecount;
-				mpicommand.append(r.str());
-				mpicommand.append(" ");
-			}
-		}
-		
-		
-		std::stringstream ss42;//nice variable name matt
-		ss42 << Prefs[0].numfilesatatime;
-		ss42 << " ";
-		mpicommand.append(ss42.str());
-		
-		
-		ss42.str("");
-		ss42.clear();
-		ss42 << ParamStrings.size();
-		ss42 << " ";
-		mpicommand.append(ss42.str());
+		mpicommand << paramotopy_settings.settings["MainSettings"]["numfilesatatime"].value() << " ";
+		mpicommand << ParamStrings.size() << " ";
+
 		for (int i = 0; i < int(ParamStrings.size());++i){
-			mpicommand.append(ParamStrings[i]);
-			mpicommand.append(" ");
+			mpicommand << ParamStrings[i] << " ";
+		}
+	
+		mpicommand << paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].value() << " ";
+		mpicommand << paramotopy_settings.settings["MainSettings"]["newfilethreshold"].value() << " ";
+		mpicommand << paramotopy_settings.settings["MainSettings"]["devshm"].value() << " ";
+		
+		if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
+			mpicommand << " > /dev/null ";	
 		}
 		
+
 		
-		ss42.str("");
-		ss42.clear();
-		
-		
-		ss42 << Prefs[0].saveprogresseverysomany;
-		ss42 << " ";
-		
-		ss42 << Prefs[0].newfilethreshold;
-		ss42 << " ";
-		
-		ss42 << Prefs[0].devshm;
-		ss42 << " ";
-		
-		if (Prefs[0].stifle==1){
-			ss42 << " > /dev/null ";	
-		}
-		
-		mpicommand.append(ss42.str());
-		
-		std::cout << "\n\n\n\n\n\n\n\n" << mpicommand << "\n\n\n\n\n\n\n\n\n";
-		system(mpicommand.c_str());
+		std::cout << "\n\n\n\n\n\n\n\n" << mpicommand.str() << "\n\n\n\n\n\n\n\n\n";
+		system(mpicommand.str().c_str());  //make the system call to bertini
 		
 	} // end parallel case
 	
