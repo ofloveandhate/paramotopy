@@ -117,7 +117,7 @@ int main(int argc, char* argv[]){
         commandss >> blank;  // name of program, ./mystep2
 		commandss >> filename;  // name of input file to polysaurus
 		commandss >> numfiles; // number of files to save
-	  std::string base_dir=make_base_dir_name(filename);
+	  std::string base_dir = make_base_dir_name(filename);
 
 	  TheFiles = new ToSave[numfiles];
 	  for (int i = 0; i < numfiles;++i){

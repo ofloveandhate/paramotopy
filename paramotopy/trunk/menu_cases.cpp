@@ -1,190 +1,52 @@
-#include "menu_cases.h"
+ #include "menu_cases.h"
+//
+////  make new random values.  user is guided through the steps by the program.  matt niemerg wrote this.
+//std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
+//													std::vector<std::string> ParamStrings){
+//	
+//
+//}  //   re: random_case
+//
+//
+//
+//
+//void save_random_case(std::vector< std::pair<double,double> > RandomValues,
+//					  int numparam){
+//	
+//
+//}//  re: save_random_case
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//void load_random_case(std::ifstream & fin3, 
+//					  std::vector< std::pair<double,double> > & RandomValues,
+//					  std::vector<std::string> ParamStrings){
+//	
+//
+//}
 
-//  make new random values.  user is guided through the steps by the program.  matt niemerg wrote this.
-std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
-													std::vector<std::string> ParamStrings){
-	
-	MTRand drand(time(0));
-	int randchoice;
-	std::cout << "1) Default range [0 to 1)\n"
-	<< "2) User-specified range\n"
-	<< "Enter in if you would like to use the standard \n"
-	<< "default range for random floats or if you would \n"
-	<< "like to specify the range : ";
-	std::cin >> randchoice;
-	while (randchoice != 1 && randchoice != 2){
-		std::cout << "Please enter 1 for the default range or 2 for"
-		<< " a user-specified range : ";
-		std::cin >> randchoice;
-	}
-	if (randchoice == 1){
-		RandomValues = MakeRandomValues(ParamStrings.size());
-	}
-	if (randchoice == 2){
-		
-		int paramrandchoice = 1;	
-		while (paramrandchoice != 0){ 
-			std::cout << "0 - Done specifying random values\n";
-			for (int i = 0; i < int(ParamStrings.size());++i){
-				std::cout << i+1 << " - " << ParamStrings[i]
-				<< "\n";
-			}
-			std::cout << "Enter the parameter you want to rerandomize : ";
-			std::cin >> paramrandchoice;
-			while (paramrandchoice < 0 || paramrandchoice > int(ParamStrings.size())){
-				
-				std::cout << "0 - Done specifying random values\n";
-				for (int i = 0; i < int(ParamStrings.size());++i){
-					std::cout << i+1 << " - " << ParamStrings[i]
-					<< "\n";
-				}
-				std::cout << "Enter the parameter you want to rerandomize : ";
-				std::cin >> paramrandchoice;
-			}
-			if (paramrandchoice !=0){
-				std::cout << "Enter a low range followed "
-				<< "by a high range for the"
-				<< " real and imaginary parts "
-				<< "of the chosen parameter."
-				<< "\n";
-				
-				double creallow;
-				double crealhigh;
-				double cimaginarylow;
-				double cimaginaryhigh;
-				std::cout << "\n" << "Real Low : ";
-				std::cin >> creallow;
-				std::cout << "Real High : ";
-				std::cin >> crealhigh;
-				std::cout << "Imaginary Low : ";
-				std::cin >> cimaginarylow;
-				std::cout << "Imaginary High : ";
-				std::cin >> cimaginaryhigh;	  
-				double crandreal = drand();
-				double crandimaginary = drand();
-				crandreal*=(crealhigh-creallow);
-				crandimaginary*=(cimaginaryhigh-cimaginarylow);
-				crandreal+=creallow;
-				crandimaginary+=cimaginarylow;
-				RandomValues[paramrandchoice-1].first=crandreal;
-				RandomValues[paramrandchoice-1].second=crandimaginary;
-			}
-		}
-	}
-	PrintRandom(RandomValues,ParamStrings);//in random.cpp
+
+
+
+
+
+
+void steptwo_case(ProgSettings paramotopy_settings,
+				  runinfo paramotopy_info){
 	
 	
-	
-	
-	return RandomValues;
-}  //   re: random_case
-
-
-
-
-void save_random_case(std::vector< std::pair<double,double> > RandomValues,
-					  std::ofstream & fout,
-					  int numparam){
-	std::string randpointfilename;
-	std::cout << "Enter the filename you want to save the random start points to : ";
-	std::cin >> randpointfilename;
-	
-	fout.open(randpointfilename.c_str());
-	
-	for (int i = 0; i < numparam; ++i){
-		fout << RandomValues[i].first << " "
-		<< RandomValues[i].second << "\n";
-	}
-	fout.close();
-	
-	return;
-}//  re: save_random_case
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void load_random_case(std::ifstream & fin3, 
-					  std::vector< std::pair<double,double> > & RandomValues,
-					  std::vector<std::string> ParamStrings){
-	
-	std::string randfilename;
-	int cancelthis = 0;
-	
-	fin3.close();
-	while ( !fin3.is_open() ) {
-		std::cout << "Enter the filename of the random points you"
-		<< " want to load (% to cancel): ";
-		std::cin >> randfilename;
-		
-		size_t found=randfilename.find('%');
-		if (found!=std::string::npos) {
-			if ( int(found) == 0) {
-				std::cout << "canceling load.\n" << std::endl;
-				cancelthis = 1;
-				break;
-			}
-			
-		}
-		
-		
-		fin3.open(randfilename.c_str());
-	}
-	
-	if (!cancelthis) {
-		
-		std::string mytemp;
-		int ccount=0;
-		std::cout << "\n\n";
-		while(getline(fin3,mytemp)){
-			std::stringstream myss;
-			myss << mytemp;
-			double crandreal;
-			double crandimaginary;
-			myss >> crandreal;
-			myss >> crandimaginary;
-			RandomValues[ccount].first = crandreal;
-			RandomValues[ccount].second = crandimaginary;
-			std::cout << ParamStrings[ccount]
-			<< " = "
-			<< RandomValues[ccount].first 
-			<< " + "
-			<< RandomValues[ccount].second
-			<< "*I\n";
-			++ccount;
-		}
-		std::cout << "\n";
-		fin3.close();
-	}
-	PrintRandom(RandomValues,ParamStrings);//in random.cpp
-	
-	return;
-}
-
-
-
-
-
-
-
-void steptwo_case(std::string filename,
-				ProgSettings paramotopy_settings,
-				int numparam, 
-				std::vector< std::pair<double,double> > RandomValues,
-				std::vector<std::string> ParamStrings){
-	
-	
-	
-	
+	paramotopy_settings.WriteConfigStepTwo();		
 	// open the bfiles_filename/mc file that contains the monte carlo points
 	// in order in accordance to the order of the paramstrings in ParamStrings
 	
@@ -192,8 +54,7 @@ void steptwo_case(std::string filename,
 	std::ifstream fin;
 	std::ofstream fout;
 	
-	std::string base_dir = make_base_dir_name(filename);
-	
+
 	
 	// make the tmp files directory/folder
 	std::string filenamestep2;
@@ -204,7 +65,7 @@ void steptwo_case(std::string filename,
 		filenamestep2 = stackoverflow_getcwd();
 	}
 	filenamestep2.append("/bfiles_");
-	filenamestep2.append(filename);
+	filenamestep2.append(paramotopy_info.inputfilename);
 	filenamestep2.append("/step2/tmp/");
 	mkdirunix(filenamestep2.c_str());
 	
@@ -214,7 +75,7 @@ void steptwo_case(std::string filename,
 	
 	
 	//make the DataCollected directory.
-	std::string DataCollectedBaseDir=base_dir;
+	std::string DataCollectedBaseDir=paramotopy_info.base_dir;
 	DataCollectedBaseDir.append("/step2/DataCollected/");
 	mkdirunix(DataCollectedBaseDir.c_str());
 	
@@ -238,14 +99,14 @@ void steptwo_case(std::string filename,
 	
 	//write a file containing the random values.
 	std::string randpointfilename;
-	randpointfilename = base_dir;
+	randpointfilename = paramotopy_info.base_dir;
 	randpointfilename.append("/randstart");
 	
 	fout.open(randpointfilename.c_str());
 	
-	for (int i = 0; i < numparam; ++i){
-		fout << RandomValues[i].first << " "
-		<< RandomValues[i].second << "\n";
+	for (int i = 0; i < paramotopy_info.numparam; ++i){
+		fout << paramotopy_info.RandomValues[i].first << " "
+		<< paramotopy_info.RandomValues[i].second << "\n";
 		
 	}
 	fout.close();
@@ -369,7 +230,7 @@ void steptwo_case(std::string filename,
 
 		mpicommand << paramotopy_settings.settings["MainSettings"]["numprocs"].value() << " ";
 		mpicommand << paramotopy_settings.settings["MainSettings"]["step2location"].value() << "/step2 ";	    
-		mpicommand << filename << " ";
+		mpicommand << paramotopy_info.inputfilename << " ";
 		
 		int numfilestosave=0;
 		settingmap::iterator iter;
@@ -386,10 +247,10 @@ void steptwo_case(std::string filename,
 		mpicommand << commandss.str();
 		
 		mpicommand << paramotopy_settings.settings["MainSettings"]["numfilesatatime"].value() << " ";
-		mpicommand << ParamStrings.size() << " ";
+		mpicommand << paramotopy_info.ParameterNames.size() << " ";
 
-		for (int i = 0; i < int(ParamStrings.size());++i){
-			mpicommand << ParamStrings[i] << " ";
+		for (int i = 0; i < int(paramotopy_info.ParameterNames.size());++i){
+			mpicommand << paramotopy_info.ParameterNames[i] << " ";
 		}
 	
 		mpicommand << paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].value() << " ";

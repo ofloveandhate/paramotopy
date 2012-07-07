@@ -16,8 +16,8 @@
 #include <stdlib.h>
 #include <omp.h>
 #include "para_aux_funcs.h"
-
 #include "step2readandwrite.h"
+#include "runinfo.h"
 
 #ifndef __MASTER_H__
 #define __MASTER_H__

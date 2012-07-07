@@ -50,6 +50,9 @@ void SetUpFolders(std::string base_dir,
     std::string mydirfname = base_dir;
     mydirfname.append("/folders");
     std::ofstream fout(mydirfname.c_str());
+	if (!fout.is_open()){
+		std::cout << "failed to open " << mydirfname << "\n";
+	}
     for (int i = 1; i < numprocs;++i){
       std::stringstream tmpfolder;
       tmpfolder << DataCollectedbase_dir;
@@ -64,116 +67,24 @@ void SetUpFolders(std::string base_dir,
 
 
 
-
-std::string WriteStep2(std::string config, 
-					   std::vector<std::pair<double, double> > CValues,
-					   std::vector<std::string> FunctVector, 
-					   std::vector<std::string> VarGroupVector,
-					   std::vector<std::string> ParamVector,
-					   std::vector<std::string> ParamStrings,
-					   std::vector<std::string> Consts,
-					   std::vector<std::string> ConstantStrings,
-					   std::vector<std::pair<double,double> > RandomValues,
-					   int numfunct,
-					   int numvar,
-					   int numparam,
-					   int numconsts){
+//creates a string containing the file for step2 input file. note that the specific points at which we solve are written to the num.out file by each worker, so this is only written once.  then the associated .out files are created in a step2.1 solve, and left intact for the step2.2 solves, of which there are many.
+std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
+					   ProgSettings paramotopy_settings,
+					   runinfo paramotopy_info){
   
 	std::stringstream inputstringstream;
 	
-  MakeConfig(config, inputstringstream);
-//	fout.precision(16);
-  inputstringstream << "\n\nINPUT\n\n";
-  // Variable Group portion
-  inputstringstream << "variable ";  
-  for (int i = 0; i < int(VarGroupVector.size());++i){
-    inputstringstream << VarGroupVector[i] 
-					  << ( i != int(VarGroupVector.size())-1? ",":";\n\n" );    
-    
-    
-  }
-  // constant portion for here and rand in the parameter homotopy
-	inputstringstream << "constant ";
-	for (int i = 0; i < int(ParamStrings.size());++i){
-		inputstringstream << "rand" << ParamStrings[i]
-						<< (i!= int(ParamStrings.size())-1?",":";\n");
-	}
-	inputstringstream << "constant ";
-	for (int i = 0; i < int(ParamStrings.size());++i){
-	inputstringstream << "here" << ParamStrings[i]
-			<< (i!= int(ParamStrings.size()) -1?",":";\n");
-	}
 
+	inputstringstream << paramotopy_settings.WriteConfigStepTwo();
+	inputstringstream << paramotopy_info.WriteInputStepTwo(CValues);
+	
+	
 
-  // user given constants
-  if (Consts.size()!=0){
-    inputstringstream << Consts[0] << "\n";
-  }
-
-  // Define Path Variable and the parameter homotopies
-  
-  inputstringstream << "pathvariable t;\n"
-       << "parameter ";
-  for (int i =0;i < int(ParamStrings.size());++i){
-    inputstringstream << ParamStrings[i] << (i!= int(ParamStrings.size())-1?",":";\n");
-  }
-
-  // Declare Functions
-  MakeDeclareFunctions(inputstringstream,numfunct);
-  
-  MakeConstantsStep2(inputstringstream,
-		     RandomValues,
-		     CValues,
-		     ParamStrings,
-		     Consts,
-		     ConstantStrings,
-		     numparam);
-  
-  MakeFunctions(inputstringstream,FunctVector);
-  inputstringstream << "END;\n";
-  
 	return inputstringstream.str();
 }
 
 
-void MakeConstantsStep2(std::stringstream & inputstringstream,
-						std::vector< std::pair<double,double> > RandomValues,
-						std::vector< std::pair<double,double> > CValues,
-						std::vector<std::string> ParamStrings,
-						std::vector<std::string> Consts,
-						std::vector<std::string> ConstantStrings,
-						int numparam){
-  
-  for (int i = 0; i < int(ParamStrings.size()); ++i){
-    inputstringstream << "rand" 
-	 << ParamStrings[i]
-	 << " = "
-	 << RandomValues[i].first << " + " << RandomValues[i].second
-	 << "*I;\n";
-  }
 
- for (int i = 0; i < int(ParamStrings.size()); ++i){
-    inputstringstream << "here" 
-	 << ParamStrings[i]
-	 << " = "
-	 << CValues[i].first << " + " << CValues[i].second
-	 << "*I;\n";
-  }
-  for (int i = 0; i < int(ConstantStrings.size());++i){
-    inputstringstream << ConstantStrings[i]
-	 << "\n";
-  }
-  
-  for (int i = 0; i < int(ParamStrings.size()); ++i){
-    inputstringstream << ParamStrings[i]
-	 << "= t*rand"
-	 << ParamStrings[i]
-	 << " + (1-t)*here"
-	 << ParamStrings[i]
-	 << ";\n";
-  }
-  
-}
 
 
 

@@ -179,6 +179,10 @@ public:
 	void GetRandomMethod();
 	void GetSecurityLevelPathFailure();
 	void GetTightenTolerancesPathFailure();
+	
+	std::string WriteConfigStepOne();
+	std::string WriteConfigStepTwo();
+	
 private:
 	
 	

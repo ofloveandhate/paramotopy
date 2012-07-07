@@ -12,10 +12,10 @@ void PrintRandom(std::vector<std::pair<double,double> > RandomValues,
 
 */
 
-std::vector<std::pair<double,double> > MakeRandomValues(int size);
-
-
-std::vector<std::pair<double, double> > 
-  MakeRandomValues(std::vector< std::pair< std::pair< double, double >, 
-		   std::pair< double, double > > > RandomRanges);
-
+//std::vector<std::pair<double,double> > MakeRandomValues(int size);
+//
+//
+//std::vector<std::pair<double, double> > 
+//  MakeRandomValues(std::vector< std::pair< std::pair< double, double >, 
+//		   std::pair< double, double > > > RandomRanges);
+//

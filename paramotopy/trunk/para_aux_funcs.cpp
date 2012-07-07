@@ -2,6 +2,49 @@
 
 
 
+
+
+std::string make_base_dir_name(std::string filename){
+	std::string dir = "";
+	
+	std::string remainder = filename;
+	size_t found;
+	found = remainder.find('/');
+	while (found!=std::string::npos) {  //if found the delimiter '/'
+		
+		dir.append(remainder.substr(0,found+1));  //
+		std::cout << dir << "\n";
+		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
+		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
+		
+		
+		
+	}// re:while
+	dir.append("bfiles_");
+	dir.append(remainder);
+	
+	return dir;
+}
+
+
+
+
+
+//makes a system call to make directory, and all parent directories.  
+void mkdirunix(std::string mydir){
+	
+	std::string tmp = "mkdir -p ";
+	tmp.append(mydir);
+	system(tmp.c_str());
+	
+}
+
+
+
+
+
+
+
 //  use this function to get inout fro the user and ensure it is an interger (actually fails to detect non-integer numeric inputs
 int get_int_choice(std::string display_string,int min_value,int max_value){
 	
@@ -16,32 +59,6 @@ int get_int_choice(std::string display_string,int min_value,int max_value){
     }
 	return userinput;
 }
-
-
-std::string make_base_dir_name(std::string filename){
-	
-	std::string base_dir = "";
-	
-	std::string remainder = filename;
-	size_t found;
-	found = remainder.find('/');
-	while (found!=std::string::npos) {  //if found the delimiter '/'
-		
-		base_dir.append(remainder.substr(0,found+1));  //the part of the path to scan for mystep2
-		std::cout << base_dir << "\n";
-		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
-		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
-		
-		
-
-	}// re:while
-	base_dir.append("bfiles_");
-	base_dir.append(remainder);
-		
-	return base_dir;
-}
-
-
 
 
 
@@ -220,19 +237,7 @@ int GetUserChoice(){
 //}
 
 
-bool test_if_finished(std::string base_dir){
-	
-	bool finished = false;
-	
-	std::string finishedfile = base_dir;
-	finishedfile.append("/finished");
-	struct stat filestatus;
-	
-	if (stat( finishedfile.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
-		finished = true;
-	}
-	return finished;
-}
+
 
 
 

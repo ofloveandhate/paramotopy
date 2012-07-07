@@ -64,41 +64,47 @@ void WriteData(std::string outstring,
 
 
 
-void GetStartConfig(std::string base_dir,
-					std::string & start,
-					std::string & config){
+void GetStart(std::string base_dir,
+					std::string & start){
 	
 
 	std::stringstream tempss;
 	
-std::ifstream fin;
-//get start file in memory
-std::string copyme;
-std::string startstring=base_dir;
-startstring.append("/step1/nonsingular_solutions");
-fin.open(startstring.c_str());
-while (!fin.eof()) {
-	getline(fin,copyme);
-	tempss << copyme << "\n";
-}
-fin.close();
-//end get start in memory
+	std::ifstream fin;
+	//get start file in memory
+	std::string copyme;
+	std::string startstring=base_dir;
+	startstring.append("/step1/nonsingular_solutions");
+	fin.open(startstring.c_str());
+	
+	if (!fin.is_open()) {
+		std::cout << "failed to open nonsingular solutions file.\n";
+	}
+	
+	while (!fin.eof()) {
+		getline(fin,copyme);
+		tempss << copyme << "\n";
+	}
+	fin.close();
+	//end get start in memory
 	start = tempss.str();
-	tempss.clear();
-	tempss.str("");
-
-
-//read in config2 file
-fin.open("config2");
-while (!fin.eof()) {
-	getline(fin,copyme);
-	tempss << copyme << "\n";
-}
-fin.close();
-//end read config2
-	config = tempss.str();
-	tempss.clear();
-	tempss.str("");
+//	tempss.clear();
+//	tempss.str("");
+	
+	
+//	//read in config2 file
+//	startstring = base_dir;
+//	startstring.append("/config_step2");
+//	fin.open(startstring.c_str()); 
+//	while (!fin.eof()) {
+//		getline(fin,copyme);
+//		tempss << copyme << "\n";
+//	}
+//	fin.close();
+//	//end read config2
+//	config = tempss.str();
+//	tempss.clear();
+//	tempss.str("");
 	
 	
 }
@@ -218,7 +224,7 @@ int GetLastNumSent(std::string base_dir,
 
 
 
-
+//read the random values from the step1.
 void GetRandomValues(std::string base_dir,
 					 std::vector< std::pair<double,double> > & RandomValues){
 	
@@ -227,6 +233,11 @@ void GetRandomValues(std::string base_dir,
 	std::string randfilename = base_dir;
 	randfilename.append("/randstart");
 	fin.open(randfilename.c_str());
+	
+	if (!fin.is_open()) {
+		std::cout << "failed to open " << randfilename << "\n";
+	}
+	
 	int ccount=0;
 	std::string mytemp;
 	std::cout << "\n\n";
