@@ -1,24 +1,4 @@
 
-
-#include <mpi.h>
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "mtrand.h"
-#include "random.h"
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h> 
-#include <vector>
-#include <map>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-#include "step2readandwrite.h"
-
 #include "master.h"
 
 
@@ -34,7 +14,13 @@ void master(std::vector<std::string> tmpfolderlocs,
 			std::string called_dir,
 			std::string templocation){
 	
-
+	std::string homedir = getenv("HOME");
+	std::string settingsfilename = homedir;
+	settingsfilename.append("/.paramotopy/paramotopyprefs.xml");
+	ProgSettings paramotopy_settings(settingsfilename);
+	paramotopy_settings.load();
+	
+	
 #ifdef verbosestep2
 	std::cout << "starting initial stuff master\n";
 #endif
@@ -47,18 +33,22 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	int myid;
 	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
-
-	
 	MPI_Status status;
 	std::ifstream fin;
 	std::ofstream fout;
 	int numtodo;
-	std::string base_dir=make_base_dir_name(filename);
-	std::string finishedfile = base_dir;
+
+	runinfo paramotopy_info;  //holds all the info for the run 
+	
+	paramotopy_info.GetInputFileName(filename); //dear god please don't fail to find the file.
+	paramotopy_info.ParseData();
+	
+	
+	std::string finishedfile = paramotopy_info.base_dir;
 	finishedfile.append("/finished");
-	std::string lastoutfilename0 = base_dir;
+	std::string lastoutfilename0 = paramotopy_info.base_dir;
 	lastoutfilename0.append("/step2/lastnumsent0");	
-	std::string lastoutfilename1 = base_dir;
+	std::string lastoutfilename1 = paramotopy_info.base_dir;
 	lastoutfilename1.append("/step2/lastnumsent1");	
 	
 	
@@ -68,7 +58,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	int writecounter = 0, sendcounter = 0, receivecounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
-	std::string timingname = base_dir;
+	std::string timingname = paramotopy_info.base_dir;
 	timingname.append("/timing/mastertiming");
 #endif 
 	
@@ -86,42 +76,41 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 
 	
-	
-	
-	//begin parse
-	int numfunct;
-	int numvar;
-	int numparam;
-	int numconsts;
-	std::vector<std::string> FunctVector; 
-	std::vector<std::string> VarGroupVector; 
-	std::vector<std::string> ParamVector; 
-	std::vector<std::string> ParamStrings;
-	std::vector<std::string> Consts;
-	std::vector<std::string> ConstantStrings;
-	std::vector< std::vector< std::pair<double,double> > > Values;
-	std::vector< std::pair<double,double> > RandomValues; 
-	bool userdefined;
-	std::vector< int > NumMeshPoints;
-	fin.open(filename.c_str());
+
+//	//begin parse
+//	int numfunct;
+//	int numvar;
+//	int numparam;
+//	int numconsts;
+//	std::vector<std::string> FunctVector; 
+//	std::vector<std::string> VarGroupVector; 
+//	std::vector<std::string> ParamVector; 
+//	std::vector<std::string> ParamStrings;
+//	std::vector<std::string> Consts;
+//	std::vector<std::string> ConstantStrings;
+//	std::vector< std::vector< std::pair<double,double> > > Values;
+//	std::vector< std::pair<double,double> > RandomValues; 
+//	bool userdefined;
+//	std::vector< int > NumMeshPoints;
+//	fin.open(filename.c_str());
 	//reparse.  waaah.
-	ParseData(numfunct,
-			  numvar,
-			  numparam,
-			  numconsts,
-			  FunctVector,
-			  VarGroupVector,
-			  ParamVector,
-			  ParamStrings,
-			  Consts,
-			  ConstantStrings,
-			  Values,//captures both user-defined and program-generated.  since userdefined could be a big file, it gets read as needed down below.
-			  RandomValues,//we will overwrite, because will be wrong.  load from a file in the bfiles folder
-			  userdefined,
-			  fin,//yep
-			  NumMeshPoints,//a vector of integers, indicating the number of points for each parameter
-			  filename);
-	fin.close();
+//	ParseData(numfunct,
+//			  numvar,
+//			  numparam,
+//			  numconsts,
+//			  FunctVector,
+//			  VarGroupVector,
+//			  ParamVector,
+//			  ParamStrings,
+//			  Consts,
+//			  ConstantStrings,
+//			  Values,//captures both user-defined and program-generated.  since userdefined could be a big file, it gets read as needed down below.
+//			  RandomValues,//we will overwrite, because will be wrong.  load from a file in the bfiles folder
+//			  userdefined,
+//			  fin,//yep
+//			  NumMeshPoints,//a vector of integers, indicating the number of points for each parameter
+//			  filename);
+//	fin.close();
 	//end parse
 	
 #ifdef verbosestep2
@@ -131,7 +120,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	std::vector< int > lastnumsent;
-	int smallestnumsent = GetLastNumSent(base_dir,  //reads from two files.
+	int smallestnumsent = GetLastNumSent(paramotopy_info.base_dir,  //reads from two files.
 								  lastnumsent, // assigns this vector here
 								  numprocs);
 #ifdef verbosestep2
@@ -140,23 +129,23 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	//get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.
-	GetRandomValues(base_dir,
-					RandomValues);
+	GetRandomValues(paramotopy_info.base_dir,
+					paramotopy_info.RandomValues);
 	
 	
-	std::string mcfname = base_dir;
+	std::string mcfname = paramotopy_info.base_dir;
 	mcfname.append("/mc");
 	std::vector< int > KVector;// for the index making function
 	std::ofstream mc_out_stream;
 	std::ifstream mc_in_stream;
 	
 	
-	if (!userdefined) {
+	if (!paramotopy_info.userdefined) {
 		KVector.push_back(1); 
-		for (int i=1; i<numparam; ++i) {
-			KVector.push_back(KVector[i-1]*NumMeshPoints[i-1]);
+		for (int i=1; i<paramotopy_info.numparam; ++i) {
+			KVector.push_back(KVector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
 		}
-		terminationint = KVector[numparam-1]*NumMeshPoints[numparam-1];
+		terminationint = KVector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
 
 
 		//open mc file for writing out to
@@ -167,10 +156,13 @@ void master(std::vector<std::string> tmpfolderlocs,
 			mc_out_stream.open(mcfname.c_str());	
 		}
 		//end open mc file
+		if (!mc_out_stream.is_open()){
+			std::cout << "failed to open the parameter value out file\n";
+		}
 	}
 	else {
 		
-		int num_lines_mcfile = GetMcNumLines(base_dir,numparam); // verified correct for both newline terminated and not newline terminated.  dab
+		int num_lines_mcfile = GetMcNumLines(paramotopy_info.base_dir,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
 		terminationint = num_lines_mcfile;
 
 		mc_in_stream.open(mcfname.c_str(), std::ios::in);
@@ -182,7 +174,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 
 	
-	
+
 	
 	
 	///////////////////
@@ -193,36 +185,44 @@ void master(std::vector<std::string> tmpfolderlocs,
 //	std::vector< std::string > startvector;
 //	std::vector< std::string > configvector;
 	std::string start;
-	std::string config;
+//	std::string config;
 	
-	// read in the start and config files
-	GetStartConfig(base_dir,
-				   start,
-				   config);
+	
+#ifdef verbosestep2
+	std::cout << "master getting input file\n";
+#endif
+	
+//	// read in the start file
+	GetStart(paramotopy_info.base_dir,
+				   start);
 	
 	
 	// for the step 2.1 solve, we need random values
-	std::vector<std::pair<double, double> > tmprandomvalues = MakeRandomValues(numparam);
-	std::string inputstring = WriteStep2(config,
-										 tmprandomvalues, //  <------- this, in this call, has been replaced from TmpValues to tmprandomvalues.
-										 FunctVector,     // 
-										 VarGroupVector,  //    write for the initial 2.1 solve 
-										 ParamVector,
-										 ParamStrings,
-										 Consts,
-										 ConstantStrings,
-										 RandomValues,
-										 numfunct,
-										 numvar,
-										 numparam,
-										 numconsts);	
+	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);
+//	std::string inputstring = WriteStep2(config,
+//										 tmprandomvalues, //  <------- this, in this call, has been replaced from TmpValues to tmprandomvalues.
+//										 FunctVector,     // 
+//										 VarGroupVector,  //    write for the initial 2.1 solve 
+//										 ParamVector,
+//										 ParamStrings,
+//										 Consts,
+//										 ConstantStrings,
+//										 RandomValues,
+//										 numfunct,
+//										 numvar,
+//										 numparam,
+//										 numconsts);	
+	std::string inputstring = WriteStep2(tmprandomvalues,
+										 paramotopy_settings,
+										 paramotopy_info);
+	
 	
 	int vectorlengths[2] = {0};
 	vectorlengths[0] = start.size();
 	vectorlengths[1] = inputstring.size();
 
 
-
+	std::cout << "the input file is:\n " << inputstring << "\ndone with input file\n";
 	
 	
 #ifdef verbosestep2
@@ -251,7 +251,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	MPI_Bcast(&input_send[0], inputstring.size(), MPI_CHAR, 0, MPI_COMM_WORLD);
 #ifdef timingstep2
 	t_send += omp_get_wtime()-t1;
-	sendcounter++;
+//	sendcounter++;
 	sendcounter++;
 #endif
 	
@@ -259,13 +259,13 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	std::vector< std::pair<double,double> > TmpValues;
-	TmpValues.resize(numparam);
+	TmpValues.resize(paramotopy_info.numparam);
 	
 	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
-	indexvector.resize(numparam);
+	indexvector.resize(paramotopy_info.numparam);
 	
 
-	double ParamSends[(numprocs-1)*numfilesatatime*(2*numparam+1)];//for sending to workers, to print into datacollected files
+	double ParamSends[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into datacollected files
 	int I, J, index;
 	double a, b;//real and imaginary parts of the parameter values.
 	std::stringstream ssdeleteme;
@@ -346,8 +346,8 @@ void master(std::vector<std::string> tmpfolderlocs,
 	////////////////////////////////
 	
 	
-	if (userdefined) {
-		Values.clear();
+	if (paramotopy_info.userdefined) {
+		paramotopy_info.Values.clear();
 		std::string temp;
 		
 
@@ -364,7 +364,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 			std::vector< std::pair<double, double> > CValue;
 			std::stringstream ss;
 			ss << temp;
-			for (int i = 0; i < numparam;++i){
+			for (int i = 0; i < paramotopy_info.numparam;++i){
 				double creal;
 				double cimaginary;
 				ss >> creal;
@@ -372,7 +372,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 				CValue.push_back(std::pair<double,double>(creal,cimaginary));
 			}
 			
-			Values.push_back(CValue);
+			paramotopy_info.Values.push_back(CValue);
 		}
 	} // if userdefined
 	
@@ -446,19 +446,19 @@ void master(std::vector<std::string> tmpfolderlocs,
 					
 					
 					//determine the parameter values for this file
-					if (userdefined){
+					if (paramotopy_info.userdefined){
 						//already made the values above
-						TmpValues = Values[loopcounter];  // dont worry, loopcounter is incremented...
-						for (int j=0; j<numparam; ++j) {
-							ParamSends[loopcounter*(2*numparam+1)+2*j] = TmpValues[j].first;//
-							ParamSends[loopcounter*(2*numparam+1)+2*j+1] = TmpValues[j].second;//
+						TmpValues = paramotopy_info.Values[loopcounter];  // dont worry, loopcounter is incremented...
+						for (int j=0; j<paramotopy_info.numparam; ++j) {
+							ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*j] = TmpValues[j].first;//
+							ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*j+1] = TmpValues[j].second;//
 						}
-						ParamSends[loopcounter*(2*numparam+1)+2*numparam] = i;//the line number in mc file
+						ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*paramotopy_info.numparam] = i;//the line number in mc file
 					}
 					else {//not user defined
 						//form index for matrix of parameter values
 						index = i;
-						for (int j=numparam-1; j>-1; j--) {
+						for (int j=paramotopy_info.numparam-1; j>-1; j--) {
 							I = (index)%KVector[j];
 							J = (index - I)/KVector[j];
 							indexvector[j] = J;
@@ -466,15 +466,15 @@ void master(std::vector<std::string> tmpfolderlocs,
 						}
 						
 						//get param values
-						for (int j=0; j<numparam; ++j) {
-							a = Values[j][ indexvector[j] ].first;
-							b = Values[j][ indexvector[j] ].second;
+						for (int j=0; j<paramotopy_info.numparam; ++j) {
+							a = paramotopy_info.Values[j][ indexvector[j] ].first;
+							b = paramotopy_info.Values[j][ indexvector[j] ].second;
 							TmpValues[j].first = a;
 							TmpValues[j].second = b;
-							ParamSends[loopcounter*(2*numparam+1) + 2*j] = a;//for sending to worker, to write to data file
-							ParamSends[loopcounter*(2*numparam+1) + 2*j+1] = b;
+							ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*j] = a;//for sending to worker, to write to data file
+							ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*j+1] = b;
 						}
-						ParamSends[loopcounter*(2*numparam+1) + 2*numparam] = i;//the line number in the mc file
+						ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*paramotopy_info.numparam] = i;//the line number in the mc file
 					}
 					
 					
@@ -482,8 +482,8 @@ void master(std::vector<std::string> tmpfolderlocs,
 					t1 = omp_get_wtime();
 		#endif			
 					//write the mc line, but only if on an automated mesh
-					if (!userdefined) {
-						for (int j=0; j<numparam; ++j) {
+					if (!paramotopy_info.userdefined) {
+						for (int j=0; j<paramotopy_info.numparam; ++j) {
 							mc_out_stream << TmpValues[j].first << " " << TmpValues[j].second << " ";
 						}
 						mc_out_stream << "\n";
@@ -523,14 +523,14 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	for (rank = 1; rank < numprocs; ++rank) {  //no rank 0, because 0 is head node
-		double tempsends[numfilesatatime*(2*numparam+1)];
-		memset(tempsends, 0, numfilesatatime*(2*numparam+1)*sizeof(double) );
+		double tempsends[numfilesatatime*(2*paramotopy_info.numparam+1)];
+		memset(tempsends, 0, numfilesatatime*(2*paramotopy_info.numparam+1)*sizeof(double) );
 		
 		localcounter=0;
 		if (numtoprocess_first[rank-1]!=0) {
 			for (int i=lastnumsent[rank-1]; i<lastnumsent[rank-1] + numtoprocess_first[rank-1];++i){      //old:  (rank-1)*numfilesatatime; i<rank*numfilesatatime; ++i) {
-				for (int j=0; j<2*numparam+1; ++j) {
-					tempsends[localcounter*(2*numparam+1)+j] = ParamSends[i*(2*numparam+1)+j];
+				for (int j=0; j<2*paramotopy_info.numparam+1; ++j) {
+					tempsends[localcounter*(2*paramotopy_info.numparam+1)+j] = ParamSends[i*(2*paramotopy_info.numparam+1)+j];
 				}	  
 				localcounter++;
 			}
@@ -552,7 +552,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 		t1 = omp_get_wtime();
 #endif
 		MPI_Send(&tempsends,      /* message buffer */
-				 numfilesatatime*(2*numparam+1),                 /* number of data items */
+				 numfilesatatime*(2*paramotopy_info.numparam+1),                 /* number of data items */
 				 MPI_DOUBLE,           /* data item is an integer */
 				 rank,              /* destination process rank */
 				 sendymcsendsend,           /* user chosen message tag */
@@ -625,24 +625,24 @@ void master(std::vector<std::string> tmpfolderlocs,
 		
 		
 		// make tempsends in the step2 loop
-		double tempsends[numfilesatatime*(2*numparam+1)];
-		memset(tempsends, 0, numfilesatatime*(2*numparam+1)*sizeof(double) );
+		double tempsends[numfilesatatime*(2*paramotopy_info.numparam+1)];
+		memset(tempsends, 0, numfilesatatime*(2*paramotopy_info.numparam+1)*sizeof(double) );
 		
 		localcounter=0;
 	    for (int i = (status.MPI_SOURCE-1)*numfilesatatime; i < (status.MPI_SOURCE-1)*numfilesatatime+numtodo; ++i){
-			if (userdefined) {
-				FormNextValues_mc(numfilesatatime,numparam,localcounter,countingup,mc_in_stream,tempsends);
+			if (paramotopy_info.userdefined) {
+				FormNextValues_mc(numfilesatatime,paramotopy_info.numparam,localcounter,countingup,mc_in_stream,tempsends);
 			}
 			else {
-				FormNextValues(numfilesatatime,numparam,localcounter,Values,countingup,KVector,tempsends);
+				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,KVector,tempsends);
 			}			
 			
 #ifdef timingstep2
 			t1 = omp_get_wtime();
 #endif			//write the mc line if not userdefined
-			if (!userdefined) {
-				for (int j=0; j<numparam; ++j) {
-					mc_out_stream << tempsends[localcounter*(2*numparam+1)+2*j] << " " << tempsends[localcounter*(2*numparam+1)+2*j+1] << " ";
+			if (!paramotopy_info.userdefined) {
+				for (int j=0; j<paramotopy_info.numparam; ++j) {
+					mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
 				}
 				mc_out_stream << "\n";
 			}
@@ -662,7 +662,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 #endif
 		/* Send the slave a new work unit */
 		MPI_Send(&tempsends,             /* message buffer */
-				 numfilesatatime*(2*numparam+1),                 /* how many data items */
+				 numfilesatatime*(2*paramotopy_info.numparam+1),                 /* how many data items */
 				 MPI_DOUBLE,           /* data item is an integer */
 				 status.MPI_SOURCE, /* to who we just received from */
 				 numtodo,           /* user chosen message tag */

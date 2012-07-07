@@ -24,27 +24,11 @@ void SetUpFolders(std::string base_dir,
 				  int numfilesatatime,
 				  std::string templocation);
 
-std::string WriteStep2(std::string config,
-				std::vector<std::pair<double, double> > CValues,
-				std::vector<std::string> FunctVector, 
-				std::vector<std::string> VarGroupVector,
-				std::vector<std::string> ParamVector,
-				std::vector<std::string> ParamStrings,
-				std::vector<std::string> Consts,
-				std::vector<std::string> ConstantStrings,
-				std::vector<std::pair<double,double> > RandomValues,
-				int numfunct,
-				int numvar,
-				int numparam,
-				int numconsts);
+std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
+					   ProgSettings paramotopy_settings,
+					   runinfo paramotopy_info);
 
-void MakeConstantsStep2(std::stringstream & inputstringstream,
-						std::vector< std::pair<double,double> > RandomValues,
-						std::vector< std::pair<double,double> > CValues,
-						std::vector<std::string> ParamStrings,
-						std::vector<std::string> Consts,
-						std::vector<std::string> ConstantStrings,
-						int numparam);
+
 
 
 

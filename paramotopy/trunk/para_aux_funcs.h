@@ -31,6 +31,7 @@
 int get_int_choice(std::string display_string,int min_value,int max_value);
 
 
+
 std::string make_base_dir_name(std::string filename);
 
 
@@ -39,9 +40,12 @@ std::string make_base_dir_name(std::string filename);
 int GetUserChoice();
 
 
-bool test_if_finished(std::string base_dir);
+
 
 std::string stackoverflow_getcwd();
+
+void mkdirunix(std::string mydir);
+
 
 #endif
 
