@@ -12,7 +12,8 @@ void master(std::vector<std::string> tmpfolderlocs,
 			int numfilesatatime,
 			int saveprogresseverysomany,
 			std::string called_dir,
-			std::string templocation){
+			std::string templocation,
+			std::string location){
 	
 	std::string homedir = getenv("HOME");
 	std::string settingsfilename = homedir;
@@ -41,14 +42,16 @@ void master(std::vector<std::string> tmpfolderlocs,
 	runinfo paramotopy_info;  //holds all the info for the run 
 	
 	paramotopy_info.GetInputFileName(filename); //dear god please don't fail to find the file.
-	paramotopy_info.ParseData();
+	std::cout << "got file name\n";
+	paramotopy_info.ParseData(location);
+	std::cout << "parsed data\n";
+	paramotopy_info.location = location;
 	
-	
-	std::string finishedfile = paramotopy_info.base_dir;
-	finishedfile.append("/finished");
-	std::string lastoutfilename0 = paramotopy_info.base_dir;
+	std::string finishedfile = paramotopy_info.location;
+	finishedfile.append("/step2finished");
+	std::string lastoutfilename0 = paramotopy_info.location;
 	lastoutfilename0.append("/step2/lastnumsent0");	
-	std::string lastoutfilename1 = paramotopy_info.base_dir;
+	std::string lastoutfilename1 = paramotopy_info.location;
 	lastoutfilename1.append("/step2/lastnumsent1");	
 	
 	
@@ -58,7 +61,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	int writecounter = 0, sendcounter = 0, receivecounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
-	std::string timingname = paramotopy_info.base_dir;
+	std::string timingname = paramotopy_info.location;
 	timingname.append("/timing/mastertiming");
 #endif 
 	
@@ -74,45 +77,6 @@ void master(std::vector<std::string> tmpfolderlocs,
 	MPI_Comm_get_attr( MPI_COMM_WORLD, MPI_TAG_UB, &v, &flag );
 	norunflag = *(int*)v - 1;	
 	
-
-	
-
-//	//begin parse
-//	int numfunct;
-//	int numvar;
-//	int numparam;
-//	int numconsts;
-//	std::vector<std::string> FunctVector; 
-//	std::vector<std::string> VarGroupVector; 
-//	std::vector<std::string> ParamVector; 
-//	std::vector<std::string> ParamStrings;
-//	std::vector<std::string> Consts;
-//	std::vector<std::string> ConstantStrings;
-//	std::vector< std::vector< std::pair<double,double> > > Values;
-//	std::vector< std::pair<double,double> > RandomValues; 
-//	bool userdefined;
-//	std::vector< int > NumMeshPoints;
-//	fin.open(filename.c_str());
-	//reparse.  waaah.
-//	ParseData(numfunct,
-//			  numvar,
-//			  numparam,
-//			  numconsts,
-//			  FunctVector,
-//			  VarGroupVector,
-//			  ParamVector,
-//			  ParamStrings,
-//			  Consts,
-//			  ConstantStrings,
-//			  Values,//captures both user-defined and program-generated.  since userdefined could be a big file, it gets read as needed down below.
-//			  RandomValues,//we will overwrite, because will be wrong.  load from a file in the bfiles folder
-//			  userdefined,
-//			  fin,//yep
-//			  NumMeshPoints,//a vector of integers, indicating the number of points for each parameter
-//			  filename);
-//	fin.close();
-	//end parse
-	
 #ifdef verbosestep2
 	std::cout << "parsed\n";	
 #endif
@@ -120,7 +84,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	std::vector< int > lastnumsent;
-	int smallestnumsent = GetLastNumSent(paramotopy_info.base_dir,  //reads from two files.
+	int smallestnumsent = GetLastNumSent(paramotopy_info.location,  //reads from two files.
 								  lastnumsent, // assigns this vector here
 								  numprocs);
 #ifdef verbosestep2
@@ -129,11 +93,11 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	//get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.
-	GetRandomValues(paramotopy_info.base_dir,
+	GetRandomValues(paramotopy_info.location,
 					paramotopy_info.RandomValues);
 	
 	
-	std::string mcfname = paramotopy_info.base_dir;
+	std::string mcfname = paramotopy_info.location;
 	mcfname.append("/mc");
 	std::vector< int > KVector;// for the index making function
 	std::ofstream mc_out_stream;
@@ -157,12 +121,15 @@ void master(std::vector<std::string> tmpfolderlocs,
 		}
 		//end open mc file
 		if (!mc_out_stream.is_open()){
-			std::cout << "failed to open the parameter value out file\n";
+			std::cerr << "failed to open the parameter value out file: " << mcfname << "\n";
 		}
 	}
 	else {
 		
-		int num_lines_mcfile = GetMcNumLines(paramotopy_info.base_dir,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
+		int num_lines_mcfile = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
+
+		
+		
 		terminationint = num_lines_mcfile;
 
 		mc_in_stream.open(mcfname.c_str(), std::ios::in);
@@ -182,20 +149,18 @@ void master(std::vector<std::string> tmpfolderlocs,
 	//       get the start and config files, bcast them
 	//
 	///////////////////
-//	std::vector< std::string > startvector;
-//	std::vector< std::string > configvector;
+
 	std::string start;
-//	std::string config;
 	
 	
 #ifdef verbosestep2
-	std::cout << "master getting input file\n";
+	std::cout << "master making input file" << std::endl;
 #endif
 	
 //	// read in the start file
-	GetStart(paramotopy_info.base_dir,
+	GetStart(paramotopy_info.location,
 				   start);
-	
+
 	
 	// for the step 2.1 solve, we need random values
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);
@@ -211,7 +176,8 @@ void master(std::vector<std::string> tmpfolderlocs,
 //										 numfunct,
 //										 numvar,
 //										 numparam,
-//										 numconsts);	
+//										 numconsts);
+
 	std::string inputstring = WriteStep2(tmprandomvalues,
 										 paramotopy_settings,
 										 paramotopy_info);
@@ -221,12 +187,10 @@ void master(std::vector<std::string> tmpfolderlocs,
 	vectorlengths[0] = start.size();
 	vectorlengths[1] = inputstring.size();
 
-
-	std::cout << "the input file is:\n " << inputstring << "\ndone with input file\n";
-	
-	
 #ifdef verbosestep2
-	std::cout << myid << " master is telling workers the number of chars to expect.\n";
+	std::cout << "the input file is:\n " << inputstring << "\ndone with input file" << std::endl;
+
+	std::cout << myid << " master is telling workers the number of chars to expect." << std::endl;
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
@@ -239,7 +203,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 #ifdef verbosestep2
-	std::cout << "sending start, config, and input.\n";
+	std::cout << "sending start, config, and input." << std::endl;
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
@@ -251,7 +215,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	MPI_Bcast(&input_send[0], inputstring.size(), MPI_CHAR, 0, MPI_COMM_WORLD);
 #ifdef timingstep2
 	t_send += omp_get_wtime()-t1;
-//	sendcounter++;
+	sendcounter++;
 	sendcounter++;
 #endif
 	
@@ -325,7 +289,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	int arbitraryint =0 ;
 	
 #ifdef verbosestep2
-	std::cout << "letting workers know its ok to start w init.\n";
+	std::cout << "letting workers know its ok to start w init." << std::endl;
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
@@ -391,7 +355,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	for (int i=1; i<numprocs; ++i) {
 		lastnumsent.push_back(smallestnumsent + (i-1)*numfilesatatime);
 #ifdef verbosestep2
-		std::cout << "lastnumsent[" << i-1 << "] = " << lastnumsent[i-1] << "\n";
+		std::cout << "lastnumsent[" << i-1 << "] = " << lastnumsent[i-1] << std::endl;
 #endif
 	}
 
@@ -408,40 +372,14 @@ void master(std::vector<std::string> tmpfolderlocs,
 	int loopcounter = 0;
 	for (int proc_count=1;proc_count<(numprocs);++proc_count){
 		
-				
-//				////////////////////////////////////////
-//				//          write the start files.  only need to do this once per worker.
-//				////////////////////////////////////////
-//				
-//				std::string curbase_dir=tmpfolderlocs[proc_count-1];
-//				curbase_dir.append("/start");
-//		#ifdef timingstep2
-//				t1 = omp_get_wtime();
-//		#endif	
-//				std::cout << curbase_dir << "\n";
-//				fout.open(curbase_dir.c_str());
-//				for (int j=0; j< int(startvector.size()); ++j) {
-//					fout << startvector[j];
-//					if (startvector[j].length() > 0) {
-//						fout << ";";
-//					}
-//					
-//					fout  << "\n";
-//				}
-//				fout.close();
-//		#ifdef timingstep2
-//				t_write+= omp_get_wtime() - t1;
-//				writecounter++;
-//		#endif
-				
-				
+		
 
 				/////////////////////////
 				//     make initial data to send to the workers
 				////////////////////////////
 				
 				
-		numtoprocess_first[proc_count-1] = std::min( numfilesatatime, std::max(terminationint-lastnumsent[proc_count-1],0) );
+				numtoprocess_first[proc_count-1] = std::min( numfilesatatime, std::max(terminationint-lastnumsent[proc_count-1],0) );
 				for (int i = lastnumsent[proc_count-1]; (i < lastnumsent[proc_count-1]+numfilesatatime) && (i<terminationint  ); ++i){
 					
 					
@@ -506,7 +444,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 	//to let the workers know its ok to move on, and to let head node know workers are done with initial solve
 	MPI_Bcast(&biggestnumsent, 1, MPI_INT, 0, MPI_COMM_WORLD);
 #ifdef verbosestep2
-	std::cout << "bcast indicating all workers done w init\n";
+	std::cout << "bcast indicating all workers done w init" << std::endl;
 #endif
 	
 	
@@ -778,6 +716,9 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 #ifdef timingstep2
 	timingout.open(timingname.c_str(),std::ios::out);
+	if (!timingout.is_open()) {
+		std::cerr << "master timing out file " << timingname << "failed to open" << std::endl;
+	}
 	timingout <<  "initialize: " << t_initial << "\n"
 	<< "write time: " << t_write << "\n"
 	<< "send time: " << t_send << "\n"

@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-
+#include "bertini_funcs.h"
 
 
 #ifndef __STEP2READANDWRITE_H__
@@ -31,7 +31,7 @@ void WriteData(std::string outstring,
 			   std::vector<std::string> ParamStrings);
 
 
-void GetStart(std::string base_dir,
+void GetStart(std::string dir,
 					std::string & start);
 
 int GetLastNumSent(std::string base_dir,

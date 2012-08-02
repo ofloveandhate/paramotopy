@@ -8,7 +8,7 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 	std::string startingfolder = stackoverflow_getcwd();  //move to the running folder
 	std::stringstream command;
 	std::stringstream runfolder;
-	runfolder << paramotopy_info.base_dir << "/step1";
+	runfolder << paramotopy_info.location << "/step1";
 
 	chdir(runfolder.str().c_str());
 	
@@ -32,6 +32,7 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 		command << "$HOME/bertini";
 	}
 	
+	std::cout << command.str().c_str() << std::endl;
 	system(command.str().c_str());
 	
 	chdir(startingfolder.c_str());  // return to the initial folder
@@ -55,7 +56,7 @@ void WriteStep1(ProgSettings paramotopy_settings,
 	
 
 
-	std::string fname2 = paramotopy_info.base_dir;
+	std::string fname2 = paramotopy_info.location;
 	fname2.append("/step1/input");
 	
 	// open a file output stream to the input file used by bertini for step 1

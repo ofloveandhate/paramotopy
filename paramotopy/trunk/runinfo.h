@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 #include <stdio.h>
 #include "random.h"
 #include <unistd.h>
@@ -13,13 +14,20 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
-#include <sstream>
-#include <fstream>
-#include <string>
+
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/progress.hpp>
+#include <boost/regex.hpp>
+
+#include "tinyxml.h"
+
 #include "para_aux_funcs.h"
 
 #ifndef __RUNINFO_H__
 #define __RUNINFO_H__
+
+
 
 
 class runinfo {
@@ -40,8 +48,15 @@ public:
 	
 	int numfunct, numvariables, numvargroup, numparam, numconsts;
 	std::string location;//this may well be changed/ renamed/ deleted
+	std::string fundamental_dir;
 	std::string base_dir;
 	
+
+	int run_number;
+	time_t initiated;
+	time_t updated;
+	
+	std::string paramotopy_file;
 	std::string inputfilename;
 	
 	std::vector<std::string> Functions; 
@@ -68,26 +83,63 @@ public:
 
 	std::string WriteInputStepOne();
 	std::string WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues);
+	
+	void GetOriginalParamotopy();
 	void GetInputFileName();
 	void GetInputFileName(std::string suppliedfilename);
+	
 	void make_base_dir_name();
 	
 	
 	void mkdirstep1(){
-		
 		std::string tempstr = base_dir;
 		mkdirunix(tempstr);
 		tempstr.append("/step1");
 		mkdirunix(tempstr);
-		
-	};
+		};
 	
+	void clear(){
+		Functions.clear(); VarGroups.clear(); 
+		Parameters.clear(); ParameterNames.clear(); 
+		Constants.clear(); ConstantNames.clear(); 
+		Values.clear(); NumMeshPoints.clear(); 
+		RandomValues.clear(); 
+		numfunct = 0; numvariables = 0; numvargroup = 0; numparam = 0; numconsts = 0; 
+		};
 	
 	void ParseData();
+	void ParseData(std::string dir);
+	void ParseDataGuts(std::ifstream & fin);
 	
+	void RandomMenu(){
+		std::stringstream ss;
+		ss << "1) save values\n"
+			<< "2) load random values\n"
+			<< "3) make new values\n"
+			<< "*\n0)return to paramotopy\n: ";
+		int choice = get_int_choice(ss.str(),0,3);
+		switch (choice) {
+			case 0:
+					
+				break;
+			case 1:
+				runinfo::SaveRandom();
+				break;
+			case 2:
+				runinfo::LoadRandom();
+				break;
+			case 3:
+				runinfo::SetRandom();
+				break;
+			default:
+				break;
+		}
+	};
 	void SaveRandom();
 	void LoadRandom();
 	void SetRandom();
+	
+	bool GetPrevRandom();
 	
 	void SetLocation();
 	bool test_if_finished();
@@ -95,6 +147,24 @@ public:
 	
 	std::vector<std::pair<double, double> > MakeRandomValues(int garbageint);
 	
+	void WriteOriginalParamotopy(std::string dir);
+	void WriteModifiedParamotopy(std::string dir, int iteration);
+	void WriteRandomValues();
+	
+	
+//	ManageData
+	void SetBaseDirZero();
+	void SetBaseDirManual(std::vector< boost::filesystem::path >);
+	void SetBaseDirMostRecent(std::vector< boost::filesystem::path >);
+	void SetBaseDirNew(std::vector< boost::filesystem::path >);
+	void AutoScanData(const int preferred_behaviour);
+	void ScanData();
+	void save();
+	void load(std::string filename);
+	void get_run_xml(std::string filename, int & run, time_t  & wheninitiated, time_t & whenupdated);
+	
+	
+	void MakeRandomValues();
 	
 private:
 	void GetNumVariables();
@@ -119,7 +189,6 @@ private:
 	
 
 	
-	void MakeRandomValues();
 	void MakeRandomValues(std::vector< std::pair< std::pair< double, double >, 
 						  std::pair< double, double > > > RandomRanges);
 	
@@ -129,7 +198,18 @@ private:
 	void PrintRandom();
 	
 	
+	
+
+	void SetDataFirst();
+	void SetDataMostRecent();
+	void SetDataInteractive();
+	void WriteDataDateStarted();
+	void DeleteRunFolder();
+
+
+	
 protected:
+
 	
 };
 

@@ -28,7 +28,9 @@
 #include "runinfo.h"
 
 
-#define prefversion = 100; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+
+
+#define prefversion = 101; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 
@@ -45,7 +47,7 @@ int main(int argC, char *args[]){
 
 	
 	runinfo paramotopy_info;  //holds all the info for the run 
-	
+	failinfo fail_info;
   
 	std::vector< std::pair< std::pair< double, double >, std::pair< double, double > > > RandomRanges; 
 	
@@ -108,24 +110,25 @@ int main(int argC, char *args[]){
 	paramotopy_info.ParseData();
 
 	fin.close();
-	
-
+	paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);
+	if (!paramotopy_info.GetPrevRandom()){
+		paramotopy_info.MakeRandomValues();
+		std::cout << "made new random values" << std::endl;
+	}
 	parsed=true;
 	
-//	base_dir=make_base_dir_name(paramotopy_info.inputfilename);
-//	
 	
 	if (paramotopy_info.test_if_finished()){
 		std::cout	<< "\t*** * * * * * * * * * * * * ***\n"
 					<< "\t***this run appears finished***\n"
 					<< "\t*** * * * * * * * * * * * * ***\n";
 	}
-	int iteration = 0;
+
 	int intChoice=-1;	
 	
 	// Make the appropriate Directory to place the input file in
 	paramotopy_info.mkdirstep1();
-	paramotopy_info.DisplayAllValues();
+
 	while(currentChoice!=Quit){
 		
 		
@@ -141,8 +144,14 @@ int main(int argC, char *args[]){
 
 				paramotopy_info.GetInputFileName();
 				paramotopy_info.ParseData();
-				paramotopy_info.SetLocation();
 
+				paramotopy_info.mkdirstep1();
+				paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);
+
+				if (!paramotopy_info.GetPrevRandom()){
+					paramotopy_info.MakeRandomValues();
+					std::cout << "made new random values" << std::endl;
+				}
 				parsed=true;
 				break;
 				
@@ -150,24 +159,30 @@ int main(int argC, char *args[]){
 				
 			case 2:
 				
-				currentChoice = SetRandom;
-				paramotopy_info.SetRandom();	
+				paramotopy_info.ScanData();
+				mkdirunix(paramotopy_info.base_dir);
+				paramotopy_info.mkdirstep1();
+				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";
+				if (!paramotopy_info.GetPrevRandom()){
+					paramotopy_info.MakeRandomValues();
+					std::cout << "made new random values" << std::endl;
+				}
+//data management
 				break;
 				
 				
 				
-			case 3: // Save Random points
-				
-				currentChoice = SaveRandom;
-				paramotopy_info.SaveRandom();
+			case 3: // for use later?
+				std::cout << "unprogrammed\n";
+
 				break;
 				
 				
 				
-			case 4: // Load Random points
+			case 4: // Random point management
 				
-				currentChoice = LoadRandom;
-				paramotopy_info.LoadRandom();
+
+				paramotopy_info.RandomMenu();
 				break; 
 				
 				
@@ -175,7 +190,8 @@ int main(int argC, char *args[]){
 				
 			case 5: // Write Step1
 				currentChoice=WriteStepOne;
-
+				paramotopy_info.location = paramotopy_info.base_dir;
+				paramotopy_info.WriteOriginalParamotopy(paramotopy_info.base_dir);
 				WriteStep1(paramotopy_settings,
 						   paramotopy_info);
 				break;
@@ -186,14 +202,17 @@ int main(int argC, char *args[]){
 			case 6: //run step 1
 				
 				currentChoice = RunStepOne;
-
+				paramotopy_info.location = paramotopy_info.base_dir;
+				paramotopy_info.WriteOriginalParamotopy(paramotopy_info.base_dir);
 				WriteStep1(paramotopy_settings,
 						   paramotopy_info);
 				
 				
 				CallBertiniStep1(paramotopy_settings, 
 								 paramotopy_info);//base_dir);
-
+				
+				paramotopy_info.WriteRandomValues();
+				
 				break;
 				
 				
@@ -201,11 +220,8 @@ int main(int argC, char *args[]){
 			case 7:  //run step 2
 				
 				currentChoice = Step2;
+				paramotopy_info.location = paramotopy_info.base_dir;
 
-			
-
-
-				
 				steptwo_case(paramotopy_settings,
 							 paramotopy_info);
 				
@@ -216,13 +232,7 @@ int main(int argC, char *args[]){
 			case 8: //do failed path whatnot.
 				currentChoice = FailedPaths;
 				
-				iteration = 0;
-
-				//iteration=0 here because first iteration of failed path analysis
-				failedpaths_case(paramotopy_info, 
-								 paramotopy_settings,
-								 iteration);  // should this return any info to paramotopy?  q posed may 7 2012
-				
+				fail_info.MainMenu(paramotopy_settings,paramotopy_info);
 				break;
 				
 			case 9:  //change preferences
@@ -239,7 +249,7 @@ int main(int argC, char *args[]){
 				
 				
 		}//re: switch (intChoice)
-		
+		paramotopy_info.save();
 	}//re: while(currentChoice!=Quit)
 
 	return 0;

@@ -1,10 +1,66 @@
 #include "para_aux_funcs.h"
 
+//searches a directory for all files fitting a regular expression.
+std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression){
+	boost::filesystem::path p(dir);
+	boost::regex e(expression);
+	std::vector<boost::filesystem::path> found_folders;
+	
+	if (boost::filesystem::exists(p)) {
+		boost::filesystem::directory_iterator dir_end;
+		std::string filename;
+		for(boost::filesystem::directory_iterator dir_iter(p); dir_iter != dir_end; ++dir_iter) {
+			filename = dir_iter->path().filename().string();
+			if (boost::regex_search(filename,e)) {
+				if (is_directory(dir_iter->path())){
+					found_folders.push_back(dir_iter->path());
+				}
+			}
+		}
+	}
+	else {
+		std::cerr << "directory " << dir << " does not exist!\n";
+	}
+	std::sort(found_folders.begin(), found_folders.end());
+	return found_folders;
+	
+	
+}
+
+//searches a directory for all *directories* fitting a regular expression.
+std::vector<std::string> FindFiles(std::string dir, std::string expression){
+	
+	boost::filesystem::path p(dir);
+	boost::regex e(expression);
+	std::vector<std::string> found_files;
+	
+	
+	if (boost::filesystem::exists(p)) {
+		boost::filesystem::directory_iterator dir_end;
+		std::string filename;
+		for(boost::filesystem::directory_iterator dir_iter(p); dir_iter != dir_end; ++dir_iter) {
+			filename = dir_iter->path().filename().string();
+			if (boost::regex_search(filename,e)) {
+				if (is_regular_file(dir_iter->path())){
+					found_files.push_back(dir_iter->path().string());
+				}
+			}
+		}
+	}
+	else {
+		std::cerr << "directory " << dir << " does not exist!\n";
+	}
+	
+	
+	std::sort(found_files.begin(), found_files.end());
+	return found_files;
+	
+}
 
 
 
 
-std::string make_base_dir_name(std::string filename){
+std::string make_base_dir_name(std::string filename){  //intended to be called from step2
 	std::string dir = "";
 	
 	std::string remainder = filename;
@@ -16,9 +72,6 @@ std::string make_base_dir_name(std::string filename){
 		std::cout << dir << "\n";
 		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
 		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
-		
-		
-		
 	}// re:while
 	dir.append("bfiles_");
 	dir.append(remainder);
@@ -71,13 +124,13 @@ int GetUserChoice(){
 	
 	menu << "\n\nYour choices : \n\n"
 	<< "1) Parse an appropriate input file. \n"
-	<< "2) Randomize start points. \n"
-	<< "3) Save random start points. \n"
-	<< "4) Load random start points. \n"
+	<< "2) Data Management. \n"
+	<< "3)   -unprogrammed- \n"
+	<< "4) Manage start point (load/save/new). \n"
 	<< "5) Write Step 1.\n"
-	<< "6) Write and Run Step 1.\n"
+	<< "6) Run Step 1.\n"
 	<< "7) Run Step 2.\n"
-    << "8) Gather Failed Path Data.\n"
+    << "8) Failed Path Analysis.\n"
 	<< "\n"
 	<< "9) Preferences.\n"
 	<< "*\n"
@@ -93,155 +146,10 @@ int GetUserChoice(){
 
 
 
-//
-//
-//void TryToRecoverPrevRun(std::vector< std::pair<double,double> > & RandomValues,
-//						 std::string filename,
-//						 std::string base_dir,
-//						 preferences *Prefs,
-//						 OPTIONS & currentChoice,
-//						 std::vector<std::string> ParamStrings){
-//
-//bool finished;
-//std::ifstream fin;
-////check out previous runs...
-//std::string blank;
-//std::stringstream commandss;
-//
-//std::string lastoutfilename0 = base_dir;
-//lastoutfilename0.append("/step2/lastnumsent0");	  
-//// query whether had run or not yet. 
-//fin.open(lastoutfilename0.c_str());
-//std::vector< int > lastnumsent0;
-//lastnumsent0.push_back(0);
-//int tmpint;
-//if (fin.is_open()){
-//	int lastoutcounter=1;
-//	for (int i=1; i<Prefs[0].numprocs; ++i) {
-//		getline(fin,blank);
-//		if (blank=="") {
-//			break;
-//		}
-//		commandss << blank;
-//		commandss >> tmpint;
-//		lastnumsent0.push_back(tmpint);
-//		lastoutcounter++;
-//		commandss.clear();
-//		commandss.str("");
-//	}
-//	
-//}
-//fin.close();
-//
-//std::string lastoutfilename1 = base_dir;
-//lastoutfilename1.append("/step2/lastnumsent1");	  
-//// query whether had run or not yet. 
-//fin.open(lastoutfilename1.c_str());
-//std::vector< int > lastnumsent1;
-//lastnumsent1.push_back(0);
-//if (fin.is_open()){
-//	int lastoutcounter=1;
-//	for (int i=1; i<Prefs[0].numprocs; ++i) {
-//		getline(fin,blank);
-//		if (blank=="") {
-//			break;
-//		}
-//		commandss << blank;
-//		commandss >> tmpint;
-//		lastnumsent1.push_back(tmpint);
-//		lastoutcounter++;
-//		commandss.clear();
-//		commandss.str("");
-//	}
-//	
-//}
-//fin.close();	
-//
-//
-//
-//	finished = test_if_finished(base_dir);
-//
-////	std::string finishedfile = "bfiles_";
-////	finishedfile.append(filename);
-////	finishedfile.append("/finished");
-////	fin.open(finishedfile.c_str());
-////	if (fin.is_open()){
-////		finished = true;
-////	}
-////	fin.close();
-////	
-////	
-//if (finished) {
-//	int tmpint = -1;
-//	
-//	while ( (std::cout << "\n\n\nthis run appears done.  proceed anyway?  1 yes, 0 no.\n: ") &&
-//		   ( !(std::cin >> tmpint) || tmpint < 0 || tmpint > 1) ){
-//		
-//		std::cout << "Not a valid choice -- try again please:";
-//		std::cin.clear();
-//		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-//	}
-//	
-//	if (tmpint==0) {
-//		currentChoice=Quit;
-//		finished = true;
-//	}
-//	else {
-//		finished = false;
-//	}
-//	
-//	
-//}		
-//
-//
-////if a previous run is recoverable...
-//if ( (( int(lastnumsent1.size()) ==Prefs[0].numprocs) || ( int(lastnumsent0.size())==Prefs[0].numprocs))  && !finished ) {
-//	
-//	std::cout << "detected a previous run, which is recoverable.\nload previous random values?\n1 yes, 0 no.\n: ";
-//	int loadiemcloadster = -1;
-//	while ((loadiemcloadster<0) || (loadiemcloadster>1)) {
-//		std::cin >> loadiemcloadster;
-//	}
-//	
-//	if (loadiemcloadster==1) {
-//		std::string randfilename=base_dir;
-//		randfilename.append("/randstart");
-//		
-//		fin.open(randfilename.c_str());
-//		
-//		int ccount=0;
-//		std::cout << "\n\n";
-//		std::string mytemp;
-//		while(getline(fin,mytemp)){
-//			std::stringstream myss;
-//			myss << mytemp;
-//			double crandreal;
-//			double crandimaginary;
-//			myss >> crandreal;
-//			myss >> crandimaginary;
-//			RandomValues[ccount].first = crandreal;
-//			RandomValues[ccount].second = crandimaginary;
-//			std::cout << ParamStrings[ccount]
-//			<< " = "
-//			<< RandomValues[ccount].first 
-//			<< " + "
-//			<< RandomValues[ccount].second
-//			<< "*I\n";
-//			++ccount;
-//		}
-//		std::cout << "\n";
-//		fin.close();
-//	}
-//}
-//
-//}
 
 
 
-
-
-
-//  this function, to get the current directory, is directly from stackoverflow
+//  this function, to get the current directory, is *directly* from stackoverflow
 //
 //
 std::string stackoverflow_getcwd()

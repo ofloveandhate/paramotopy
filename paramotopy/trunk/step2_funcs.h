@@ -28,7 +28,9 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
 					   ProgSettings paramotopy_settings,
 					   runinfo paramotopy_info);
 
-
+std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
+						   ProgSettings paramotopy_settings,
+						   runinfo paramotopy_info);
 
 
 

@@ -145,6 +145,9 @@ public:
 	void GetNumProcs();
 	void GetNumFilesTime();
 	
+	void GetDataFolderMethod();
+	
+	
 	// which files to save
 	void SetSaveFiles();
 	void GetIndividualFileSave(std::string datafilename);
@@ -160,6 +163,8 @@ public:
 	void PathFailureMenu();
 	void SaveFilesMenu();
 	void ParallelismMenu();
+	void GeneralMenu();
+	
 	
 	//set defaults
 	void default_basic_bertini_values_stepone();
@@ -179,9 +184,16 @@ public:
 	void GetRandomMethod();
 	void GetSecurityLevelPathFailure();
 	void GetTightenTolerancesPathFailure();
+	void GetNumIterations();
 	
 	std::string WriteConfigStepOne();
 	std::string WriteConfigStepTwo();
+	std::string WriteConfigFail();
+
+	
+	void set_path_failure_settings();
+	void tightentolerances();
+	
 	
 private:
 	

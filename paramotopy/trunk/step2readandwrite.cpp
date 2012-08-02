@@ -20,6 +20,10 @@ std::string AppendData(int runid,
 	std::stringstream outstring;
 	std::ifstream fin(orig_file.c_str());	
 	
+	if (!fin.is_open()) {
+		std::cerr << "failed to open " << orig_file << " to read data" << std::endl;
+		exit(-42);
+	}
 	
 	
 	outstring << runid << "\n";
@@ -31,7 +35,7 @@ std::string AppendData(int runid,
 		outstring << cline << "\n";
 	}
 	fin.close();
-//	fout.close();
+
 
 	return outstring.str();
 }
@@ -45,6 +49,8 @@ void WriteData(std::string outstring,
 	std::ofstream fout;
 	// test if file target file is open
 	
+
+		
 	std::ifstream fouttarget(target_file.c_str());
 	if (fouttarget.is_open()){
 		fouttarget.close();
@@ -58,13 +64,17 @@ void WriteData(std::string outstring,
 			fout << ParamStrings[i] << (i != int(ParamStrings.size())-1? " ": "\n");
 		}
 	}
+	if (!fout.is_open()) {
+		std::cerr << "failed to open target file " << target_file << "\n";
+	}
+	
 	fout << outstring;
 	fout.close();
 }
 
 
 
-void GetStart(std::string base_dir,
+void GetStart(std::string dir,
 					std::string & start){
 	
 
@@ -73,12 +83,12 @@ void GetStart(std::string base_dir,
 	std::ifstream fin;
 	//get start file in memory
 	std::string copyme;
-	std::string startstring=base_dir;
+	std::string startstring=dir;
 	startstring.append("/step1/nonsingular_solutions");
 	fin.open(startstring.c_str());
 	
 	if (!fin.is_open()) {
-		std::cout << "failed to open nonsingular solutions file.\n";
+		std::cout << "failed to open nonsingular solutions file: " << startstring <<"\n";
 	}
 	
 	while (!fin.eof()) {
@@ -88,25 +98,6 @@ void GetStart(std::string base_dir,
 	fin.close();
 	//end get start in memory
 	start = tempss.str();
-//	tempss.clear();
-//	tempss.str("");
-	
-	
-//	//read in config2 file
-//	startstring = base_dir;
-//	startstring.append("/config_step2");
-//	fin.open(startstring.c_str()); 
-//	while (!fin.eof()) {
-//		getline(fin,copyme);
-//		tempss << copyme << "\n";
-//	}
-//	fin.close();
-//	//end read config2
-//	config = tempss.str();
-//	tempss.clear();
-//	tempss.str("");
-	
-	
 }
 
 
@@ -235,7 +226,7 @@ void GetRandomValues(std::string base_dir,
 	fin.open(randfilename.c_str());
 	
 	if (!fin.is_open()) {
-		std::cout << "failed to open " << randfilename << "\n";
+		std::cout << "failed to open randfilename: " << randfilename << "\n";
 	}
 	
 	int ccount=0;

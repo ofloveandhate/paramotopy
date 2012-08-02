@@ -20,13 +20,24 @@
 #include <stdio.h>
 #include "paramotopy_enum.h"
 
+#define BOOST_FILESYSTEM_VERSION 3
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/progress.hpp>
+#include <boost/regex.hpp>
 
 
 #ifndef __PARA_AUX_H__
 #define __PARA_AUX_H__
 
-//finds the step 2 program.  searches current directory, then the path variable.  if not found, prompts the user for the location.
-// definition of preferences struc found in preferences.h
+
+
+std::vector<std::string> FindFiles(std::string dir, std::string expression);
+std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression);
+
 
 int get_int_choice(std::string display_string,int min_value,int max_value);
 

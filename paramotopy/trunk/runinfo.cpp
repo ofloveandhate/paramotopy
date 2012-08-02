@@ -3,13 +3,92 @@
 #include "runinfo.h"
 
 
+void runinfo::GetOriginalParamotopy(){
+	paramotopy_file = "";
+	std::string tmpstr;
+	std::ifstream fin;
+	fin.open(inputfilename.c_str());
+	if (!fin.is_open()) {
+		std::cerr << "failed to open paramotopy_input_file " << inputfilename  << "for reading" <<  std::endl;
+	}
+	while (getline(fin,tmpstr)) {
+		paramotopy_file.append(tmpstr);
+		paramotopy_file.append("\n");
+	}
+	fin.close();
+	
+	return;
+}
 
+//assumes that you are in the original directory
+void runinfo::WriteOriginalParamotopy(std::string dir){
+
+	std::string filetoopen = dir;
+	
+	std::ofstream fout;
+	filetoopen.append("/paramotopy_input_file");
+	fout.open(filetoopen.c_str());
+	if (!fout.is_open()) {
+		std::cerr << "writing paramotopy file " << filetoopen << " failed." << std::endl;
+	}
+	fout << paramotopy_file;	
+	fout.close();
+	
+	
+	filetoopen = dir;
+	filetoopen.append("/inputfilename");
+	fout.open(filetoopen.c_str());
+	if (!fout.is_open()) {
+		std::cerr << "writing name file " << filetoopen << " failed." << std::endl;
+	}
+	fout << inputfilename;
+	fout.close();
+	return;
+}
+void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
+	
+	std::string filetoopen = dir;
+	std::stringstream paramotopy_file_str;
+	
+	paramotopy_file_str << numfunct << " " << numvargroup << " " << numparam << " " << numconsts << "\n";
+	for (int ii=0; ii < numfunct; ++ii) {
+		paramotopy_file_str << Functions[ii] << "\n";
+	}
+	for (int ii=0; ii < numvargroup; ++ii) {
+		paramotopy_file_str << VarGroups[ii] << "\n";
+	}
+	if (numconsts > 0) {
+		paramotopy_file_str << Constants[0] << "\n";
+
+		for (int ii=0; ii < numconsts; ++ii) {
+			paramotopy_file_str << ConstantNames[ii] << "\n";
+		}
+	}
+	paramotopy_file_str << "1\n";
+	paramotopy_file_str << "failed_points" << iteration << "\n";
+
+	
+	for (int ii = 0; ii < numparam; ++ii) {
+		paramotopy_file_str << ParameterNames[ii] << "\n";
+	}
+	
+	
+	std::ofstream fout;
+	filetoopen.append("/paramotopy_input_file");
+	fout.open(filetoopen.c_str());
+	fout << paramotopy_file_str.str();
+	fout.close();
+	
+	return;
+}
 
 
 
 void runinfo::make_base_dir_name(){
+	//todo:  rewrite this using boost
 	
-	base_dir = "";
+	
+	base_dir = "";  //reset
 	
 	std::string remainder = inputfilename;
 	size_t found;
@@ -24,8 +103,11 @@ void runinfo::make_base_dir_name(){
 		
 		
 	}// re:while
+	
 	base_dir.append("bfiles_");
 	base_dir.append(remainder);
+	
+	fundamental_dir = base_dir;
 	
 	return;
 }
@@ -35,12 +117,12 @@ void runinfo::make_base_dir_name(){
 
 
 
-
+//tests if step2 finished.
 bool runinfo::test_if_finished(){
 	bool finished = false;
 	
 	std::string finishedfile = base_dir;
-	finishedfile.append("/finished");
+	finishedfile.append("/step2finished");
 	struct stat filestatus;
 	
 	if (stat( finishedfile.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
@@ -142,14 +224,18 @@ void runinfo::GetInputFileName(){
 		
 		struct stat filestatus;
 		
-		if (stat(filename.c_str(), &filestatus) ){
+		if (stat(filename.c_str(), &filestatus) ==0 ){
 			finfound = true;
 		}
 		else {
 			std::cout << "could not open a file of that name... try again.\n";
 		}
 	}
+	
+	inputfilename = filename;
+	
 	runinfo::make_base_dir_name();
+
 	return;
 }
 
@@ -163,18 +249,40 @@ void runinfo::GetInputFileName(std::string suppliedfilename){
 		runinfo::GetInputFileName();
 	}
 	runinfo::make_base_dir_name();
+
 	return;
 }
 
 
 
-void runinfo::SaveRandom(){
+void runinfo::WriteRandomValues(){
 	std::ofstream fout;
+	fout.precision(16);
 	
+	std::string randpointfilename = base_dir;
+	randpointfilename.append("/randompoints_step1");
+	fout.open(randpointfilename.c_str());
+	
+	if (!fout.is_open()) {
+		std::cerr << "failed to open " << randpointfilename << " to write random points\n";
+	}
+	
+	for (int i = 0; i < numparam; ++i){
+		fout << RandomValues[i].first << " "
+		<< RandomValues[i].second << "\n";
+	}
+	
+	fout.close();
+}
+
+void runinfo::SaveRandom(){
+
 	std::string randpointfilename;
 	std::cout << "Enter the filename you want to save the random start points to : ";
 	std::cin >> randpointfilename;
 	
+	std::ofstream fout;
+	fout.precision(16);
 	fout.open(randpointfilename.c_str());
 	
 	for (int i = 0; i < numparam; ++i){
@@ -246,6 +354,57 @@ void runinfo::LoadRandom(){
 	return;
 }
 
+
+bool runinfo::GetPrevRandom(){
+	bool loadedrandom = false;
+	RandomValues.clear();
+	
+	std::string randomfilename = base_dir;
+	
+	randomfilename.append("/randompoints_step1");
+	
+	struct stat filestatus;
+	if (stat(randomfilename.c_str(),&filestatus)==0) {
+
+		
+		std::ifstream fin;
+		fin.open(randomfilename.c_str());
+		
+		if (!fin.is_open()) {
+			std::cerr << "failed to open " << randomfilename << " to read previous random values" << std::endl;
+			return loadedrandom;
+		}
+		else{
+				
+			std::string tmpstr;
+			int ccount=0;
+			while(getline(fin,tmpstr)){
+				std::stringstream myss;
+				myss << tmpstr;
+				std::pair<double,double> crand;
+				myss >> crand.first;
+				myss >> crand.second;
+				RandomValues.push_back(crand);
+
+				++ccount;
+			}
+			fin.close();
+			
+			if (int(RandomValues.size()) == numparam){
+				loadedrandom = true;
+				std::cout << "loaded previous random values at " << randomfilename << std::endl;
+			}
+			else{
+				std::cout << "tried to read the previous random values and failed.\n" 
+					<<  "there were " << RandomValues.size() << " read values, and " << numparam << " necessary values"
+					<< std::endl;
+			}
+				
+		}
+	}
+	
+	return loadedrandom;
+}
 
 void runinfo::SetRandom(){
 
@@ -325,9 +484,7 @@ void runinfo::SetRandom(){
 
 
 void runinfo::PrintRandom(){
-	//  std::cout << "RandomValues.size() = " << RandomValues.size();
-	//  std::cout << "\nParameterNames.size() = " << ParameterNames.size();
-	// std::cout << "\n";
+
 	std::cout << "The random initial values for the parameters are : \n";
 	for (int i = 0; i < int(ParameterNames.size());++i){
 		std::cout << ParameterNames[i] << " = " << RandomValues[i].first
@@ -340,13 +497,54 @@ void runinfo::PrintRandom(){
 
 
 
-					 
-					 
+
+//this is the function to be called in step2.  
+void runinfo::ParseData(std::string dir){
+	runinfo::make_base_dir_name();
+	std::string filetoopen = dir;
+	filetoopen.append("/paramotopy_input_file");
+	
+	std::ifstream fin;
+	fin.open(filetoopen.c_str());
+	if (!fin.is_open()) {
+		std::cerr << "failed to open paramotopy input file " << filetoopen << std::endl;
+		std::exit(1);
+	}
+	
+	runinfo::ParseDataGuts(fin);
+	
+	fin.close();  
+	// temporary output of the parsed data
+
+	
+	runinfo::MakeRandomValues();
+
+	return;
+
+}
+									
+			//this is the function to parse an input file to memory.		 
 void runinfo::ParseData(){
+	runinfo::make_base_dir_name();
+	runinfo::GetOriginalParamotopy();
 	
 	std::ifstream fin;
 	fin.open(inputfilename.c_str());
+	if (!fin.is_open()) {
+		std::cerr << "failed to open paramotopy input file " << inputfilename << std::endl;
+	} 
+	runinfo::ParseDataGuts(fin);
+	fin.close();  
 	
+	
+	// temporary output of the parsed data
+
+	
+	runinfo::DisplayAllValues();
+
+}
+
+void runinfo::ParseDataGuts(std::ifstream & fin){
 	runinfo::ReadSizes(fin);
 	runinfo::ReadFunctions(fin);
 	runinfo::ReadVarGroups(fin);
@@ -388,29 +586,9 @@ void runinfo::ParseData(){
 		runinfo::MakeValues();
 	}
 	
-	fin.close();  
-	// temporary output of the parsed data
-	runinfo::MakeRandomValues();
+	GetNumVariables();
 	
-	
-	
-	std::cout << "The functions are : \n\n";
-	for (int i = 0; i < int(Functions.size());++i){
-		std::cout << Functions[i] << "\n";
-	}
-	std::cout << "\nThe variable groups are : \n\n";
-	for (int i = 0; i < int(VarGroups.size());++i){
-		std::cout << VarGroups[i] << "\n";
-	}
-	std::cout << "\nThe parameters are :\n\n";
-	for (int i = 0; i < int(Parameters.size());++i){
-		std::cout << Parameters[i] << "\n";
-	}
-	
-	runinfo::GetNumVariables();
-	std::cout << numvariables << " total variables detected.\nDone parsing.\n";
-	
-	
+	return;
 	
 }
 
@@ -488,6 +666,10 @@ void runinfo::MakeRandomValues(std::vector< std::pair< std::pair< double, double
 std::vector<std::pair<double, double> > runinfo::MakeRandomValues(int garbageint){
 	std::vector<std::pair<double, double> > BlaRandomValues;
 	MTRand drand(time(0));
+	for (int ii = 1; ii < fabs(ceil(42*drand())); ++ii){
+		drand();
+	}
+	
 	for (int i = 0; i < numparam;++i){
 		double creal = double(drand());
 		double cimaginary = double(drand());
@@ -803,13 +985,339 @@ void runinfo::DisplayAllValues(){
 	
 	
 	
-	std::cout << "loc " << location
-		<< "base_dir " << base_dir
-		<< "fname " << inputfilename << "\n";
+	std::cout << "base_dir " << base_dir << " " 
+		<< "inputfilename " << inputfilename << "\n";
 	
 	std::cout << "nvar " << numvariables << "\n";
-	std::cout << mcfname << "\n";
+	if (userdefined==1) {
+		std::cout << "userdefined, with mcfname: " << mcfname << "\n";
+	}
+	else{
+		std::cout << "computer-generated mesh." << std::endl;
+	}
 	return;
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//                 data management
+//
+//
+////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+void runinfo::SetBaseDirZero(){
+	
+	base_dir = fundamental_dir;
+	base_dir.append("/run0");
+	
+	run_number = 0;
+	initiated = time(0);
+	updated = time(0);
+	
+	
+	return;
+}
+
+
+void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs){
+	
+	std::cout << "the following are your options for data folders:\n\n";
+	for (int ii = 0; ii<int(found_runs.size()); ++ii) {
+		std::cout << ii << ": " << found_runs[ii].string() << "\n";
+	}
+	
+	std::cout << found_runs.size() << ": " << "make new folder\n" << std::endl;
+	
+	int choice = get_int_choice("which folder to use?\n\n: ",0,found_runs.size());
+	
+	if (choice<int(found_runs.size())) {
+		base_dir = found_runs[choice].string();
+		runinfo::load(base_dir);//gets the run number, initiation date, and last time updated.
+	}
+	else{
+		runinfo::SetBaseDirNew(found_runs);
+	}
+		
+	
+	
+	return;
+	
+}
+
+
+
+void runinfo::SetBaseDirNew(std::vector< boost::filesystem::path> found_runs){
+	//get highest number, increment, set base dir and stuff
+	
+	int max_run_number = -101;
+	
+	time_t wheninitiated, whenupdated;
+	int run;
+	
+	for (int ii=0; ii<int(found_runs.size()); ++ii) {
+		std::string tmpdir = found_runs[ii].string();
+		tmpdir.append("/info.xml");
+		get_run_xml(tmpdir,run,wheninitiated,whenupdated);
+		if (run > max_run_number){
+			max_run_number = run;
+		}
+	}
+	
+	run_number = run+1;
+	initiated = time(0);
+	updated = time(0);
+	
+	base_dir = fundamental_dir;
+	base_dir.append("/run");
+	std::stringstream ss;
+	ss << run_number;
+	base_dir.append(ss.str());
+	
+	
+	return;
+}
+
+
+
+void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_runs){
+	//get highest number, increment, set base dir and stuff
+	
+	time_t most_recent = -1;
+	std::string tmpdir = "";
+	time_t wheninitiated, whenupdated;
+	int tmprun;
+	int runindex;
+	
+	for (int ii=0; ii<int(found_runs.size()); ++ii) {
+		tmpdir = found_runs[ii].string();
+		tmpdir.append("/info.xml");
+		get_run_xml(tmpdir,tmprun,wheninitiated,whenupdated);
+		std::cout << found_runs[ii].string() << " " << whenupdated << std::endl;
+		if (whenupdated > most_recent){
+			most_recent = whenupdated;
+			runindex = ii;
+		}
+		
+	}
+	
+	tmpdir  = found_runs[runindex].string();
+	
+	base_dir = tmpdir;
+	
+	tmpdir.append("/info.xml");
+	runinfo::load(tmpdir);
+	
+	return;
+}
+
+
+void runinfo::ScanData(){
+	std::cout << "Output directory is now: " << base_dir << std::endl;
+	
+	std::vector< boost::filesystem::path > found_runs = FindDirectories(fundamental_dir, "^run");
+	
+	if (found_runs.size()==0) {
+		std::cout << "found no previous data, starting new folder\n";
+		runinfo::SetBaseDirZero();
+	}
+	else {
+		runinfo::SetBaseDirManual(found_runs);
+	}
+
+	runinfo::save();
+	
+	
+	return;
+}
+
+void runinfo::AutoScanData(const int preferred_behaviour){
+	
+	std::vector< boost::filesystem::path > found_runs = FindDirectories(fundamental_dir, "^run");
+	
+	if (found_runs.size()==0) {
+		std::cout << "found no previous data, starting new folder\n";
+		runinfo::SetBaseDirZero();
+	}
+	else {
+		switch (preferred_behaviour) {
+			case 1:
+				std::cout << "setting base_dir most_recent\n";
+				runinfo::SetBaseDirMostRecent(found_runs);
+				
+				break;
+				
+			case 2:
+				std::cout << "Setting base dir new\n";
+				runinfo::SetBaseDirNew(found_runs);
+				std::cout << base_dir << "\n";
+				break;
+				
+			case 3:
+				std::cout << "setting basedir manually\n";
+				runinfo::SetBaseDirManual(found_runs);
+				break;
+				
+			default:
+				break;
+		}
+	}
+	
+	std::cout << "run folder set to " << base_dir << std::endl;
+	runinfo::save();
+	
+	
+	return;
+}
+
+
+
+
+
+
+//saves the run info to an xml file
+void runinfo::save(){
+	TiXmlDocument* doc = new TiXmlDocument;
+	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	
+	doc->LinkEndChild( decl );
+	
+	TiXmlElement * root = new TiXmlElement("run_info");
+	//categorymap::iterator iter;
+	
+	TiXmlText* txt;
+	std::stringstream ss;
+	
+	
+	TiXmlElement * value_name1 = new TiXmlElement( "run_number" );
+	ss << run_number;
+	txt = new TiXmlText( ss.str().c_str() );
+	ss.clear();
+	ss.str("");
+	value_name1->LinkEndChild(txt);
+	
+	TiXmlElement * value_name2 = new TiXmlElement( "initiated" );
+	ss << initiated;
+	txt = new TiXmlText( ss.str().c_str() );
+	ss.clear();
+	ss.str("");
+	value_name2->LinkEndChild(txt);
+	
+	TiXmlElement * value_name3 = new TiXmlElement( "updated" );
+	time_t currtime = time(NULL);
+	ss << currtime;
+	txt = new TiXmlText( ss.str().c_str() );
+	ss.clear();
+	ss.str("");
+	value_name3->LinkEndChild(txt);
+	
+	root->LinkEndChild(value_name1);
+	root->LinkEndChild(value_name2);
+	root->LinkEndChild(value_name3);
+	
+	
+	doc->LinkEndChild( root );
+	
+	mkdirunix(base_dir);
+	
+	std::string filename = base_dir;
+	filename.append("/info.xml");
+	//save it
+	if(doc->SaveFile(filename.c_str())){  
+		
+	}
+	else{
+		//couldn't save for some reason.  this may be a problem on queued systems?
+		std::cout << "run info *failed* to save to " << 	filename << "!\n";
+	};
+	
+	
+	return;
+}
+
+
+void runinfo::load(std::string filename){
+	int tmp_run=0;
+	time_t tmp_initiated=-2, tmp_updated=-1;
+	
+	get_run_xml(filename,tmp_run,tmp_initiated,tmp_updated);
+	run_number = tmp_run;
+	initiated = tmp_initiated;
+	updated = tmp_updated;
+	
+	return;
+}
+
+
+//returns via reference the run number, time initiated, and time updated, of a run.
+void runinfo::get_run_xml(std::string filename, int & run, time_t  & wheninitiated, time_t & whenupdated){
+	
+	TiXmlDocument* doc = new TiXmlDocument(filename);
+	
+	bool doc_loaded = doc->LoadFile();
+	if (!doc_loaded){
+		
+	}
+	else{
+		TiXmlHandle hDoc(doc);
+		TiXmlElement* pElem;
+		TiXmlHandle hRoot(0);
+		
+		pElem=hDoc.FirstChildElement().Element();
+		// should always have a valid root but handle gracefully if it doesn't
+		
+		if (!pElem) {
+			std::cerr << "bad xml file for this run.\n";
+		}
+		else{
+			
+			std::stringstream ss;
+			
+			std::string main_name =pElem->Value();  //unused?
+			hRoot=TiXmlHandle(pElem);  // the handle for the data we will be reading
+			
+			TiXmlElement* qElem = hRoot.FirstChild("run_number").Element();  //read the name
+			const char *numberText=qElem->GetText();
+			ss << numberText;
+			ss >> run;
+			ss.clear();
+			ss.str("");
+			
+			qElem = hRoot.FirstChild("initiated").Element();  //read the name
+			const char *initiatedText=qElem->GetText();
+			ss << initiatedText;
+			ss >> wheninitiated;
+			ss.clear();
+			ss.str("");
+			
+			
+			qElem = hRoot.FirstChild("updated").Element();  //read the name
+			const char *updatedText=qElem->GetText();
+			ss << updatedText;
+			ss >> whenupdated;
+			ss.clear();
+			ss.str("");
+			
+			
+		}
+	}
+	
+	return;
+}
