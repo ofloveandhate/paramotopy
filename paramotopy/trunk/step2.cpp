@@ -78,7 +78,7 @@ int main(int argc, char* argv[]){
 
 	//  bool firstrun = true;
 	ToSave *TheFiles;
-	std::string filename;
+	std::string filename, location;
 	int numsubfolders;
 	int numfiles;
 	int numparam;
@@ -116,8 +116,8 @@ int main(int argc, char* argv[]){
         std::string blank;
         commandss >> blank;  // name of program, ./mystep2
 		commandss >> filename;  // name of input file to polysaurus
+	  commandss >> location;
 		commandss >> numfiles; // number of files to save
-	  std::string base_dir = make_base_dir_name(filename);
 
 	  TheFiles = new ToSave[numfiles];
 	  for (int i = 0; i < numfiles;++i){
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
   
-	std::string base_dir=make_base_dir_name(filename);
+	std::string base_dir=make_base_dir_name(filename);  //called from 
 	
 	std::string templocation;
 	if (devshm==1) {
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]){
 	}
 
 	if (myid==headnode) {
-		SetUpFolders(base_dir,
+		SetUpFolders(location,
 					 numprocs,
 					 numfilesatatime,
 					 templocation);
@@ -189,13 +189,12 @@ int main(int argc, char* argv[]){
 	
     numsubfolders = (numprocs-1)*numfilesatatime;
 
-//	std::string DataCollectedbase_dir = base_dir;
-//	DataCollectedbase_dir.append("/step2/DataCollected/");
+
 	std::vector<std::string> tmpfolderlocs;
-//	int foldersdone=0;
+
 	for (int i = 1; i < numprocs ;++i){  //used to have numbersubfolders here for upper limit on loop
 		std::stringstream tmpfolder;
-		tmpfolder << templocation << "/" << base_dir << "/step2/tmp/" << i ;
+		tmpfolder << templocation << "/" << location << "/step2/tmp/" << i ;
 		tmpfolderlocs.push_back(tmpfolder.str());
 	}
 	
@@ -209,7 +208,8 @@ int main(int argc, char* argv[]){
 			 numfilesatatime, 
 			 saveprogresseverysomany,
 			 called_dir,
-			 templocation);
+			 templocation,
+			 location);
   }
   else{
 
@@ -221,7 +221,8 @@ int main(int argc, char* argv[]){
 		  numfilesatatime,
 		  called_dir,
 		  templocation,
-		  newfilethreshold);
+		  newfilethreshold,
+		  location);
   }
 
 

@@ -1,44 +1,4 @@
  #include "menu_cases.h"
-//
-////  make new random values.  user is guided through the steps by the program.  matt niemerg wrote this.
-//std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
-//													std::vector<std::string> ParamStrings){
-//	
-//
-//}  //   re: random_case
-//
-//
-//
-//
-//void save_random_case(std::vector< std::pair<double,double> > RandomValues,
-//					  int numparam){
-//	
-//
-//}//  re: save_random_case
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//void load_random_case(std::ifstream & fin3, 
-//					  std::vector< std::pair<double,double> > & RandomValues,
-//					  std::vector<std::string> ParamStrings){
-//	
-//
-//}
-
-
-
-
 
 
 
@@ -75,7 +35,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	
 	
 	//make the DataCollected directory.
-	std::string DataCollectedBaseDir=paramotopy_info.base_dir;
+	std::string DataCollectedBaseDir=paramotopy_info.location;
 	DataCollectedBaseDir.append("/step2/DataCollected/");
 	mkdirunix(DataCollectedBaseDir.c_str());
 	
@@ -99,7 +59,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	
 	//write a file containing the random values.
 	std::string randpointfilename;
-	randpointfilename = paramotopy_info.base_dir;
+	randpointfilename = paramotopy_info.location;
 	randpointfilename.append("/randstart");
 	
 	fout.open(randpointfilename.c_str());
@@ -231,6 +191,8 @@ void steptwo_case(ProgSettings paramotopy_settings,
 		mpicommand << paramotopy_settings.settings["MainSettings"]["numprocs"].value() << " ";
 		mpicommand << paramotopy_settings.settings["MainSettings"]["step2location"].value() << "/step2 ";	    
 		mpicommand << paramotopy_info.inputfilename << " ";
+		mpicommand << paramotopy_info.location << " ";
+		
 		
 		int numfilestosave=0;
 		settingmap::iterator iter;
@@ -256,7 +218,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 		mpicommand << paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].value() << " ";
 		mpicommand << paramotopy_settings.settings["MainSettings"]["newfilethreshold"].value() << " ";
 		mpicommand << paramotopy_settings.settings["MainSettings"]["devshm"].value() << " ";
-		
+
 		if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
 			mpicommand << " > /dev/null ";	
 		}
@@ -264,7 +226,10 @@ void steptwo_case(ProgSettings paramotopy_settings,
 
 		
 		std::cout << "\n\n\n\n\n\n\n\n" << mpicommand.str() << "\n\n\n\n\n\n\n\n\n";
+		
 		system(mpicommand.str().c_str());  //make the system call to bertini
+		
+		
 		
 	} // end parallel case
 	

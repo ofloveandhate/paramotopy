@@ -17,20 +17,15 @@
 #include "mtrand.h"
 #include "random.h"
 #include "step2readandwrite.h"
+#include "bertini_funcs.h"
+
 
 #ifndef __SLAVE_H_INCLUDED__
 #define __SLAVE_H_INCLUDED__
 
 
 
-extern "C" {
-	void computeNumDenom(char **numer, char **denom, char *s);
-}
 
-
-extern "C" {
-	int bertini_main(int argC, char *args[]);
-}
 
 
 
@@ -45,7 +40,8 @@ void slave(std::vector<std::string> dir,
 		   int numfilesatatime,
 		   std::string called_dir,
 		   std::string templocation,
-		   int newfilethreshold);
+		   int newfilethreshold,
+		   std::string location);
 
 
 #endif
