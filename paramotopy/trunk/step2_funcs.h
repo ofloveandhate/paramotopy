@@ -44,8 +44,8 @@ std::string MakeTargetFilename(std::string base_dir,
 							   int index);
 
 
-void TouchFilesToSave(ProgSettings paramotopy_settings,
-					  std::string base_dir);
+//void TouchFilesToSave(ProgSettings paramotopy_settings,
+//					  std::string base_dir);
 
 
 

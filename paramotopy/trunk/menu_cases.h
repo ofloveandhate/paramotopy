@@ -9,31 +9,41 @@
 #include "paramotopy_enum.h"
 #include "step1_funcs.h"
 #include "step2_funcs.h"
+#include "step2readandwrite.h"
 #include "xml_preferences.h"
+#include "master.h"
+#include <omp.h>
+
 
 #ifndef __MENU_CASES__
 #define __MENU_CASES__
 
+/*
+ the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
+ and denominator of the number.  I pass the input by casting via (char *)
+ */
+extern "C" {
+	void computeNumDenom(char **numer, char **denom, char *s);
+}
 
 
-// user choice for making new random values for the start point
-std::vector< std::pair<double,double> > random_case(std::vector< std::pair<double,double> > & RandomValues,
-													std::vector<std::string> ParamStrings);
+extern "C" {
+	int bertini_main(int argC, char *args[]);
+}
 
-// user choice for saving random values to a text file
-void save_random_case(std::vector< std::pair<double,double> > RandomValues,
-					  int numparam);
 
-// user choice for loading the random values from a text file
-void load_random_case(std::ifstream & fin3, 
-					  std::vector< std::pair<double,double> > & RandomValues,
-					  std::vector<std::string> ParamStrings);
+
+
+
 
 // for running the step2 program from paramotopy
 void steptwo_case(ProgSettings paramotopy_settings,
 				   runinfo paramotopy_info);
 
 
+void parallel_case( ProgSettings paramotopy_settings, runinfo paramotopy_info);
+
+void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info);
 #endif
 
 

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
+#include <iomanip>
 #include <math.h>
 #include "random.h"
 #include "mtrand.h"

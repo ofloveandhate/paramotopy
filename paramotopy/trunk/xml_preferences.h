@@ -146,7 +146,7 @@ public:
 	void GetNumFilesTime();
 	
 	void GetDataFolderMethod();
-	
+	void GetNewRandomAtNewFolder();
 	
 	// which files to save
 	void SetSaveFiles();
@@ -167,6 +167,7 @@ public:
 	
 	
 	//set defaults
+	void default_main_values();
 	void default_basic_bertini_values_stepone();
 	void default_basic_bertini_values_steptwo();
 	void default_path_failure_settings();

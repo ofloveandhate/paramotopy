@@ -42,9 +42,9 @@ void master(std::vector<std::string> tmpfolderlocs,
 	runinfo paramotopy_info;  //holds all the info for the run 
 	
 	paramotopy_info.GetInputFileName(filename); //dear god please don't fail to find the file.
-	std::cout << "got file name\n";
+	//std::cout << "got file name\n";
 	paramotopy_info.ParseData(location);
-	std::cout << "parsed data\n";
+	//std::cout << "parsed input file\n";
 	paramotopy_info.location = location;
 	
 	std::string finishedfile = paramotopy_info.location;
@@ -84,9 +84,10 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	
 	std::vector< int > lastnumsent;
-	int smallestnumsent = GetLastNumSent(paramotopy_info.location,  //reads from two files.
-								  lastnumsent, // assigns this vector here
-								  numprocs);
+	int smallestnumsent = 0;  //changed to 0, because recovery is broken right now.
+	//GetLastNumSent(paramotopy_info.location,  //reads from two files.
+								  //lastnumsent, // assigns this vector here
+								  //numprocs);
 #ifdef verbosestep2
 	std::cout << smallestnumsent << "\n";
 #endif
@@ -164,20 +165,6 @@ void master(std::vector<std::string> tmpfolderlocs,
 	
 	// for the step 2.1 solve, we need random values
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);
-//	std::string inputstring = WriteStep2(config,
-//										 tmprandomvalues, //  <------- this, in this call, has been replaced from TmpValues to tmprandomvalues.
-//										 FunctVector,     // 
-//										 VarGroupVector,  //    write for the initial 2.1 solve 
-//										 ParamVector,
-//										 ParamStrings,
-//										 Consts,
-//										 ConstantStrings,
-//										 RandomValues,
-//										 numfunct,
-//										 numvar,
-//										 numparam,
-//										 numconsts);
-
 	std::string inputstring = WriteStep2(tmprandomvalues,
 										 paramotopy_settings,
 										 paramotopy_info);

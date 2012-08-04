@@ -118,7 +118,10 @@ std::string ProgSettings::WriteConfigFail(){
 
 
 
-
+void ProgSettings::default_main_values(){
+	setValue("MainSettings","newrandom_newfolder",0);
+	setValue("MainSettings","previousdatamethod",1);
+}
 
 
 void ProgSettings::default_basic_bertini_values_stepone(){
@@ -312,6 +315,9 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 3:
 			ProgSettings::GetDataFolderMethod();
 			break;
+		case 4:
+			ProgSettings::GetNewRandomAtNewFolder();
+			break;
 		case 5:
 			ProgSettings::GetSaveProgress();
 			break;
@@ -345,6 +351,7 @@ void ProgSettings::setRequiredValues(){
 	main_required_values["architecture"] = 1;
 	main_required_values["parallel"] = 2;
 	main_required_values["previousdatamethod"]= 3;
+	main_required_values["newrandom_newfolder"]=4;
 	main_required_values["saveprogresseverysomany"] = 5;
 	main_required_values["newfilethreshold"] = 6;
 	main_required_values["devshm"] = 7;
@@ -617,6 +624,9 @@ void ProgSettings::load(const char* pFilename){
 		ProgSettings::default_basic_bertini_values_stepone();
 		ProgSettings::default_basic_bertini_values_steptwo();
 		ProgSettings::default_path_failure_settings();
+		ProgSettings::default_main_values();
+		ProgSettings::GetParallel();
+		//ProgSettings::SetSaveFiles(); no need.  do at end of function;
 	}
 	else {
 		TiXmlHandle hDoc(doc);
@@ -641,6 +651,7 @@ void ProgSettings::load(const char* pFilename){
 			}
 		}
 	}
+	
 	
 	ProgSettings::setRequiredValues();  //check for required settings, and set them if not found already.
 	if (!ProgSettings::CheckPrevSetFiles()) {
@@ -777,7 +788,8 @@ void ProgSettings::GeneralMenu(){
 	int choice=-10;
 	
 	menu << "\n\nGeneral Settings:\n\n"
-		<< "1) Change Data Folder method\n"
+		<< "1) Load Data Folder method\n"
+		<< "2) Generation of random values at new folder (during program)\n"
 		<< "*\n"
 		<< "0) go back\n"
 		<< "\n: ";
@@ -793,6 +805,9 @@ void ProgSettings::GeneralMenu(){
 				ProgSettings::GetDataFolderMethod();
 				break;
 				
+			case 2:
+				ProgSettings::GetNewRandomAtNewFolder();
+				break;
 				
 			default:
 				break;
@@ -1207,6 +1222,25 @@ void ProgSettings::GetDataFolderMethod(){
 	return;
 		
 }
+
+void ProgSettings::GetNewRandomAtNewFolder(){
+
+	int choice = -11;
+	std::stringstream menu;
+	menu << "\n\n"
+		<< "If you make a new folder with program running do you want\n"
+		<< "to automatically create new random values, or keep previous?\n"
+		<< "0) no  (keep old)\n"
+		<< "1) yes (make new)\n"
+		<< "\n: ";
+	
+	choice = get_int_choice(menu.str(),0,1);
+	
+	setValue("MainSettings","newrandom_newfolder",choice);
+	ProgSettings::save();
+	return;
+}
+
 
 void ProgSettings::GetRandomMethod(){
 	int choice = get_int_choice("use a new random start point for each resolve?  0 no, 1 yes\n: ",0,1);

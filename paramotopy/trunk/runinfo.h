@@ -58,8 +58,10 @@ public:
 	
 	std::string paramotopy_file;
 	std::string inputfilename;
+	std::string prefix;
 	
-	std::vector<std::string> Functions; 
+	
+	std::vector<std::string> Functions;
 	std::vector<std::string> VarGroups; 
 	std::vector<std::string> Parameters; 
 	std::vector<std::string> ParameterNames;
@@ -162,7 +164,7 @@ public:
 	void save();
 	void load(std::string filename);
 	void get_run_xml(std::string filename, int & run, time_t  & wheninitiated, time_t & whenupdated);
-	
+	void UpdateAndSave();
 	
 	void MakeRandomValues();
 	
