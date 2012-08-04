@@ -129,13 +129,10 @@ int main(int argC, char *args[]){
 	// Make the appropriate Directory to place the input file in
 	paramotopy_info.mkdirstep1();
 
+
 	while(currentChoice!=Quit){
 		
-		
-		
-		
 		intChoice = GetUserChoice();
-		
 		
 		switch (intChoice){
 			case 1 :
@@ -158,16 +155,19 @@ int main(int argC, char *args[]){
 				
 				
 			case 2:
-				
+				//data management
 				paramotopy_info.ScanData();
 				mkdirunix(paramotopy_info.base_dir);
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";
-				if (!paramotopy_info.GetPrevRandom()){
-					paramotopy_info.MakeRandomValues();
-					std::cout << "made new random values" << std::endl;
+				if (!paramotopy_info.GetPrevRandom()){  //if didn't find previous values to load, make new ones (but only if use wants to
+					if (paramotopy_settings.settings["MainSettings"]["newrandom_newfolder"].intvalue == 1){
+						paramotopy_info.MakeRandomValues();
+						std::cout << "made new random values" << std::endl;
+					}
 				}
-//data management
+
+				paramotopy_info.UpdateAndSave();
 				break;
 				
 				
@@ -194,6 +194,7 @@ int main(int argC, char *args[]){
 				paramotopy_info.WriteOriginalParamotopy(paramotopy_info.base_dir);
 				WriteStep1(paramotopy_settings,
 						   paramotopy_info);
+				paramotopy_info.UpdateAndSave();
 				break;
 				
 				
@@ -212,7 +213,7 @@ int main(int argC, char *args[]){
 								 paramotopy_info);//base_dir);
 				
 				paramotopy_info.WriteRandomValues();
-				
+				paramotopy_info.UpdateAndSave();
 				break;
 				
 				
@@ -225,7 +226,7 @@ int main(int argC, char *args[]){
 				steptwo_case(paramotopy_settings,
 							 paramotopy_info);
 				
-
+				paramotopy_info.UpdateAndSave();
 				break;
 				
 				
@@ -233,6 +234,7 @@ int main(int argC, char *args[]){
 				currentChoice = FailedPaths;
 				
 				fail_info.MainMenu(paramotopy_settings,paramotopy_info);
+				paramotopy_info.UpdateAndSave();
 				break;
 				
 			case 9:  //change preferences

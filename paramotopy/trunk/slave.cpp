@@ -131,18 +131,15 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	
 	//make data file location
 	myss << called_dir << "/" << location << "/step2/DataCollected/c" << myid << "/";
-
-	
 	std::string DataCollectedbase_dir = myss.str();//specific to this worker, as based on myid
-	
+	myss.clear();
+	myss.str("");
 
 	
 	std::vector<std::pair<double,double> >  AllParams;
 	AllParams.resize(numparam);//preallocate
-	myss.clear();
-	myss.str("");
+
 	
-	std::cout << DataCollectedbase_dir << "\n";
 
 	
 	
@@ -288,8 +285,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 #endif	
 	
 	
-//	blaint = chdir(up.c_str());
-	
+
 	myss << currentSeed;
 	myss >> currentSeedstring;
 	args_noparse[11] = const_cast<char *>(currentSeedstring.c_str());
@@ -318,7 +314,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	std::string target_file;
 	while (1) {
 		
-		/* Receive a message from the master */
+		/* Receive parameter points and line numbers from the master */
 #ifdef timingstep2
 		t1 = omp_get_wtime();
 #endif
@@ -429,7 +425,11 @@ void slave(std::vector<std::string> tmpfolderlocs,
 								 TheFiles[j].filename,
 								 ParamNames,
 								 AllParams));
+#ifdef verbosestep2
 				std::cout << "read in from file " << TheFiles[j].filename << std::endl;
+#endif
+				
+				
 #ifdef timingstep2
 				t_read += omp_get_wtime() - t1;
 				readcounter++; //increment the counter

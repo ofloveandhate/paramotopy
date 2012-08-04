@@ -32,10 +32,13 @@ void SetUpFolders(std::string base_dir,
 #ifdef timingstep2
 	  std::string timingdir = base_dir;
 	  timingdir.append("/timing/");
+	if (boost::filesystem::exists(timingdir)){
+		boost::filesystem::remove_all(timingdir);
+	}
 	  mkdirunix(timingdir.c_str());
 #endif
 	  
-	std::cout << "setting up temp folders, " << numprocs << " procs.\n";
+	
 	  //make the tmp folders.  
 	  for (int i=1; i<numprocs; ++i) { //everybody gets one
 		  std::stringstream ss;
@@ -51,7 +54,7 @@ void SetUpFolders(std::string base_dir,
     mydirfname.append("/folders");
     std::ofstream fout(mydirfname.c_str());
 	if (!fout.is_open()){
-		std::cerr << "failed to open " << mydirfname << "\n";
+		std::cerr << "failed to open " << mydirfname << " to write folder names!\n";
 	}
     for (int i = 1; i < numprocs;++i){
       std::stringstream tmpfolder;
@@ -73,13 +76,9 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
 					   runinfo paramotopy_info){
   
 	std::stringstream inputstringstream;
-	
-
 	inputstringstream << paramotopy_settings.WriteConfigStepTwo();
 	inputstringstream << paramotopy_info.WriteInputStepTwo(CValues);
 	
-	
-
 	return inputstringstream.str();
 }
 
@@ -90,54 +89,48 @@ std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
 					   runinfo paramotopy_info){
 	
 	std::stringstream inputstringstream;
-	
-	
 	inputstringstream << paramotopy_settings.WriteConfigFail();
 	inputstringstream << paramotopy_info.WriteInputStepTwo(CValues);
-	
-	
 	
 	return inputstringstream.str();
 }
 
 
 
-
+//constructs a file name for reading/writing
 std::string MakeTargetFilename(std::string base_dir,
 							   ToSave * TheFiles,
 							   int index){
   std::stringstream ss;
-  
-	
-	
   ss << base_dir
      << TheFiles[index].filename
      << TheFiles[index].filecount;
   return ss.str();
-
-
 }
 
 
-// assumes base_dir ends in a '/'
-void TouchFilesToSave(ProgSettings paramotopy_settings,
-					  std::string base_dir){
-	
-	settingmap::iterator iter;
-	
-	for (iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end();++iter){
-		// File Count has been set correctly already
-		// touch the appropriate files so no yelling ...
-		if ((*iter).second.intvalue==1){
-			std::stringstream command;
-			command << "touch ";
-			command << base_dir
-				<< (*iter).first
-				<< paramotopy_settings.settings["SaveFiles"][(*iter).first].filenumber;
-			system(command.str().c_str());
-		}
-	}
-}
+
+
+//unused
+//// assumes base_dir ends in a '/'
+//void TouchFilesToSave(ProgSettings paramotopy_settings,
+//					  std::string base_dir){
+//	
+//	settingmap::iterator iter;
+//	
+//	for (iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end();++iter){
+//		// File Count has been set correctly already
+//		// touch the appropriate files so no yelling ...
+//		if ((*iter).second.intvalue==1){
+//			std::stringstream command;
+//			command << "touch ";
+//			command << base_dir
+//				<< (*iter).first
+//				<< paramotopy_settings.settings["SaveFiles"][(*iter).first].filenumber;
+//			system(command.str().c_str());
+//		}
+//	}
+//}
 
 
 //SetFileCount is called initially.  guarantees that no old data will be overwritten.

@@ -39,7 +39,7 @@ void runinfo::WriteOriginalParamotopy(std::string dir){
 	filetoopen.append("/inputfilename");
 	fout.open(filetoopen.c_str());
 	if (!fout.is_open()) {
-		std::cerr << "writing name file " << filetoopen << " failed." << std::endl;
+		std::cerr << "writing inputfilename file " << filetoopen << " failed." << std::endl;
 	}
 	fout << inputfilename;
 	fout.close();
@@ -96,7 +96,7 @@ void runinfo::make_base_dir_name(){
 	while (found!=std::string::npos) {  //if found the delimiter '/'
 		
 		base_dir.append(remainder.substr(0,found+1));  //
-		std::cout << base_dir << "\n";
+		//std::cout << base_dir << "\n";
 		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
 		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
 		
@@ -109,6 +109,11 @@ void runinfo::make_base_dir_name(){
 	
 	fundamental_dir = base_dir;
 	
+
+	boost::filesystem::path prefix_path(inputfilename);
+
+	prefix = prefix_path.root_name().string();
+	//std::cout << "prefix" << prefix << "\n";
 	return;
 }
 
@@ -542,6 +547,18 @@ void runinfo::ParseData(){
 	
 	runinfo::DisplayAllValues();
 
+	if (userdefined){
+		std::string fileloc = base_dir;
+		mkdirunix(fileloc.c_str());
+		fileloc.append("/mc");
+		std::string thecommand = "cp ";
+		std::cout << "Paramfilename (i.e. location of user-defined mcfile) = "
+		<< mcfname << "\n";
+		thecommand.append(mcfname);
+		thecommand.append(" ");
+		thecommand.append(fileloc);
+		system(thecommand.c_str());
+	}
 }
 
 void runinfo::ParseDataGuts(std::ifstream & fin){
@@ -568,17 +585,12 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
 		runinfo::MakeParameterNames();
 		
 		// copy user defined file to bfiles_filename/mc
+		
 		runinfo::make_base_dir_name();
-		std::string fileloc = base_dir;
-		mkdirunix(fileloc.c_str());
-		fileloc.append("/mc");
-		std::string thecommand = "cp ";
-		std::cout << "Paramfilename (i.e. location of user-defined mcfile = "
-		<< paramfilename << "\n";
-		thecommand.append(paramfilename);
-		thecommand.append(" ");
-		thecommand.append(fileloc);
-		system(thecommand.c_str());
+		std::stringstream blabla;
+		blabla << prefix;
+		blabla << "/" << paramfilename;
+		mcfname = paramfilename;
 	}
 	else{
 		runinfo::ReadParameters(fin);
@@ -1020,7 +1032,11 @@ void runinfo::DisplayAllValues(){
 ////////////////////////////////////////////////////////////////////////
 
 
-
+void runinfo::UpdateAndSave(){
+	updated = time(NULL);
+	runinfo::save();
+	return;
+}
 
 
 void runinfo::SetBaseDirZero(){
@@ -1038,21 +1054,38 @@ void runinfo::SetBaseDirZero(){
 
 
 void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs){
+	time_t wheninitiated, whenupdated;  //for display 
+	
 	
 	std::cout << "the following are your options for data folders:\n\n";
+	std::cout << "     name                date modified\n";
 	for (int ii = 0; ii<int(found_runs.size()); ++ii) {
-		std::cout << ii << ": " << found_runs[ii].string() << "\n";
+		std::string tmpdir = found_runs[ii].string();
+		tmpdir.append("/info.xml");
+		int tmprun = 0;
+		get_run_xml(tmpdir,tmprun,wheninitiated,whenupdated);
+		
+		std::cout << ii << ": " << found_runs[ii].string();
+		for (int jj=0; jj<(20 - int(found_runs[ii].string().length())); ++jj) {
+			std::cout << " ";
+		}
+		std::cout << ctime(&whenupdated);
 	}
 	
 	std::cout << found_runs.size() << ": " << "make new folder\n" << std::endl;
 	
 	int choice = get_int_choice("which folder to use?\n\n: ",0,found_runs.size());
 	
+	std::cout << choice << " " << found_runs.size() << "\n";
+	
 	if (choice<int(found_runs.size())) {
+		
 		base_dir = found_runs[choice].string();
+		std::cout << "loading old directory " << base_dir << "\n";
 		runinfo::load(base_dir);//gets the run number, initiation date, and last time updated.
 	}
 	else{
+		std::cout << "making new directory\n";
 		runinfo::SetBaseDirNew(found_runs);
 	}
 		
@@ -1081,7 +1114,7 @@ void runinfo::SetBaseDirNew(std::vector< boost::filesystem::path> found_runs){
 		}
 	}
 	
-	run_number = run+1;
+	run_number = max_run_number+1;
 	initiated = time(0);
 	updated = time(0);
 	
@@ -1091,6 +1124,8 @@ void runinfo::SetBaseDirNew(std::vector< boost::filesystem::path> found_runs){
 	ss << run_number;
 	base_dir.append(ss.str());
 	
+	mkdirunix(base_dir);
+	runinfo::save();
 	
 	return;
 }
@@ -1106,11 +1141,18 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
 	int tmprun;
 	int runindex;
 	
+	std::cout << "\n   name                date modified\n\n";
+	
 	for (int ii=0; ii<int(found_runs.size()); ++ii) {
 		tmpdir = found_runs[ii].string();
 		tmpdir.append("/info.xml");
 		get_run_xml(tmpdir,tmprun,wheninitiated,whenupdated);
-		std::cout << found_runs[ii].string() << " " << whenupdated << std::endl;
+
+		std::cout << found_runs[ii].string();
+		for (int jj=0; jj<(20 - int(found_runs[ii].string().length())); ++jj) {
+			std::cout << " ";
+		}
+		std::cout << ctime ( &whenupdated );
 		if (whenupdated > most_recent){
 			most_recent = whenupdated;
 			runindex = ii;
@@ -1118,6 +1160,7 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
 		
 	}
 	
+	std::cout << std::endl;
 	tmpdir  = found_runs[runindex].string();
 	
 	base_dir = tmpdir;
@@ -1260,7 +1303,7 @@ void runinfo::load(std::string filename){
 	get_run_xml(filename,tmp_run,tmp_initiated,tmp_updated);
 	run_number = tmp_run;
 	initiated = tmp_initiated;
-	updated = tmp_updated;
+	updated = time(NULL);
 	
 	return;
 }

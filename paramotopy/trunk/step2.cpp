@@ -116,7 +116,7 @@ int main(int argc, char* argv[]){
         std::string blank;
         commandss >> blank;  // name of program, ./mystep2
 		commandss >> filename;  // name of input file to polysaurus
-	  commandss >> location;
+	    commandss >> location;
 		commandss >> numfiles; // number of files to save
 
 	  TheFiles = new ToSave[numfiles];
@@ -162,9 +162,9 @@ int main(int argc, char* argv[]){
   }
 	else{
 	// didn't provide filename or any arguments ...
-		std::cerr << "Nothing passed as an argument ... this"
-			  << " should never pop up as this program is only "
-			  << "ever called from paramotopy...\n";
+		std::cerr << "Nothing passed as an argument ... \n"
+			<< "this should never pop up as this program is only "
+			<< " called from paramotopy...\n";
 		  MPI_Finalize();
 		return 1;
 	}

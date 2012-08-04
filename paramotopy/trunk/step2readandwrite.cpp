@@ -21,7 +21,7 @@ std::string AppendData(int runid,
 	std::ifstream fin(orig_file.c_str());	
 	
 	if (!fin.is_open()) {
-		std::cerr << "failed to open " << orig_file << " to read data" << std::endl;
+		std::cerr << "failed to open file '" << orig_file << "' to read data" << std::endl;
 		exit(-42);
 	}
 	
@@ -49,23 +49,24 @@ void WriteData(std::string outstring,
 	std::ofstream fout;
 	// test if file target file is open
 	
-
-		
-	std::ifstream fouttarget(target_file.c_str());
-	if (fouttarget.is_open()){
-		fouttarget.close();
+	struct stat filestatus;
+	
+	if (stat( target_file.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
+		std::cout << "file " << target_file << "already found, opening for append" << std::endl;
 		fout.open(target_file.c_str(),std::ios::app);
+		
 	}
 	else{
-		fouttarget.close();
+		std::cout << "file " << target_file << "not found, opening fresh" << std::endl;
 		fout.open(target_file.c_str());
-		
 		for (int i = 0; i < int(ParamStrings.size());++i){
 			fout << ParamStrings[i] << (i != int(ParamStrings.size())-1? " ": "\n");
 		}
 	}
+
 	if (!fout.is_open()) {
-		std::cerr << "failed to open target file " << target_file << "\n";
+		std::cerr << "failed to open target dataout file '" << target_file << "'\n";
+		exit(-41);
 	}
 	
 	fout << outstring;
