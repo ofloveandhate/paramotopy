@@ -3,6 +3,35 @@
 #include "runinfo.h"
 
 
+bool runinfo::CheckRunStepOne(){
+	boost::filesystem::path step1path(location);
+	step1path /= ("step1");  //concatenation in boost
+	boost::filesystem::path nonsingular_solutions = step1path;
+	nonsingular_solutions /= ("nonsingular_solutions");
+	if (boost::filesystem::exists(nonsingular_solutions)){  // if it can see the 'finished' file
+		if (get_int_choice("found completed previous step1 run.\nremove, or bail out?\n0) bail out\n1) remove and continue\n: ",0,1)==1){
+			boost::filesystem::remove_all( step1path );
+			runinfo::mkdirstep1();
+		}
+		else{
+			std::cout << "returning to paramotopy main menu without running step one" << std::endl;
+			return false;
+		}
+
+	}
+	else{
+		typedef std::vector< boost::filesystem::path > vec;
+		vec v;
+		copy(boost::filesystem::directory_iterator(step1path), boost::filesystem::directory_iterator(), back_inserter(v));
+		for (vec::const_iterator it (v.begin()); it != v.end(); ++it)
+		{
+			boost::filesystem::remove( *it );
+		}
+	}
+	
+	return true;
+}
+
 void runinfo::GetOriginalParamotopy(){
 	paramotopy_file = "";
 	std::string tmpstr;

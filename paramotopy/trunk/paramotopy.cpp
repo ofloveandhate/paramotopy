@@ -204,6 +204,14 @@ int main(int argC, char *args[]){
 				
 				currentChoice = RunStepOne;
 				paramotopy_info.location = paramotopy_info.base_dir;
+				
+				
+
+				
+				if (!paramotopy_info.CheckRunStepOne()){
+					break;
+				}
+				
 				paramotopy_info.WriteOriginalParamotopy(paramotopy_info.base_dir);
 				WriteStep1(paramotopy_settings,
 						   paramotopy_info);

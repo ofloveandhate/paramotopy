@@ -168,6 +168,7 @@ public:
 	
 	void MakeRandomValues();
 	
+	bool CheckRunStepOne();
 private:
 	void GetNumVariables();
 	void ReadSizes(std::ifstream & fin);
