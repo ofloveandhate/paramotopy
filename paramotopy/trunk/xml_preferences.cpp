@@ -1014,14 +1014,27 @@ void ProgSettings::SaveFilesMenu(){
 }
 
 
+		
+		
 void ProgSettings::ChangeSetting(std::string category_name){
 	//first, get setting name
 	std::string setting_name = "neverusethisname";
+	size_t found;
 	
-	while (!haveSetting(category_name,setting_name) ) {
-		std::cout << "what is the exact name (caps,spelling) of setting?\n: ";
+	while ( 1 ) {
+		std::cout << "what is the exact name (caps,spelling) of setting?   % cancels\n: ";
 		std::cin >> setting_name;
+		found=setting_name.find('%');
+		if ( (haveSetting(category_name,setting_name)) ||  (int(found)==0) ) {
+			break;
+		}
 	}
+	
+	if (int(found)==0) {
+		std::cout <<  "canceling\n";
+		return;
+	}
+	
 	
 	int typeint = get_int_choice("what is the type of the setting? \n string: 0\n integer / 0-1 bool: 1\n float/double: 2\n\n:",0,2);
 	std::cout << "new value\n:";
@@ -1057,9 +1070,17 @@ void ProgSettings::AddSetting(std::string category_name){
 	std::string setting_name = "neverusethisname";
 	
 
-	std::cout << "what is the exact name (caps,spelling) of setting?\n: ";
+	std::cout << "what is the exact name (caps,spelling) of setting?     % cancels\n: ";
 	std::cin >> setting_name;
 
+	size_t found=setting_name.find('%');
+	if ( int(found)==0 ) {
+		std::cout << "canceling\n";
+		return;
+	}
+	
+	
+	
 	std::stringstream prompt;
 	prompt << "what is the type of"
 		<< setting_name

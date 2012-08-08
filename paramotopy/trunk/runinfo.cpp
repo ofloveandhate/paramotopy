@@ -992,7 +992,9 @@ void runinfo::DisplayAllValues(){
 	for (int ii=0; ii<numconsts; ++ii) {
 		std::cout  << ConstantNames[ii] << "\n";
 	}
-	std::cout  << Constants[0] << "\n";
+	if (numconsts>0) {
+		std::cout  << Constants[0] << "\n";
+	}
 
 	
 	
