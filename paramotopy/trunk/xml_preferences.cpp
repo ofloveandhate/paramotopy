@@ -1123,11 +1123,22 @@ void ProgSettings::AddSetting(std::string category_name){
 void ProgSettings::RemoveSetting(std::string category_name){
 	std::string setting_name = "neverusethisname";
 	
-	while (!haveSetting(category_name,setting_name) ) {
+	size_t found;
+	
+	while (1) {
 		
-		std::cout << "what is the exact name (caps,spelling) of setting?";
+		std::cout << "what is the exact name (caps,spelling) of setting?    % cancels\n";
 		std::cin >> setting_name;
+		if ( (haveSetting(category_name,setting_name)) ||  (int(found)==0) ) {
+			break;
+		}
 	}
+	
+	if (int(found)==0) {
+		std::cout <<  "canceling\n";
+		return;
+	}
+	
 	
 	settings[category_name].erase(setting_name);
 	
