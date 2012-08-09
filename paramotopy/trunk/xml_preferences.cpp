@@ -7,6 +7,8 @@ const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] =
 { "failed_paths" };
 
 
+
+//related to path failure analysis
 void ProgSettings::tightentolerances(){
 	settings["PathFailureBertini"]["TRACKTOLBEFOREEG"].doubvalue = 0.1*settings["PathFailureBertini"]["TRACKTOLBEFOREEG"].doubvalue;
 	settings["PathFailureBertini"]["TRACKTOLDURINGEG"].doubvalue = 0.1*settings["PathFailureBertini"]["TRACKTOLDURINGEG"].doubvalue;
@@ -16,7 +18,7 @@ void ProgSettings::tightentolerances(){
 
 
 
-
+//sets path failure settings from the step2 settings
 void ProgSettings::set_path_failure_settings(){
 	
 	settings["PathFailureBertini"].clear();
@@ -163,26 +165,33 @@ void ProgSettings::default_path_failure_settings(){
 	return;
 }
 
-
 //locates the step2program.
-void ProgSettings::FindProgramStep2(){
+void ProgSettings::FindProgram(std::string program_name, std::string category_name, std::string setting_name){
 	
-	bool found_step2_program = false;
+	bool found_program = false;
 	struct stat filestatus;
 	
-
-	if (haveSetting("MainSettings","step2location")) {
-		std::string stored_location = settings["MainSettings"]["step2location"].value();
-		stored_location.append("/");
-		if (stat(stored_location.append("step2").c_str(),&filestatus) == 0){
-			found_step2_program = true;
+	
+	if (haveSetting(category_name,setting_name)) {
+		boost::filesystem::path stored_location(settings[category_name][setting_name].value());
+		stored_location /= program_name;
+		if (boost::filesystem::exists(stored_location)){
+			stored_location = boost::filesystem::canonical(boost::filesystem::absolute(stored_location));
+			setValue(category_name,setting_name,stored_location.parent_path().string());
+			found_program = true;
 		}
-	}
 
-	if (found_step2_program == false ){
-		if (stat( "./step2", &filestatus ) ==0){  // if have the step2 program in current directory, set location of it to here.
-			setValue("MainSettings","step2location",".");
-			found_step2_program = true;
+		
+	}
+	
+	if (found_program == false ){
+		boost::filesystem::path here = "./";
+		here /= program_name;
+		
+		if (boost::filesystem::exists(here)){  // if have the step2 program in current directory, set location of it to here.
+			here = boost::filesystem::absolute(here);
+			setValue(category_name,setting_name,here.parent_path().string());
+			found_program = true;
 		}
 		else{  //if step2 is not in the current directory, then scan the path for it.
 			
@@ -197,49 +206,47 @@ void ProgSettings::FindProgramStep2(){
 				size_t found;
 				found = path.find(':');
 				while (found!=std::string::npos) {  //if found the delimiter ':'
-					std::string path_to_detect = path.substr(0,found);  //the part of the path to scan for mystep2
+					boost::filesystem::path path_to_detect(path.substr(0,found));  //the part of the path to scan for mystep2
 					path = path.substr(found+1,path.length()-found);    // the remainder of the path.  will scan later.
 					found = path.find(':');                             // get the next indicator of the ':' delimiter.
-					
-					std::string temppath = path_to_detect;
-					if ( stat( temppath.append("/step2").c_str() , &filestatus)==0){
+					path_to_detect /= program_name;
+					if (boost::filesystem::exists(path_to_detect)){
 						//found the mystep2 program!
 						
-						setValue("MainSettings","step2location",path_to_detect);
-						found_step2_program = true;
+						setValue(category_name,setting_name,path_to_detect.parent_path().string());
+						found_program = true;
 						break;
 						
-					}  
+					}
 					else{
-						//did not find it yet...	
+						//did not find it yet...
 					}
 				}// re:while
 			}//re: if temp_path!=null
 			else{ //the path variable was null.  WTF?
-				std::cout << "unable to scan $PATH for step2.\n";
+				std::cerr << "unable to scan $PATH for step2.\n";
 				
 			}
 		}
 	}
 	
 	
-	if (found_step2_program == false){
+	if (found_program == false){
 		std::string path_to_detect;
-		std::cout << "step2 program not found in current directory or PATH.\nplease supply the path to step2.\nabsolute path is best, but relative works, too.\n";
+		std::cout << program_name << " program not found in current directory or PATH.\nplease supply the path to " << program_name << ".\nabsolute path is best, but relative works, too.\n";
 		std::cin >> path_to_detect;
-		std::string temp_path = path_to_detect;
-		while (stat(temp_path.append("/step2").c_str(),&filestatus) !=0) {
-			std::cout << "step2 program not found at that location.  please supply the path to step2:\n";
-			std::cin >> path_to_detect;	
-			temp_path = path_to_detect;
+		boost::filesystem::path temp_path(path_to_detect);
+		while (! boost::filesystem::exists(temp_path)) {
+			std::cout << program_name << " program not found at that location.  please supply the path:\n";
+			std::cin >> path_to_detect;
+			temp_path = boost::filesystem::path(path_to_detect);
 		}
-		setValue("MainSettings","step2location",path_to_detect);
+		setValue(category_name,setting_name,path_to_detect);
 	}
 	
-	std::cout << "step2 program is located at '" << settings["MainSettings"]["step2location"].value() << "'\n";
+	std::cout << program_name << " program is located at '" << settings[category_name][setting_name].value() << "'\n";
 	return;
-}//    re: find_program_step2
-
+}//    re: find_program
 
 
 
@@ -351,7 +358,7 @@ void ProgSettings::setRequiredValues(){
 	main_required_values["architecture"] = 1;
 	main_required_values["parallel"] = 2;
 	main_required_values["previousdatamethod"]= 3;
-	main_required_values["newrandom_newfolder"]=4;
+	main_required_values["newrandom_newfolder"]= 4;
 	main_required_values["saveprogresseverysomany"] = 5;
 	main_required_values["newfilethreshold"] = 6;
 	main_required_values["devshm"] = 7;
@@ -361,8 +368,7 @@ void ProgSettings::setRequiredValues(){
 //adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
 	
 	
-//	example: checking whether a std::map has an entry of a given name: 
-//	cars.find(name) != cars.end();  if name is in map cars, this is true
+//iterate over the main setting map, for each of the above settings.
 	for (iter=main_required_values.begin(); iter != main_required_values.end(); iter++) {
 		if (settings["MainSettings"].find( (*iter).first) == settings["MainSettings"].end() ) {
 			ProgSettings::RequiredSettingsSwitcharoo( (*iter).second );
@@ -657,8 +663,11 @@ void ProgSettings::load(const char* pFilename){
 	if (!ProgSettings::CheckPrevSetFiles()) {
 		ProgSettings::SetSaveFiles();
 	}
-	ProgSettings::FindProgramStep2();
-
+	
+	ProgSettings::FindProgram("step2","MainSettings","step2location");
+	ProgSettings::FindProgram("bertini","MainSettings","bertinilocation");
+	
+	ProgSettings::save();
 }
 
 //for reading individual settings categories from the xml file.
