@@ -74,6 +74,8 @@ void runinfo::WriteOriginalParamotopy(std::string dir){
 	fout.close();
 	return;
 }
+
+
 void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
 	
 	std::string filetoopen = dir;
@@ -529,10 +531,36 @@ void runinfo::PrintRandom(){
 	return;
 }
 
+void runinfo::CopyUserDefinedFile(){
+	
+	if (this->userdefined){
+		
+		
+		boost::filesystem::path fileloc(this->base_dir);
+		mkdirunix(fileloc.string().c_str());
+		fileloc /= "mc";
+		
+		boost::filesystem::path mcfile(this->mcfname);
+		if (!boost::filesystem::exists(mcfile)) {
+			std::cerr << "mcfile specified by the input file does not exist..." << std::endl;
+			return;
+		}
+		
+		
+		std::string thecommand = "cp ";
+		thecommand.append(this->mcfname);
+		thecommand.append(" ");
+		thecommand.append(fileloc.string());
+		std::cout << thecommand << std::endl;
+		system(thecommand.c_str());
+		
 
 
 
-//this is the function to be called in step2.  
+	}
+}
+
+//this is the function to be called in step2.
 void runinfo::ParseData(std::string dir){
 	runinfo::make_base_dir_name();
 	std::string filetoopen = dir;
@@ -576,18 +604,7 @@ void runinfo::ParseData(){
 	
 	runinfo::DisplayAllValues();
 
-	if (userdefined){
-		std::string fileloc = base_dir;
-		mkdirunix(fileloc.c_str());
-		fileloc.append("/mc");
-		std::string thecommand = "cp ";
-		std::cout << "Paramfilename (i.e. location of user-defined mcfile) = "
-		<< mcfname << "\n";
-		thecommand.append(mcfname);
-		thecommand.append(" ");
-		thecommand.append(fileloc);
-		system(thecommand.c_str());
-	}
+
 }
 
 void runinfo::ParseDataGuts(std::ifstream & fin){
@@ -595,7 +612,7 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
 	runinfo::ReadFunctions(fin);
 	runinfo::ReadVarGroups(fin);
 	
-	if (numconsts!=0){
+	if (this->numconsts!=0){
 		runinfo::ReadConstants(fin);
 	}
 	
@@ -605,7 +622,7 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
 	std::stringstream ss;
 	getline(fin,tmp);
 	ss << tmp;
-	ss >> userdefined;
+	ss >> this->userdefined;
 	if (userdefined){
 		std::string paramfilename;
 		

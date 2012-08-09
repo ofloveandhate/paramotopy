@@ -41,7 +41,7 @@ int main(int argC, char *args[]){
 	// Data members used throughout the program  
 	std::string homedir = getenv("HOME");
 	OPTIONS currentChoice = Start;
-	std::string path_to_inputfile, base_dir = "";
+	std::string path_to_inputfile;
 	bool parsed = false;
 	std::ifstream fin, finconfig;
 
@@ -108,13 +108,26 @@ int main(int argC, char *args[]){
 	
 	
 	paramotopy_info.ParseData();
-
 	fin.close();
-	paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);
+	
+
+	
+	
+	paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);//sets the base_dir
+	
+	
 	if (!paramotopy_info.GetPrevRandom()){
 		paramotopy_info.MakeRandomValues();
 		std::cout << "made new random values" << std::endl;
 	}
+	
+	paramotopy_info.CopyUserDefinedFile();
+	
+	
+
+	
+	
+	
 	parsed=true;
 	
 	

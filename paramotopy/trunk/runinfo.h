@@ -147,6 +147,8 @@ public:
 	bool test_if_finished();
 	void DisplayAllValues();
 	
+	void CopyUserDefinedFile();
+	
 	std::vector<std::pair<double, double> > MakeRandomValues(int garbageint);
 	
 	void WriteOriginalParamotopy(std::string dir);
