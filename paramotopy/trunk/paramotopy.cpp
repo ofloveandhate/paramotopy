@@ -162,6 +162,7 @@ int main(int argC, char *args[]){
 					paramotopy_info.MakeRandomValues();
 					std::cout << "made new random values" << std::endl;
 				}
+				paramotopy_info.CopyUserDefinedFile();
 				parsed=true;
 				break;
 				
@@ -258,12 +259,14 @@ int main(int argC, char *args[]){
 				paramotopy_info.UpdateAndSave();
 				break;
 				
+				
+				
 			case 9:  //change preferences
 				currentChoice=DetPrefs;
-
 				paramotopy_settings.MainMenu();
-				
 				break;
+				
+				
 				
 			case 0:  //quit
 				
@@ -272,7 +275,7 @@ int main(int argC, char *args[]){
 				
 				
 		}//re: switch (intChoice)
-		paramotopy_info.save();
+
 	}//re: while(currentChoice!=Quit)
 
 	return 0;

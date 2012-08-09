@@ -154,7 +154,7 @@ public:
 	bool CheckPrevSetFiles();
 	
 	// make sure have the step2 program
-	void FindProgramStep2();
+	void FindProgram(std::string program_name, std::string category_name, std::string setting_name);
 	
 	// menu functions
 	void MainMenu();

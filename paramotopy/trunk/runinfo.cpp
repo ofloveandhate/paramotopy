@@ -4,7 +4,7 @@
 
 
 bool runinfo::CheckRunStepOne(){
-	boost::filesystem::path step1path(location);
+	boost::filesystem::path step1path(this->location);
 	step1path /= ("step1");  //concatenation in boost
 	boost::filesystem::path nonsingular_solutions = step1path;
 	nonsingular_solutions /= ("nonsingular_solutions");
@@ -36,9 +36,9 @@ void runinfo::GetOriginalParamotopy(){
 	paramotopy_file = "";
 	std::string tmpstr;
 	std::ifstream fin;
-	fin.open(inputfilename.c_str());
+	fin.open(this->inputfilename.c_str());
 	if (!fin.is_open()) {
-		std::cerr << "failed to open paramotopy_input_file " << inputfilename  << "for reading" <<  std::endl;
+		std::cerr << "failed to open paramotopy_input_file " << this->inputfilename  << "for reading" <<  std::endl;
 	}
 	while (getline(fin,tmpstr)) {
 		paramotopy_file.append(tmpstr);
@@ -70,7 +70,7 @@ void runinfo::WriteOriginalParamotopy(std::string dir){
 	if (!fout.is_open()) {
 		std::cerr << "writing inputfilename file " << filetoopen << " failed." << std::endl;
 	}
-	fout << inputfilename;
+	fout << this->inputfilename;
 	fout.close();
 	return;
 }
@@ -81,26 +81,26 @@ void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
 	std::string filetoopen = dir;
 	std::stringstream paramotopy_file_str;
 	
-	paramotopy_file_str << numfunct << " " << numvargroup << " " << numparam << " " << numconsts << "\n";
-	for (int ii=0; ii < numfunct; ++ii) {
-		paramotopy_file_str << Functions[ii] << "\n";
+	paramotopy_file_str << this->numfunct << " " << this->numvargroup << " " << this->numparam << " " << this->numconsts << "\n";
+	for (int ii=0; ii < this->numfunct; ++ii) {
+		paramotopy_file_str << this->Functions[ii] << "\n";
 	}
-	for (int ii=0; ii < numvargroup; ++ii) {
-		paramotopy_file_str << VarGroups[ii] << "\n";
+	for (int ii=0; ii < this->numvargroup; ++ii) {
+		paramotopy_file_str << this->VarGroups[ii] << "\n";
 	}
-	if (numconsts > 0) {
-		paramotopy_file_str << Constants[0] << "\n";
+	if (this->numconsts > 0) {
+		paramotopy_file_str << this->Constants[0] << "\n";
 
-		for (int ii=0; ii < numconsts; ++ii) {
-			paramotopy_file_str << ConstantNames[ii] << "\n";
+		for (int ii=0; ii < this->numconsts; ++ii) {
+			paramotopy_file_str << this->ConstantNames[ii] << "\n";
 		}
 	}
 	paramotopy_file_str << "1\n";
 	paramotopy_file_str << "failed_points" << iteration << "\n";
 
 	
-	for (int ii = 0; ii < numparam; ++ii) {
-		paramotopy_file_str << ParameterNames[ii] << "\n";
+	for (int ii = 0; ii < this->numparam; ++ii) {
+		paramotopy_file_str << this->ParameterNames[ii] << "\n";
 	}
 	
 	
@@ -119,15 +119,14 @@ void runinfo::make_base_dir_name(){
 	//todo:  rewrite this using boost
 	
 	
-	base_dir = "";  //reset
+	this->base_dir = "";  //reset
 	
-	std::string remainder = inputfilename;
+	std::string remainder = this->inputfilename;
 	size_t found;
 	found = remainder.find('/');
 	while (found!=std::string::npos) {  //if found the delimiter '/'
 		
-		base_dir.append(remainder.substr(0,found+1));  //
-		//std::cout << base_dir << "\n";
+		this->base_dir.append(remainder.substr(0,found+1));  //
 		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
 		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
 		
