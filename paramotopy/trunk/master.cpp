@@ -127,14 +127,15 @@ void master(std::vector<std::string> tmpfolderlocs,
 	}
 	else {
 		
-		int num_lines_mcfile = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
+		terminationint = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
+
 
 		
-		
-		terminationint = num_lines_mcfile;
-
 		mc_in_stream.open(mcfname.c_str(), std::ios::in);
-		
+		if (!mc_in_stream.is_open()){
+			std::cerr << "critical error: failed to open mc file to read parameter values.  filename: " << mcfname << std::endl;
+			exit(10);
+		}
 	}
 
 	
@@ -164,7 +165,7 @@ void master(std::vector<std::string> tmpfolderlocs,
 
 	
 	// for the step 2.1 solve, we need random values
-	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);
+	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);  //the 42 here is irrelevant. it is merely a flag to indicate to use a particular version of the MakeRandomValues function.
 	std::string inputstring = WriteStep2(tmprandomvalues,
 										 paramotopy_settings,
 										 paramotopy_info);

@@ -128,9 +128,9 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 	
 	
 	
-	setValue("Step1Settings","TRACKTOLBEFOREEG",1e-4);
-	setValue("Step1Settings","TRACKTOLDURINGEG",1e-5);
-	setValue("Step1Settings","FINALTOL",1e-6);
+	setValue("Step1Settings","TRACKTOLBEFOREEG",1e-5);
+	setValue("Step1Settings","TRACKTOLDURINGEG",1e-6);
+	setValue("Step1Settings","FINALTOL",1e-11);
 	setValue("Step1Settings","PRINTPATHMODULUS",20);
 	setValue("Step1Settings","IMAGTHRESHOLD",1e-4);
 	setValue("Step1Settings","SECURITYLEVEL",0);
@@ -142,9 +142,9 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 void ProgSettings::default_basic_bertini_values_steptwo(){
 	
 	
-	setValue("Step2Settings","TRACKTOLBEFOREEG",1e-4);
-	setValue("Step2Settings","TRACKTOLDURINGEG",1e-5);
-	setValue("Step2Settings","FINALTOL",1e-6);
+	setValue("Step2Settings","TRACKTOLBEFOREEG",1e-5);
+	setValue("Step2Settings","TRACKTOLDURINGEG",1e-6);
+	setValue("Step2Settings","FINALTOL",1e-11);
 	setValue("Step2Settings","PRINTPATHMODULUS",20);
 	setValue("Step2Settings","IMAGTHRESHOLD",1e-4);
 	setValue("Step2Settings","SECURITYLEVEL",0);
@@ -158,7 +158,7 @@ void ProgSettings::default_path_failure_settings(){
 	setValue("PathFailure","newrandommethod",1);
 	setValue("PathFailure","turnon_securitylevel1",0);
 	setValue("PathFailure","tightentolerances",1);
-	setValue("PathFailure","maxautoiterations",5);
+	setValue("PathFailure","maxautoiterations",3);
 	ProgSettings::save();
 	return;
 }
