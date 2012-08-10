@@ -26,10 +26,11 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 		}
 		command << " -n " <<  paramotopy_settings.settings["MainSettings"]["numprocs"].value();
 	
-		command << " $HOME/bertiniparallel";
+		command << " " << paramotopy_settings.settings["MainSettings"]["bertinilocation"].value() << "/bertini";
 	}
 	else{
-		command << "$HOME/bertini";
+		
+		command << " " << paramotopy_settings.settings["MainSettings"]["bertinilocation"].value() << "/bertini";
 	}
 	
 	std::cout << command.str().c_str() << std::endl;
