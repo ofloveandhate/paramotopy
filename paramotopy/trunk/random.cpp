@@ -1,5 +1,5 @@
-#include "random.h"
-#include "mtrand.h"
+#include "random.hpp"
+#include "mtrand.hpp"
 
 
 

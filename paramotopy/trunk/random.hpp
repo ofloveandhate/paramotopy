@@ -1,4 +1,4 @@
-#include "mtrand.h"
+#include "mtrand.hpp"
 #include <iostream>
 #include <vector>
 

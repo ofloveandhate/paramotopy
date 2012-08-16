@@ -5,7 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include "random.h"
+#include "random.hpp"
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -15,7 +15,7 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include "para_aux_funcs.h"
+#include "para_aux_funcs.hpp"
 
 #ifndef __PREFS_H__
 #define __PREFS_H__

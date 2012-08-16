@@ -1,6 +1,6 @@
 //contains the runinfo class
 
-#include "runinfo.h"
+#include "runinfo.hpp"
 
 
 bool runinfo::CheckRunStepOne(){

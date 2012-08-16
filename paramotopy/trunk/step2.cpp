@@ -13,16 +13,23 @@
 #include <stdlib.h> 
 #include <omp.h>
 
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "mtrand.h"
-#include "random.h"
-#include "step2readandwrite.h"
-#include "master.h"
-#include "slave.h"
-#include "para_aux_funcs.h"
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "mtrand.hpp"
+#include "random.hpp"
+#include "step2readandwrite.hpp"
+#include "master.hpp"
+#include "slave.hpp"
+#include "para_aux_funcs.hpp"
 
+#define BOOST_FILESYSTEM_VERSION 3
+#define BOOST_FILESYSTEM_NO_DEPRECATED
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/progress.hpp>
+#include <boost/regex.hpp>
 
 /*
  the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
@@ -225,8 +232,10 @@ int main(int argc, char* argv[]){
 		  location);
   }
 
-
-
+	
+	boost::filesystem::path temppath(templocation);
+	temppath /= location;
+	boost::filesystem::remove_all(temppath);
 
 
   delete[] TheFiles;

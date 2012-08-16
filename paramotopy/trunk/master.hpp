@@ -1,8 +1,8 @@
 #include <mpi.h>
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "mtrand.h"
-#include "random.h"
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "mtrand.hpp"
+#include "random.hpp"
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
@@ -15,9 +15,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-#include "para_aux_funcs.h"
-#include "step2readandwrite.h"
-#include "runinfo.h"
+#include "para_aux_funcs.hpp"
+#include "step2readandwrite.hpp"
+#include "runinfo.hpp"
 
 #ifndef __MASTER_H__
 #define __MASTER_H__

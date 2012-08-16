@@ -5,7 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include "random.h"
+#include "random.hpp"
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -15,9 +15,9 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include "para_aux_funcs.h"
-#include "xml_preferences.h"
-#include "runinfo.h"
+#include "para_aux_funcs.hpp"
+#include "xml_preferences.hpp"
+#include "runinfo.hpp"
 
 #ifndef __STEPONE_H__
 #define __STEPONE_H__

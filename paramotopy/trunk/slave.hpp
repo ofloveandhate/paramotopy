@@ -12,12 +12,12 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "mtrand.h"
-#include "random.h"
-#include "step2readandwrite.h"
-#include "bertini_funcs.h"
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "mtrand.hpp"
+#include "random.hpp"
+#include "step2readandwrite.hpp"
+#include "bertini_funcs.hpp"
 
 
 #ifndef __SLAVE_H_INCLUDED__

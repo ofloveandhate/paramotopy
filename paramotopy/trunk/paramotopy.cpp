@@ -13,19 +13,19 @@
 #include <map>
 #include <sstream>
 #include <cmath>
-#include "mtrand.h"
-#include "step1_funcs.h"
-#include "random.h"
-#include "step2_funcs.h"
-#include "para_aux_funcs.h"
-#include "paramotopy_enum.h"
-#include "menu_cases.h"
-#include "failed_paths.h"
-#include "xml_preferences.h"
+#include "mtrand.hpp"
+#include "step1_funcs.hpp"
+#include "random.hpp"
+#include "step2_funcs.hpp"
+#include "para_aux_funcs.hpp"
+#include "paramotopy_enum.hpp"
+#include "menu_cases.hpp"
+#include "failed_paths.hpp"
+#include "xml_preferences.hpp"
 //#include "preferences.h"
 #include "tinyxml.h"
 #include <mpi.h>
-#include "runinfo.h"
+#include "runinfo.hpp"
 
 
 
@@ -230,11 +230,10 @@ int main(int argC, char *args[]){
 				WriteStep1(paramotopy_settings,
 						   paramotopy_info);
 				
-				
+				paramotopy_info.WriteRandomValues();
 				CallBertiniStep1(paramotopy_settings, 
 								 paramotopy_info);//base_dir);
 				
-				paramotopy_info.WriteRandomValues();
 				paramotopy_info.UpdateAndSave();
 				break;
 				

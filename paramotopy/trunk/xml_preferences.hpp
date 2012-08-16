@@ -9,7 +9,7 @@
 #include <sstream>
 #include <set>
 #include "tinyxml.h"
-#include "para_aux_funcs.h"
+#include "para_aux_funcs.hpp"
 
 #ifndef __XMLPREFS__
 #define __XMLPREFS__

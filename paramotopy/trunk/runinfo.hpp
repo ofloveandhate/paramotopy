@@ -7,13 +7,15 @@
 #include <fstream>
 #include <cmath>
 #include <stdio.h>
-#include "random.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
+
+#include "random.hpp"
+#include "para_aux_funcs.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -22,7 +24,7 @@
 
 #include "tinyxml.h"
 
-#include "para_aux_funcs.h"
+
 
 #ifndef __RUNINFO_H__
 #define __RUNINFO_H__

@@ -1,9 +1,9 @@
 
 #include <mpi.h>
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "mtrand.h"
-#include "random.h"
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "mtrand.hpp"
+#include "random.hpp"
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-#include "slave.h"
+#include "slave.hpp"
 
 
 //from the bertini library.
@@ -148,9 +148,8 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	int readcounter = 0, writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
-//	std::string timingname = called_dir;
-//	timingname.append("/");
-//	timingname.append(base_dir);
+
+	
 	std::string timingname = location;
 	myss << myid;
 	timingname.append("/timing/slavetiming");
@@ -176,7 +175,6 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	myss.clear();
 	myss.str("");
 	mkdirunix(workingfolder.c_str());
-//	tmpfolderlocs[myid-1].c_str()
 	
 	int vectorlengths[2] = {0};
 
@@ -499,7 +497,10 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	<< "receive: " << t_receive << " " << receivecounter << "\n"
 	<< "total: " << omp_get_wtime() - t_start << "\n";
 	timingout.close();
-#endif	
+#endif
+	
+
+	
 	return;
 }//re:slave
 

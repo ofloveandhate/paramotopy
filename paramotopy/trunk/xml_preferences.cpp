@@ -1,4 +1,4 @@
-#include "xml_preferences.h"
+#include "xml_preferences.hpp"
  
 const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] = 
 { "real_solutions", "nonsingular_solutions", "singular_solutions", "raw_data", "raw_solutions","main_data","midpath_data"   };
