@@ -1,4 +1,4 @@
-#include "para_aux_funcs.h"
+#include "para_aux_funcs.hpp"
 
 //searches a directory for all files fitting a regular expression.
 std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression){

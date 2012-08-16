@@ -8,15 +8,15 @@
 #include <stdio.h>
 #include <iomanip>
 #include <math.h>
-#include "random.h"
-#include "mtrand.h"
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "para_aux_funcs.h"
-#include "xml_preferences.h"
-#include "runinfo.h"
-#include "menu_cases.h"
-#include "step2readandwrite.h"
+#include "random.hpp"
+#include "mtrand.hpp"
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "para_aux_funcs.hpp"
+#include "xml_preferences.hpp"
+#include "runinfo.hpp"
+#include "menu_cases.hpp"
+#include "step2readandwrite.hpp"
 
 #ifndef __FAILED_PATHS_H__
 #define __FAILED_PATHS_H__

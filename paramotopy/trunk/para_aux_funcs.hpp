@@ -8,8 +8,8 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include "random.h"
-#include "mtrand.h"
+#include "random.hpp"
+#include "mtrand.hpp"
 #include <stdexcept>
 #include <vector>
 #include <map>
@@ -18,10 +18,10 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include "paramotopy_enum.h"
+#include "paramotopy_enum.hpp"
 
 #define BOOST_FILESYSTEM_VERSION 3
-#define BOOST_FILESYSTEM_NO_DEPRECATED
+//#define BOOST_FILESYSTEM_NO_DEPRECATED
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>

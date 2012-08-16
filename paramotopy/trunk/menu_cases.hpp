@@ -5,13 +5,13 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include "mtrand.h"
-#include "paramotopy_enum.h"
-#include "step1_funcs.h"
-#include "step2_funcs.h"
-#include "step2readandwrite.h"
-#include "xml_preferences.h"
-#include "master.h"
+#include "mtrand.hpp"
+#include "paramotopy_enum.hpp"
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "step2readandwrite.hpp"
+#include "xml_preferences.hpp"
+#include "master.hpp"
 #include <omp.h>
 
 

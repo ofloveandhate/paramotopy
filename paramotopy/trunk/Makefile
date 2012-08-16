@@ -1,4 +1,4 @@
-
+#this file prepared for sam
 
 
 
@@ -14,7 +14,7 @@ DEFS := -Dtimingstep2 -Dverbosestep2
 
 # Define the object files to be used
 
-OBJScommon :=  bertini_funcs.h failed_paths.o menu_cases.o master.o slave.o step2readandwrite.o runinfo.o mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o paramotopy_enum.h tinyxmlerror.o tinyxml.o tinystr.o tinyxmlparser.o  xml_preferences.o
+OBJScommon :=  failed_paths.o menu_cases.o master.o slave.o step2readandwrite.o runinfo.o mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o tinyxmlerror.o tinyxml.o tinystr.o tinyxmlparser.o  xml_preferences.o
 
            
 # Define Libary Locations
