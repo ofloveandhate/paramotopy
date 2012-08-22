@@ -22,10 +22,6 @@ void SetUpFolders(std::string base_dir,
 				  std::string templocation){
 	
 	
-	std::string filenamestep2=templocation;
-	filenamestep2.append("/");
-	filenamestep2.append(base_dir);
-	filenamestep2.append("/step2/tmp/");
 	std::string DataCollectedbase_dir = base_dir;
 	DataCollectedbase_dir.append("/step2/DataCollected/");
 	  
@@ -38,15 +34,7 @@ void SetUpFolders(std::string base_dir,
 	  mkdirunix(timingdir.c_str());
 #endif
 	  
-	
-	  //make the tmp folders.  
-	  for (int i=1; i<numprocs; ++i) { //everybody gets one
-		  std::stringstream ss;
-		  ss <<filenamestep2 << i;
-		  mkdirunix(ss.str().c_str());//make the folder for the run.
-		  ss.clear();
-		  ss.str("");
-	  }
+
 	  
 	  
 	//make text file with names of folders with data in them
@@ -56,13 +44,15 @@ void SetUpFolders(std::string base_dir,
 	if (!fout.is_open()){
 		std::cerr << "failed to open " << mydirfname << " to write folder names!\n";
 	}
-    for (int i = 1; i < numprocs;++i){
-      std::stringstream tmpfolder;
-      tmpfolder << DataCollectedbase_dir;
-      tmpfolder << "c";
-      tmpfolder << i;
-      fout << tmpfolder.str() << (i!=numprocs-1 ? "\n" :  "");      
-    }
+	else{
+		for (int i = 1; i < numprocs;++i){
+		  std::stringstream tmpfolder;
+		  tmpfolder << DataCollectedbase_dir;
+		  tmpfolder << "c";
+		  tmpfolder << i;
+		  fout << tmpfolder.str() << (i!=numprocs-1 ? "\n" :  "");      
+		}
+	}
     fout.close();
 }
 

@@ -115,6 +115,7 @@ public:
 	void ParseData(std::string dir);
 	void ParseDataGuts(std::ifstream & fin);
 	
+	void DataManagementMainMenu();
 	void RandomMenu(){
 		std::stringstream ss;
 		ss << "1) save values\n"

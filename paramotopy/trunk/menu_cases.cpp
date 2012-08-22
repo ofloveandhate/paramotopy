@@ -89,14 +89,14 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	std::vector<std::string> runningfile; //for storing the data between writes.
 	runningfile.resize(numfilestosave);
 	for (int i=0; i<numfilestosave; ++i) {
-		runningfile[i].reserve(524288);
+		runningfile[i].reserve(2*paramotopy_settings.settings["MainSettings"]["buffersize"].intvalue);
 	}
 	
 	
 	std::string called_dir = stackoverflow_getcwd();
 	std::string templocation;
-	if (paramotopy_settings.settings["MainSettings"]["devshm"].intvalue==1) {
-		templocation = "/dev/shm";
+	if (paramotopy_settings.settings["MainSettings"]["useramdisk"].intvalue==1) {
+		templocation = paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value();
 	}
 	else {
 		templocation = called_dir;
@@ -124,14 +124,14 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	
 	std::string initrunfolder;
-	myss << templocation << "/" << paramotopy_info.base_dir <<  "/step2/tmp/init" << myid;
+	myss << templocation << "/" << paramotopy_info.base_dir <<  "/tmpstep2/init" << myid;
 	myss >> initrunfolder;
 	myss.clear();
 	myss.str("");
 	mkdirunix(initrunfolder.c_str());
 	
 	std::string workingfolder;
-	myss << templocation << "/" << paramotopy_info.base_dir <<  "/step2/tmp/" << myid;
+	myss << templocation << "/" << paramotopy_info.base_dir <<  "/tmpstep2/work" << myid;
 	myss >> workingfolder;
 	myss.clear();
 	myss.str("");
@@ -637,8 +637,11 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 
 	mpicommand << paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].value() << " ";
 	mpicommand << paramotopy_settings.settings["MainSettings"]["newfilethreshold"].value() << " ";
-	mpicommand << paramotopy_settings.settings["MainSettings"]["devshm"].value() << " ";
-
+	mpicommand << paramotopy_settings.settings["MainSettings"]["buffersize"].value() << " ";
+	mpicommand << paramotopy_settings.settings["MainSettings"]["useramdisk"].value() << " ";
+	if (paramotopy_settings.settings["MainSettings"]["useramdisk"].intvalue==1){
+		mpicommand << " " << paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value() << " ";
+	}
 	if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
 		mpicommand << " > /dev/null ";
 	}

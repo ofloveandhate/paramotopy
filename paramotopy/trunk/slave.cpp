@@ -45,21 +45,21 @@ extern "C" {
 
 
 
-void slave(std::vector<std::string> tmpfolderlocs, 
-		   ToSave *TheFiles, 
+void slave(ToSave *TheFiles, 
 		   int numfiles,
 		   std::vector<std::string> ParamNames, 
 		   std::string base_dir,
 		   int numfilesatatime,
 		   std::string called_dir,
-		   std::string templocation,
+		   std::string tmpfolder,
 		   int newfilethreshold,
-		   std::string location){
+		   std::string location,
+		   int buffersize){
 	
 	
 
 	
-	
+	std::stringstream myss;
 	std::string currentSeedstring;
 	int blaint, currentSeed = 0;
 	int linenumber;
@@ -71,7 +71,22 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 	MPI_Status status;
 	
-
+#ifdef timingstep2
+	double t_start, t_receive = 0, t_send = 0, t_read = 0, t_write = 0, t1, t_bertini = 0; //for timing the whatnot , t2, t3, t4, t_end, t_initial=0
+	int readcounter = 0, writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
+	t_start = omp_get_wtime();
+	std::ofstream timingout;
+	
+	
+	std::string timingname = location;
+	myss << myid;
+	timingname.append("/timing/slavetiming");
+	timingname.append(myss.str());
+	
+	
+	myss.clear();
+	myss.str("");
+#endif
 	
 	void *v;
     int flag;
@@ -80,7 +95,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	norunflag = *(int*)v - 1;
 	
 	double datareceived[numfilesatatime*(2*numparam+1)]; //for catching from the mpi
-	std::stringstream myss;
+
 	char *args_parse[11];
 	args_parse[0] = "bertini";
 	args_parse[1] = "input";
@@ -125,7 +140,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 	std::vector<std::string> runningfile; //for storing the data between writes.
 	runningfile.resize(numfiles);
 	for (int i=0; i<numfiles; ++i) {
-		runningfile[i].reserve(524288);
+		runningfile[i].reserve(2*buffersize);
 	}
 //	int writethreshold = 1; //how often to check file sizes...
 	
@@ -143,34 +158,19 @@ void slave(std::vector<std::string> tmpfolderlocs,
 
 	
 	
-#ifdef timingstep2
-	double t_start, t_receive = 0, t_send = 0, t_read = 0, t_write = 0, t1, t_bertini = 0; //for timing the whatnot , t2, t3, t4, t_end, t_initial=0
-	int readcounter = 0, writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
-	t_start = omp_get_wtime();
-	std::ofstream timingout;
 
-	
-	std::string timingname = location;
-	myss << myid;
-	timingname.append("/timing/slavetiming");
-	timingname.append(myss.str());
-
-
-	myss.clear();
-	myss.str("");
-#endif 
 	
 	
 	
 	std::string initrunfolder;
-	myss << templocation << "/" << base_dir <<  "/step2/tmp/init" << myid;
+	myss << tmpfolder << "/init" << myid;
 	myss >> initrunfolder;
 	myss.clear();
 	myss.str("");
 	mkdirunix(initrunfolder.c_str());
 	
 	std::string workingfolder;
-	myss << templocation << "/" << base_dir <<  "/step2/tmp/" << myid;
+	myss << tmpfolder << "/work" << myid;
 	myss >> workingfolder;
 	myss.clear();
 	myss.str("");
@@ -435,7 +435,7 @@ void slave(std::vector<std::string> tmpfolderlocs,
 
 
 				//if big enough
-				if (int(runningfile[j].size()) > 65536){
+				if (int(runningfile[j].size()) > buffersize){
 					std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);				
 					filesizes[j] += int(runningfile[j].size());
 #ifdef verbosestep2

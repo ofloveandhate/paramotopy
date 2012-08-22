@@ -22,12 +22,10 @@
 #ifndef __MASTER_H__
 #define __MASTER_H__
 
-void master(std::vector<std::string> dir,
-			std::string filename,
+void master(std::string filename,
 			int numfilesatatime,
 			int saveprogresseverysomany,
 			std::string called_dir,
-			std::string templocation,
 			std::string location);
 
 void FormNextValues(int numfilesatatime,
