@@ -32,16 +32,16 @@
 
 
 
-void slave(std::vector<std::string> dir, 
-		   ToSave *TheFiles,
+void slave(ToSave *TheFiles,
 		   int numfiles,
 		   std::vector<std::string> ParamNames, 
 		   std::string filename,
 		   int numfilesatatime,
 		   std::string called_dir,
-		   std::string templocation,
+		   std::string tmpfolder,
 		   int newfilethreshold,
-		   std::string location);
+		   std::string location,
+		   int buffersize);
 
 
 #endif

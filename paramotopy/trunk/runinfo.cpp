@@ -1079,6 +1079,194 @@ void runinfo::DisplayAllValues(){
 ////////////////////////////////////////////////////////////////////////
 
 
+
+
+void runinfo::DataManagementMainMenu(){
+	
+	
+	std::stringstream menu;
+	
+	menu << "\n\nData Management Options\n\n" //		<< "2) Gather Data\n"
+		<< "1) Change Run Folder\n" //make menu
+		<< "*\n"
+		<< "0) Go Back\n"
+		<< "\n: ";
+	int choice = -1001;
+	while (choice!=0) {
+		
+		
+		choice = get_int_choice(menu.str(),0,1);//display menu, get choice
+		
+		switch (choice) {
+			case 0:
+				break;
+				
+			case 1:
+				runinfo::ScanData();
+				break;
+				
+//			case 2:
+//				runinfo::GatherData();
+//				break;
+				
+					
+			default:
+				std::cout << "somehow an unacceptable entry submitted :(\n";
+				break;
+		}
+		
+	}
+	
+	
+	return;
+
+}
+
+
+////gather the data from a completed step2 run.  does not do anything to find failed paths.
+//void runinfo::GatherData(){
+//	std::vector< boost::filesystem::path > found_runs = FindDirectories(fundamental_dir, "^run");
+//	std::vector< boost::filesystem::path > completed_runs;
+//	
+//	
+//	///////////////////////////////
+//	//get the runs available
+//	//////////////////////////////
+//	int completed_counter = 0;
+//	for	(int ii = 0; ii<int(found_runs.size()); ii++){
+//		if (runinfo::checkiffinished(found_runs[ii])){
+//			
+//			completed_runs.push_back(found_runs[ii]);
+//			std::cout << completed_counter << ": " << found_runs[ii].string() << "\n";
+//			completed_counter++;
+//		}
+//		else{
+//			
+//		}
+//	}
+//	
+//	completed_counter;
+//	if (completed_counter==0){
+//		std::cout << "found no completed runs.  sorry.\n";
+//		return;
+//	}
+//	
+//	boost::filesystem::path run_to_analyze;
+//	if (completed_counter==1){
+//		run_to_analyze = completed_runs[0];
+//	}
+//	else{
+//		int choice = get_int_choice("which run?\n: ",0,completed_counter-1);
+//		run_to_analyze = completed_runs[choice];
+//	}
+//	
+//	///////////////////////////////
+//	//get the file type to analyze
+//	//////////////////////////////
+//	
+//	
+////	const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] =
+////	{ "real_solutions", "nonsingular_solutions", "singular_solutions", "raw_data", "raw_solutions","main_data","midpath_data"   };
+//	
+//	std::vector < std::string > possible_savefiles, gather_savefiles;
+//	possible_savefiles.push_back("real_solutions");
+//	possible_savefiles.push_back("nonsingular_solutions");
+//	possible_savefiles.push_back("singular_solutions");
+//	possible_savefiles.push_back("raw_data");
+//	possible_savefiles.push_back("raw_solutions");
+//	possible_savefiles.push_back("main_data");
+//	possible_savefiles.push_back("midpath_data");
+//	possible_savefiles.push_back("failed_paths");
+//
+//	
+//	for (ii = 0; ii < int(possible_savefiles.size())	, ii++){
+//		boost::filesystem::path temppath = run_to_analyze;
+//		temppath /= "step2/DataCollected/c1";
+//		std::string expression = "^";  //specify beginning of string
+//		expression.append(possible_savefiles[ii].string())
+//		std::vector < boost::filesystem::path > filelist = FindFiles(temppath.string(), expression);
+//		if (int(filelist.size())>0){
+//			gather_savefiles.push_back(possible_savefiles[ii])
+//		}
+//	}
+//	
+//	for (ii=0;ii<int(gather_savefiles.size());++ii){
+//		CollectSpecificFiles(gather_savefiles[ii],run_to_analyze.string())
+//	}
+//	
+//	return;
+//}
+//
+//
+//void runinfo::CollectSpecificFiles(std::string file_to_gather, std::string folder_to_analyze){
+//	//folder to analyze comes in as "bfiles_name/run*"
+//	std::string folder_to_analyze_local = folder_to_analyze;
+//	std::vector< std::string > foldervector = GetFoldersForData(folder_to_analyze_local);
+//	
+//	std::map < std::string, std::ifstream> fileidentifier_map;
+//	
+//	for (ii=0;ii<int(foldervector.size());++ii){
+//		
+//		fileidentifier_map[foldervector[ii]] = 
+//	}
+//	
+//	//67108864
+//}
+//
+//
+//
+//std::vector< std::string > runinfo::GetFoldersForData(std::string dir){
+//	
+//	std::vector< std::string > foldervector;
+//	
+//	
+//	//read in folder file.
+//	std::string foldername = dir;
+//	foldername.append("/folders");
+//	std::ifstream folderstream;
+//	folderstream.open(foldername.c_str());
+//	
+//	if (!folderstream.is_open()) {
+//		std::cerr << "failed to open file to read folders " << foldername << std::endl;
+//	}
+//	else{
+//		std::string tmpstr;
+//		
+//		
+//		while (getline(folderstream,tmpstr)) {
+//			foldervector.push_back(tmpstr);
+//		}
+//		folderstream.close();
+//	}
+//	
+//	return foldervector;
+//}
+//
+//
+//
+//
+//
+//bool runinfo::checkiffinished(boost::filesystem::path path_to_check){
+//	bool completed = false;
+//	
+//	boost::filesystem::path appended_path = path_to_check;
+//	appended_path /= "step2finished";
+//	
+//	if (boost::filesystem::exists(appended_path)){
+//		return true;
+//	}
+//	else{
+//		return false;
+//	}
+//}
+//
+//
+
+
+
+
+
+
 void runinfo::UpdateAndSave(){
 	updated = time(NULL);
 	runinfo::save();

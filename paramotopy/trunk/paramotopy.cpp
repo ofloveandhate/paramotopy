@@ -30,7 +30,6 @@
 
 
 
-#define prefversion = 101; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 
 
@@ -170,7 +169,7 @@ int main(int argC, char *args[]){
 				
 			case 2:
 				//data management
-				paramotopy_info.ScanData();
+				paramotopy_info.DataManagementMainMenu();
 				mkdirunix(paramotopy_info.base_dir);
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";

@@ -14,6 +14,9 @@
 #ifndef __XMLPREFS__
 #define __XMLPREFS__
 
+#define minprefversion = 101; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+
+
 class setting {
 	
 public:
@@ -22,7 +25,7 @@ public:
 	double doubvalue;
 	int intvalue;
 	std::string strvalue;
-	int type;
+	int type; //0 string 1 integer 2 double
 	
 	
 	
@@ -138,7 +141,7 @@ public:
 	void GetArchitecture();
 	void GetSaveProgress();
 	void GetNewFileThresh();
-	void GetDevshm();
+	void GetTemporaryFileLocation();
 	void GetStifle();
 	void GetStepTwoLocation();
 	void GetMachineFile(); 
@@ -147,6 +150,14 @@ public:
 	
 	void GetDataFolderMethod();
 	void GetNewRandomAtNewFolder();
+	
+	// path failure prefs
+	void GetRandomMethod();
+	void GetSecurityLevelPathFailure();
+	void GetTightenTolerancesPathFailure();
+	void GetNumIterations();
+	void GetBufferSize();
+	
 	
 	// which files to save
 	void SetSaveFiles();
@@ -181,11 +192,9 @@ public:
 	void RemoveSetting(std::string category_name);
 	
 	
-	// path failure prefs
-	void GetRandomMethod();
-	void GetSecurityLevelPathFailure();
-	void GetTightenTolerancesPathFailure();
-	void GetNumIterations();
+
+	
+	
 	
 	std::string WriteConfigStepOne();
 	std::string WriteConfigStepTwo();

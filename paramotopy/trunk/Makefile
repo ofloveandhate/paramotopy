@@ -4,7 +4,7 @@
 #i understand that including personal machine specifics is a bit selfish, but it's only until we start using a tool like configure
 #if you add a machine to this file, please add an option to this list.
 #machine can be:     sam - macbrake - cray
-MACHINE := sam
+MACHINE := macbrake
 
 
 #User-set options.  cannot use some options on the cray.  
@@ -20,7 +20,7 @@ VERBOSE := YES
 ##################################
 # Define machine specific stuff
 ##################################
-
+STATICFLAG:= 
 ifeq (sam,${MACHINE})
 	#sam (hopefully user independent)
 	MCC := mpic++
@@ -31,6 +31,7 @@ ifeq (sam,${MACHINE})
 	BOOSTSUFFIX :=#no spaces
 	BERTINILIB := ./libbertinisam.a
 	MPFRLOC :=#already in path
+	STATICFLAG := -static
 endif
 
 ifeq (macbrake, ${MACHINE})
@@ -55,6 +56,7 @@ ifeq (cray,${MACHINE})
 	BOOSTSUFFIX :=#no spaces
 	BERTINILIB := ./libbertinicray.a
 	MPFRLOC := -L/opt/gcc/mpfr/2.4.2/lib
+	STATICFLAG := -static
 endif
 
 
@@ -112,18 +114,21 @@ LIBSboost := $(BOOSTLOC)libboost_system$(BOOSTSUFFIX).a $(BOOSTLOC)libboost_file
 all:	paramotopy step2
 
 paramotopy:	 paramotopy.o $(OBJScommon) 
-	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o paramotopy paramotopy.cpp $(OBJScommon) $(LIBS) $(LIBSboost)
-	
+	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o paramotopy paramotopy.cpp $(OBJScommon) $(LIBS) $(LIBSboost) $(STATICFLAG)
+
 step2:	step2.o $(OBJScommon) 
-	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o step2 step2.cpp $(OBJScommon)  $(LIBS) $(LIBSboost)
-	
-	
-
-	
+	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o step2 step2.cpp $(OBJScommon)  $(LIBS) $(LIBSboost) $(STATICFLAG)
 
 
-	
-	
+
+
+
+xml_preferences.o: tinyxml.o tinystr.o
+tinyxml.o: tinyxml.h tinystr.h 
+tinyxmlparser.o: tinyxml.h tinystr.h
+tinyxmlerror.o: tinyxml.h tinystr.h
+
+
 # Describe how to create the object file
 %.o:  %.cpp
 	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -c $< -o $@
@@ -138,10 +143,7 @@ step2:	step2.o $(OBJScommon)
 # Describe actions necessary to clean the current directory
 clean:
 	rm -f *.o paramotopy step2 *~
-	
-	
-	
-xml_preferences.o: tinyxml.o tinystr.o
-tinyxml.o: tinyxml.h tinystr.h 
-tinyxmlparser.o: tinyxml.h tinystr.h
-tinyxmlerror.o: tinyxml.h tinystr.h
+
+
+
+

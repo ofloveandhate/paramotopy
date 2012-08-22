@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
 	
 	int numfilesatatime;//added march7,11 db
 	int saveprogresseverysomany;
-	int devshm, newfilethreshold;
+	int devshm, newfilethreshold, buffersize;
 	int myid;
 	int numprocs;
 	int namelen;
@@ -68,6 +68,7 @@ int main(int argc, char* argv[]){
 
 	std::ifstream fin;
 
+	std::string sharedmemorylocation;
 
 
 	std::string proc_name_str;
@@ -86,7 +87,7 @@ int main(int argc, char* argv[]){
 	//  bool firstrun = true;
 	ToSave *TheFiles;
 	std::string filename, location;
-	int numsubfolders;
+//	int numsubfolders;
 	int numfiles;
 	int numparam;
 
@@ -119,10 +120,10 @@ int main(int argc, char* argv[]){
     commandss << argv[i] << " ";
   }
   
-  if (argc!=1){
+  if ( (argc!=1) && (numprocs>1)){
         std::string blank;
-        commandss >> blank;  // name of program, ./mystep2
-		commandss >> filename;  // name of input file to polysaurus
+        commandss >> blank;  // name of program, */step2
+		commandss >> filename;  // name of input file to paramotopy
 	    commandss >> location;
 		commandss >> numfiles; // number of files to save
 
@@ -145,7 +146,11 @@ int main(int argc, char* argv[]){
 	  
 	  commandss >> saveprogresseverysomany;
 	  commandss >> newfilethreshold;
+	  commandss >> buffersize;
 	  commandss >> devshm;
+	  if (devshm==1) {
+		  commandss >> sharedmemorylocation;
+	  }
 	  commandss.clear();
 	  commandss.str("");
 
@@ -180,7 +185,7 @@ int main(int argc, char* argv[]){
 	
 	std::string templocation;
 	if (devshm==1) {
-		templocation = "/dev/shm";
+		templocation = sharedmemorylocation;
 	}
 	else {
 		templocation = called_dir;
@@ -194,48 +199,45 @@ int main(int argc, char* argv[]){
 	}
 	
 	
-    numsubfolders = (numprocs-1)*numfilesatatime;
 
+	std::stringstream tmpfolder;
+	tmpfolder << templocation << "/bfiles_"
+			<< filename << "/tmpstep2"  ;
 
-	std::vector<std::string> tmpfolderlocs;
-
-	for (int i = 1; i < numprocs ;++i){  //used to have numbersubfolders here for upper limit on loop
-		std::stringstream tmpfolder;
-		tmpfolder << templocation << "/" << location << "/step2/tmp/" << i ;
-		tmpfolderlocs.push_back(tmpfolder.str());
-	}
-	
-	
 	
      //the main body of the program is here:
-  if (myid==headnode){
+	if (myid==headnode){
 	  
-	  master(tmpfolderlocs,
-			 filename, 
+		master(filename, 
 			 numfilesatatime, 
 			 saveprogresseverysomany,
 			 called_dir,
-			 templocation,
 			 location);
-  }
-  else{
+	}
+	else{
 
-    slave(tmpfolderlocs,
-		  TheFiles, 
-		  numfiles, 
-		  ParamNames,
-		  base_dir,
-		  numfilesatatime,
-		  called_dir,
-		  templocation,
-		  newfilethreshold,
-		  location);
-  }
+		slave(TheFiles,
+			  numfiles,
+			  ParamNames,
+			  base_dir,
+			  numfilesatatime,
+			  called_dir,
+			  tmpfolder.str(),
+			  newfilethreshold,
+			  location,
+			  buffersize);
+	}
 
 	
-	boost::filesystem::path temppath(templocation);
-	temppath /= location;
-	boost::filesystem::remove_all(temppath);
+	//need to sync right here, so the master does not erase the folder before done with it.
+	int arbitraryinteger = 1;
+	MPI_Bcast(&arbitraryinteger, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	
+	if (myid==headnode) {
+		boost::filesystem::path temppath(tmpfolder.str());
+		boost::filesystem::remove_all(tmpfolder.str());
+	}
+
 
 
   delete[] TheFiles;

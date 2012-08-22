@@ -7,12 +7,10 @@
 
 
 
-void master(std::vector<std::string> tmpfolderlocs,
-			std::string filename,
+void master(std::string filename,
 			int numfilesatatime,
 			int saveprogresseverysomany,
 			std::string called_dir,
-			std::string templocation,
 			std::string location){
 	
 	std::string homedir = getenv("HOME");

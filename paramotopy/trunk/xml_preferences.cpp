@@ -332,7 +332,7 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 			ProgSettings::GetNewFileThresh();
 			break;
 		case 7:
-			ProgSettings::GetDevshm();
+			ProgSettings::GetTemporaryFileLocation();
 			break;
 		case 8:
 			ProgSettings::GetStifle();
@@ -340,7 +340,9 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 9:
 			ProgSettings::GetStepTwoLocation();
 			break;
-
+		case 10:
+			ProgSettings::GetBufferSize();
+			break;
 		default:
 			std::cout << "GetPref code not yet written for case " << settingcase << "\n"; 
 			break;
@@ -361,10 +363,10 @@ void ProgSettings::setRequiredValues(){
 	main_required_values["newrandom_newfolder"]= 4;
 	main_required_values["saveprogresseverysomany"] = 5;
 	main_required_values["newfilethreshold"] = 6;
-	main_required_values["devshm"] = 7;
+	main_required_values["tempfilelocation"] = 7;
 	main_required_values["stifle"] = 8;
 	main_required_values["step2location"] = 9;
-
+	main_required_values["buffersize"] = 10;
 //adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
 	
 	
@@ -486,20 +488,81 @@ void ProgSettings::GetNewFileThresh(){
 	return;	
 };
 
+void ProgSettings::GetBufferSize(){
+	std::stringstream menustream;
+	int val = get_int_choice("How many KB should step2 buffer before writing data to disk? (max 65536K = 64MB)\n (press 0 for default of 64K): ",0,65536);
+	if (val == 0) {
+		ProgSettings::setValue("MainSettings","buffersize",65536);
+	}
+	else{
+		ProgSettings::setValue("MainSettings","buffersize",val*1024);
+	}
+	return;
+}
+
 
 //detects whether /dev/shm is a location, and if so, offers to use /dev/shm for the temporary files.
-void ProgSettings::GetDevshm(){
+void ProgSettings::GetTemporaryFileLocation(){
 	std::stringstream menustream;
+	size_t found;
+	std::vector< boost::filesystem::path > tmpfile_location_possibilities;
 	
-	struct stat filestatus;
-	if (stat( "/dev/shm", &filestatus ) ==0){
-		setValue("MainSettings","devshm", get_int_choice("Would you like to use /dev/shm for temp files?\n0) No.\n1) Yes.\n:",0,1));		
+	std::vector< boost::filesystem::path > standard_places_to_look;
+	standard_places_to_look.push_back("/dev/shm");
+	standard_places_to_look.push_back("/tmp");
+	
+	if (get_int_choice("Would you like to use a ramdisk for temp files?\n0) No.\n1) Yes.\n: ",0,1)==1){
+		
+		setValue("MainSettings","useramdisk",1);
+		for (int ii=0; ii<int(standard_places_to_look.size()); ++ii) {
+			if (boost::filesystem::exists(standard_places_to_look[ii])){
+				tmpfile_location_possibilities.push_back(standard_places_to_look[ii]);
+			}
+		}
+
+		if (tmpfile_location_possibilities.size()>0){ //if actually found places
+			std::cout << "Found these possibilities:\n\n";
+			
+			for (int ii = 0; ii< int(tmpfile_location_possibilities.size()); ++ii) {
+				std::cout << ii << ": " << tmpfile_location_possibilities[ii].string() << std::endl;
+			}
+			std::cout << "-or-\n" << tmpfile_location_possibilities.size() << ": specify your own location. (will not check it exists or even works) todo: perform these checks\n\n";
+			
+			int choice=get_int_choice(": ",0,tmpfile_location_possibilities.size());
+			if (choice==tmpfile_location_possibilities.size()) {
+				std::string tmplocation;
+				std::cout << "where should the root directory for temp files be?\n: " << std::endl;
+				std::cin >> tmplocation;
+				setValue("MainSettings","tempfilelocation",tmplocation);
+			}
+			else{
+				setValue("MainSettings","tempfilelocation",standard_places_to_look[choice].string());
+			}
+		}
+		else{//found none of the standard places to look
+			std::string tmplocation;
+			std::cout << "Did not find any of the standard places to look for shared memory access :(\n\n";
+			std::cout << "where should the root directory for temp files be?  (% cancels, and chooses not to use ramdisk)\n: " << std::endl;
+			std::cin >> tmplocation;
+			found=tmplocation.find('%');
+			if ( (int(found)==0) ) {
+				setValue("MainSettings","useramdisk",0);
+				setValue("MainSettings","tempfilelocation",".");
+			}
+			else{
+				setValue("MainSettings","tempfilelocation",tmplocation);
+			}
+		}
+		
+			
+		
 	}
-	else
-	{
-		setValue("MainSettings","devshm",0);
-		//std::cout << "/dev/shm not detected.  specify another location?";
+	else {
+		setValue("MainSettings","useramdisk",0);
+		setValue("MainSettings","tempfilelocation",".");
 	}
+	
+
 	return;	
 };
 
@@ -840,7 +903,9 @@ void ProgSettings::ParallelismMenu(){
 		<< "4) Architecture / calling\n"
 		<< "5) Number of processors used\n"
 		<< "6) Stifle Step2 Output\n"
-		<< "7) Use /dev/shm for temp files\n"
+		<< "7) Use ramdisk for temp files\n"
+		<< "8) Change Buffer Size\n"
+		<< "9) Max Data File Size\n"
 		<< "*\n"
 		<< "0) go back\n"
 		<< "\n: ";
@@ -876,9 +941,19 @@ void ProgSettings::ParallelismMenu(){
 			case 6:
 				ProgSettings::GetStifle();
 				break;
+				
 			case 7:
-				ProgSettings::GetDevshm();
+				ProgSettings::GetTemporaryFileLocation();
 				break;
+				
+			case 8:
+				ProgSettings::GetBufferSize();
+				break;
+				
+			case 9:
+				ProgSettings::GetNewFileThresh();
+				break;
+				
 			default:
 				std::cout << "somehow an unacceptable entry submitted :(\n";
 				break;
@@ -1045,14 +1120,15 @@ void ProgSettings::ChangeSetting(std::string category_name){
 	}
 	
 	
-	int typeint = get_int_choice("what is the type of the setting? \n string: 0\n integer / 0-1 bool: 1\n float/double: 2\n\n:",0,2);
+	
+//	int typeint = get_int_choice("what is the type of the setting? \n string: 0\n integer / 0-1 bool: 1\n float/double: 2\n\n:",0,2);
 	std::cout << "new value\n:";
 	std::string newvalue;
 	std::cin >> newvalue;
 	std::stringstream converter;
 	int intie;
 	double doubie;
-	switch (typeint) {
+	switch (settings[category_name][setting_name].type) {
 		case 0:
 			setValue(category_name,setting_name,newvalue);
 			break;
