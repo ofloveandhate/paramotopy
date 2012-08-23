@@ -912,7 +912,7 @@ void ProgSettings::ParallelismMenu(){
 	
 	while (choice!=0) {
 		ProgSettings::DisplayCurrentSettings("MainSettings");
-		choice = get_int_choice(menu.str(),0,7);
+		choice = get_int_choice(menu.str(),0,9);
 		
 		switch (choice) {
 			case 0:
