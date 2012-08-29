@@ -1,5 +1,20 @@
 #include "para_aux_funcs.hpp"
 
+std::string replace_tilde_with_home(std::string workwithme){
+	
+	size_t found;
+	
+	found=workwithme.find('~');
+	if ( (int(found)==0) ) {
+		std::string replaced_string = getenv("HOME");
+		replaced_string.append( workwithme.substr(found+1,workwithme.length()-1));
+		return replaced_string;
+	}
+	else{
+		return workwithme;
+	}
+}
+
 //searches a directory for all files fitting a regular expression.
 std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression){
 	boost::filesystem::path p(dir);

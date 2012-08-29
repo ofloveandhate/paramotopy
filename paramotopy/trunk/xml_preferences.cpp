@@ -1,8 +1,10 @@
 #include "xml_preferences.hpp"
  
+//NUMPOSSIBLE_SAVEFILES is set in xml_preferences.hpp
 const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] = 
 { "real_solutions", "nonsingular_solutions", "singular_solutions", "raw_data", "raw_solutions","main_data","midpath_data"   };
 
+//NUMMANDATORY_SAVEFILES is set in xml_preferences.hpp
 const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] = 
 { "failed_paths" };
 
@@ -165,6 +167,41 @@ void ProgSettings::default_path_failure_settings(){
 	return;
 }
 
+void ProgSettings::GetProgramLocationManual(std::string program_name, std::string category_name, std::string setting_name){
+	
+	size_t found;
+	std::string path_to_detect;
+	std::cout << "please supply the path to " << program_name << ".  (% cancels) \n: \n";
+	std::cin >> path_to_detect;
+	
+	path_to_detect = replace_tilde_with_home(path_to_detect);
+	
+	found=path_to_detect.find('%');
+	if ( (int(found)==0) ) {
+		return;
+	}
+	
+	boost::filesystem::path temp_path(path_to_detect);
+	temp_path /= program_name;
+	while (! boost::filesystem::exists(temp_path)) {
+		std::cout << program_name << " program not found at " << temp_path.string() << ".  please supply the path (% cancels)\n: \n";
+		std::cin >> path_to_detect;
+		found=path_to_detect.find('%');
+		if ( (int(found)==0) ) {
+			return;
+		}
+		temp_path = boost::filesystem::path(path_to_detect);
+		temp_path /= program_name;
+	}
+	
+	boost::filesystem::path final_path = boost::filesystem::canonical(boost::filesystem::absolute(path_to_detect));
+	
+	setValue(category_name,setting_name,final_path.string());
+
+	std::cout << program_name << " location set to " << final_path.string() << std::endl;
+	return;
+}
+
 //locates the step2program.
 void ProgSettings::FindProgram(std::string program_name, std::string category_name, std::string setting_name){
 	
@@ -233,16 +270,23 @@ void ProgSettings::FindProgram(std::string program_name, std::string category_na
 	
 	if (found_program == false){
 		std::string path_to_detect;
-		std::cout << program_name << " program not found in current directory or PATH.\nplease supply the path to " << program_name << ".\nabsolute path is best, but relative works, too.\n";
+		std::cout << program_name << " program not found in current directory or PATH.\nplease supply the path to " << program_name << ".\n: ";
 		std::cin >> path_to_detect;
 		boost::filesystem::path temp_path(path_to_detect);
+		temp_path /= program_name;
 		while (! boost::filesystem::exists(temp_path)) {
-			std::cout << program_name << " program not found at that location.  please supply the path:\n";
+			std::cout << program_name << " program not found at that location.  please supply the path: \n";
 			std::cin >> path_to_detect;
 			temp_path = boost::filesystem::path(path_to_detect);
+			temp_path /= program_name;
 		}
 		setValue(category_name,setting_name,path_to_detect);
 	}
+	
+
+	boost::filesystem::path final_path = boost::filesystem::canonical(boost::filesystem::absolute(settings[category_name][setting_name].value()));
+	
+	setValue(category_name,setting_name,final_path.string());
 	
 	std::cout << program_name << " program is located at '" << settings[category_name][setting_name].value() << "'\n";
 	return;
@@ -862,11 +906,13 @@ void ProgSettings::GeneralMenu(){
 	menu << "\n\nGeneral Settings:\n\n"
 		<< "1) Load Data Folder method\n"
 		<< "2) Generation of random values at new folder (during program)\n"
+		<< "3) Manually set location of bertini executable\n"
+		<< "4) Manually set location of step2 executable\n"
 		<< "*\n"
 		<< "0) go back\n"
 		<< "\n: ";
 	while (choice!=0) {
-		choice = get_int_choice(menu.str(),0,1);
+		choice = get_int_choice(menu.str(),0,4);
 		
 		switch (choice) {
 			case 0:
@@ -879,6 +925,14 @@ void ProgSettings::GeneralMenu(){
 				
 			case 2:
 				ProgSettings::GetNewRandomAtNewFolder();
+				break;
+				
+			case 3:
+				ProgSettings::GetProgramLocationManual("bertini","MainSettings","bertinilocation");
+				break;
+				
+			case 4:
+				ProgSettings::GetProgramLocationManual("step2","MainSettings","step2location");
 				break;
 				
 			default:
@@ -1214,6 +1268,7 @@ void ProgSettings::RemoveSetting(std::string category_name){
 		
 		std::cout << "what is the exact name (caps,spelling) of setting?    % cancels\n";
 		std::cin >> setting_name;
+		found=setting_name.find('%');
 		if ( (haveSetting(category_name,setting_name)) ||  (int(found)==0) ) {
 			break;
 		}
