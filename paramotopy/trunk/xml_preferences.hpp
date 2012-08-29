@@ -164,7 +164,8 @@ public:
 	void GetIndividualFileSave(std::string datafilename);
 	bool CheckPrevSetFiles();
 	
-	// make sure have the step2 program
+	// make sure have the step2, bertini program
+	void GetProgramLocationManual(std::string program_name, std::string category_name, std::string setting_name);
 	void FindProgram(std::string program_name, std::string category_name, std::string setting_name);
 	
 	// menu functions

@@ -34,6 +34,8 @@
 #define __PARA_AUX_H__
 
 
+std::string replace_tilde_with_home(std::string workwithme);
+
 
 std::vector<std::string> FindFiles(std::string dir, std::string expression);
 std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression);
