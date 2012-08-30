@@ -16,7 +16,7 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 
 	failinfo::RecoverProgress(paramotopy_info);//gets how far we were
 
-	
+	paramotopy_settings.set_path_failure_settings();//sets the current settings from the base settings.
 	std::cout << "current iteration " << current_iteration << std::endl;
 	
 	std::stringstream menu;
@@ -47,6 +47,7 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 				if (get_int_choice("are you sure? 0 no, 1 yes\n: ",0,1)==1) {
 					failinfo::StartOver(paramotopy_info);
 				}
+				paramotopy_settings.set_path_failure_settings();
 				break;
 				
 				
@@ -147,7 +148,7 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & paramotopy_info){
 
 
-	paramotopy_settings.set_path_failure_settings();
+
 
 
 	for (int mm=0; (mm< paramotopy_settings.settings["PathFailure"]["maxautoiterations"].intvalue) && (totalfails>0); ++mm) {
@@ -194,7 +195,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		}
 		//run a step2 on the failed points.
 		
-		steptwo_case(paramotopy_settings, paramotopy_info);
+		steptwo_case(paramotopy_settings, paramotopy_info); // in menu_cases.cpp
 		failinfo::find_failed_paths(paramotopy_info);
 		
 		std::cout << "\nThere were " << totalfails << " points with path failures, out of " << num_points_inspected << " total points.\n";

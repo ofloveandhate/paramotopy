@@ -26,7 +26,8 @@ void master(std::string filename,
 			int numfilesatatime,
 			int saveprogresseverysomany,
 			std::string called_dir,
-			std::string location);
+			std::string location,
+			int step2mode);
 
 void FormNextValues(int numfilesatatime,
 						int numparam,

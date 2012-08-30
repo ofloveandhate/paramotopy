@@ -11,7 +11,8 @@ void master(std::string filename,
 			int numfilesatatime,
 			int saveprogresseverysomany,
 			std::string called_dir,
-			std::string location){
+			std::string location,
+			int step2mode){
 	
 	std::string homedir = getenv("HOME");
 	std::string settingsfilename = homedir;
@@ -44,7 +45,7 @@ void master(std::string filename,
 	paramotopy_info.ParseData(location);
 	//std::cout << "parsed input file\n";
 	paramotopy_info.location = location;
-	
+	paramotopy_info.step2mode = step2mode;
 	std::string finishedfile = paramotopy_info.location;
 	finishedfile.append("/step2finished");
 	std::string lastoutfilename0 = paramotopy_info.location;
@@ -164,9 +165,26 @@ void master(std::string filename,
 	
 	// for the step 2.1 solve, we need random values
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);  //the 42 here is irrelevant. it is merely a flag to indicate to use a particular version of the MakeRandomValues function.
-	std::string inputstring = WriteStep2(tmprandomvalues,
-										 paramotopy_settings,
-										 paramotopy_info);
+	
+	std::string inputstring;
+	switch (paramotopy_info.step2mode) {
+		case 2:
+			inputstring = WriteStep2(tmprandomvalues,
+									 paramotopy_settings,
+									 paramotopy_info); // found in the step2_funcs.* files
+
+			break;
+		case 3:
+			inputstring = WriteFailStep2(tmprandomvalues,
+									 paramotopy_settings,
+									 paramotopy_info); // found in the step2_funcs.* files
+
+			break;
+		default:
+			std::cerr << "bad step2mode: " << paramotopy_info.step2mode << " -- exiting!" << std::endl;
+			exit(-202);
+			break;
+	}
 	
 	
 	int vectorlengths[2] = {0};

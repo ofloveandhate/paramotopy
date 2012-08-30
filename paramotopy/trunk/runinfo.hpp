@@ -62,6 +62,7 @@ public:
 	std::string inputfilename;
 	std::string prefix;
 	
+	int step2mode;// indicates to step2 whether to use step2 or pathfailure bertini settings.
 	
 	std::vector<std::string> Functions;
 	std::vector<std::string> VarGroups; 
@@ -82,7 +83,7 @@ public:
 	// -- pair is the real (first) and imaginary (second)
 	std::vector< std::pair<double,double> > RandomValues;
 	
-	runinfo(){};//default constructor
+	runinfo(){step2mode = -1;};//default constructor
 	
 
 	std::string WriteInputStepOne();

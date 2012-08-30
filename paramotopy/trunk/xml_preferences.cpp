@@ -12,37 +12,66 @@ const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] =
 
 //related to path failure analysis
 void ProgSettings::tightentolerances(){
-	settings["PathFailureBertini"]["TRACKTOLBEFOREEG"].doubvalue = 0.1*settings["PathFailureBertini"]["TRACKTOLBEFOREEG"].doubvalue;
-	settings["PathFailureBertini"]["TRACKTOLDURINGEG"].doubvalue = 0.1*settings["PathFailureBertini"]["TRACKTOLDURINGEG"].doubvalue;
-	settings["PathFailureBertini"]["FINALTOL"].doubvalue = 0.1*settings["PathFailureBertini"]["FINALTOL"].doubvalue;
+	settings["PathFailureBertiniCurrent"]["TRACKTOLBEFOREEG"].doubvalue = 0.1*settings["PathFailureBertiniCurrent"]["TRACKTOLBEFOREEG"].doubvalue;
+	settings["PathFailureBertiniCurrent"]["TRACKTOLDURINGEG"].doubvalue = 0.1*settings["PathFailureBertiniCurrent"]["TRACKTOLDURINGEG"].doubvalue;
+	settings["PathFailureBertiniCurrent"]["FINALTOL"].doubvalue = 0.1*settings["PathFailureBertiniCurrent"]["FINALTOL"].doubvalue;
+	
+	ProgSettings::save();
+	
 	return;
 }
 
 
-
-//sets path failure settings from the step2 settings
-void ProgSettings::set_path_failure_settings(){
+void ProgSettings::set_path_failure_settings_from_steptwo(){
 	
-	settings["PathFailureBertini"].clear();
+	settings["PathFailureBertiniBase"].clear();
 	settingmap::iterator iter;
 	
 	for (iter=settings["Step2Settings"].begin(); iter != settings["Step2Settings"].end(); iter++){
 		std::string setting_name = (*iter).first;
 		switch (settings["Step2Settings"][setting_name].type) {
 			case 0:
-				setValue("PathFailureBertini",setting_name,settings["Step2Settings"][setting_name].value());
+				setValue("PathFailureBertiniBase",setting_name,settings["Step2Settings"][setting_name].value());
 				break;
 			case 1:
-				setValue("PathFailureBertini",setting_name,settings["Step2Settings"][setting_name].intvalue);
+				setValue("PathFailureBertiniBase",setting_name,settings["Step2Settings"][setting_name].intvalue);
 				break;
 			case 2:
-				setValue("PathFailureBertini",setting_name,settings["Step2Settings"][setting_name].doubvalue);
+				setValue("PathFailureBertiniBase",setting_name,settings["Step2Settings"][setting_name].doubvalue);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	ProgSettings::save();
+	
+	return;
+}
+//sets path failure settings from the PathFailureBertiniBase settings
+void ProgSettings::set_path_failure_settings(){
+	
+	settings["PathFailureBertiniCurrent"].clear();
+	settingmap::iterator iter;
+	
+	for (iter=settings["PathFailureBertiniBase"].begin(); iter != settings["PathFailureBertiniBase"].end(); iter++){
+		std::string setting_name = (*iter).first;
+		switch (settings["PathFailureBertiniBase"][setting_name].type) {
+			case 0:
+				setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].value());
+				break;
+			case 1:
+				setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].intvalue);
+				break;
+			case 2:
+				setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].doubvalue);
 				break;
 			default:
 				break;
 		}
 	}
 
+	ProgSettings::save();
 	
 	return;
 }
@@ -107,10 +136,10 @@ std::string ProgSettings::WriteConfigFail(){
 	
 	settingmap::iterator iter;
 	
-	for (iter=settings["PathFailureBertini"].begin(); iter != settings["PathFailureBertini"].end(); iter++){
+	for (iter=settings["PathFailureBertiniCurrent"].begin(); iter != settings["PathFailureBertiniCurrent"].end(); iter++){
 		std::string setting_name = (*iter).first;
 		config << setting_name << ": "
-		<< settings["PathFailureBertini"][setting_name].value() << ";\n";
+		<< settings["PathFailureBertiniCurrent"][setting_name].value() << ";\n";
 	}
 	
 	config << "USERHOMOTOPY: 1;\n"
@@ -131,7 +160,7 @@ void ProgSettings::default_main_values(){
 void ProgSettings::default_basic_bertini_values_stepone(){
 	
 	
-	
+	settings["Step1Settings"].clear();
 	setValue("Step1Settings","TRACKTOLBEFOREEG",1e-5);
 	setValue("Step1Settings","TRACKTOLDURINGEG",1e-6);
 	setValue("Step1Settings","FINALTOL",1e-11);
@@ -145,7 +174,7 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 
 void ProgSettings::default_basic_bertini_values_steptwo(){
 	
-	
+	settings["Step2Settings"].clear();
 	setValue("Step2Settings","TRACKTOLBEFOREEG",1e-5);
 	setValue("Step2Settings","TRACKTOLDURINGEG",1e-6);
 	setValue("Step2Settings","FINALTOL",1e-11);
@@ -156,6 +185,18 @@ void ProgSettings::default_basic_bertini_values_steptwo(){
 	return;
 }
 
+void ProgSettings::default_basic_bertini_values_pathfailure(){
+	settings["PathFailureBertiniBase"].clear();
+	//the bertini defaults from the user's manual
+	setValue("PathFailureBertiniBase","TRACKTOLBEFOREEG",1e-5);
+	setValue("PathFailureBertiniBase","TRACKTOLDURINGEG",1e-6);
+	setValue("PathFailureBertiniBase","FINALTOL",1e-11);
+	setValue("PathFailureBertiniBase","PRINTPATHMODULUS",20);
+	setValue("PathFailureBertiniBase","IMAGTHRESHOLD",1e-4);
+	setValue("PathFailureBertiniBase","SECURITYLEVEL",0);
+	ProgSettings::save();
+	return;
+}
 
 void ProgSettings::default_path_failure_settings(){
 	
@@ -736,6 +777,7 @@ void ProgSettings::load(const char* pFilename){
 		std::cout << "no prefs file: " << pFilename << " found.  setting preferences to defaults.\n";
 		ProgSettings::default_basic_bertini_values_stepone();
 		ProgSettings::default_basic_bertini_values_steptwo();
+		ProgSettings::default_basic_bertini_values_pathfailure();
 		ProgSettings::default_path_failure_settings();
 		ProgSettings::default_main_values();
 		ProgSettings::GetParallel();
@@ -1124,7 +1166,7 @@ void ProgSettings::StepTwoMenu(){
 void ProgSettings::SaveFilesMenu(){
 	
 	std::stringstream menu;
-	menu << "\n\nPath Failure:\n\n"
+	menu << "\n\nFiles to Save:\n\n"
 	<< "1) Change Files to Save\n"
 	<< "*\n"
 	<< "0) Go Back\n"
@@ -1327,7 +1369,8 @@ void ProgSettings::PathFailureMenu(){
 	<< "2) Change security level\n"
 	<< "3) Tolerance Tightening\n"
 	<< "4) Set Num Iterations\n"
-	<< "7) Reset to Default Settings\n"
+	<< "5) Manage Bertini Settings\n"
+	<< "7) Reset fully to Default path failure Settings\n"
 	<< "*\n"
 	<< "0) Go Back\n"
 	<< "\n: ";
@@ -1357,9 +1400,14 @@ void ProgSettings::PathFailureMenu(){
 				ProgSettings::GetNumIterations();
 				break;
 				
+			case 5:
+				ProgSettings::ManagePathFailureBertini();
+				break;
 			case 7:
 				settings["PathFailure"].clear();
 				ProgSettings::default_path_failure_settings();
+				settings["PathFailureBertiniBase"].clear();
+				ProgSettings::default_basic_bertini_values_pathfailure();
 				break;
 			default:
 				std::cout << "todo: finish this section\n";
@@ -1410,6 +1458,63 @@ void ProgSettings::GetNewRandomAtNewFolder(){
 	
 	setValue("MainSettings","newrandom_newfolder",choice);
 	ProgSettings::save();
+	return;
+}
+
+
+
+
+
+void ProgSettings::ManagePathFailureBertini(){
+	std::stringstream menu;
+	menu << "\n\nManage Path Failure Bertini:\n\n"	
+		<< "1) Change Setting\n"
+		<< "2) Remove Setting\n"
+		<< "3) Add Setting\n"
+		<< "4) Reset to Default Path Failure Bertini Settings\n"
+		<< "5) Import From current Step2 Settings\n"
+		<< "*\n"
+		<< "0) Go Back\n"
+		<< "\n: ";
+	int choice = -1001;
+	while (choice!=0) {
+		ProgSettings::DisplayCurrentSettings("PathFailureBertiniBase");
+		
+		choice = get_int_choice(menu.str(),0,5);
+		
+		switch (choice) {
+			case 0:
+				break;
+				
+			case 1:
+				ProgSettings::ChangeSetting("PathFailureBertiniBase");
+				break;
+				
+			case 2:
+				ProgSettings::RemoveSetting("PathFailureBertiniBase");
+				break;
+				
+			case 3:
+				ProgSettings::AddSetting("PathFailureBertiniBase");
+				break;
+				
+			case 4:
+				settings["PathFailureBertiniBase"].clear();
+				ProgSettings::default_basic_bertini_values_pathfailure();
+				break;
+				
+			case 5:
+				settings["PathFailureBertiniBase"].clear();
+				ProgSettings::set_path_failure_settings_from_steptwo();
+				break;
+				
+			default:
+				std::cout << "somehow an unacceptable entry submitted :(\n";
+				break;
+		}
+		ProgSettings::save();
+
+	}
 	return;
 }
 

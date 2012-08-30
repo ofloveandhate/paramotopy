@@ -217,9 +217,26 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	// for the step 2.1 solve, we need random values
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);
-	std::string inputstring = WriteStep2(tmprandomvalues,
+	std::string inputstring;
+	
+	switch (paramotopy_info.step2mode) {
+		case 2:
+			inputstring = WriteStep2(tmprandomvalues,
+									 paramotopy_settings,
+									 paramotopy_info); // found in the step2_funcs.* files
+			
+			break;
+		case 3:
+			inputstring = WriteFailStep2(tmprandomvalues,
 										 paramotopy_settings,
-										 paramotopy_info);
+										 paramotopy_info); // found in the step2_funcs.* files
+			
+			break;
+		default:
+			std::cerr << "bad step2mode: " << paramotopy_info.step2mode << " -- exiting!" << std::endl;
+			exit(-202);
+			break;
+	}
 	
 	
 	std::vector< std::pair<double,double> > TmpValues;
@@ -642,6 +659,7 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 	if (paramotopy_settings.settings["MainSettings"]["useramdisk"].intvalue==1){
 		mpicommand << " " << paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value() << " ";
 	}
+	mpicommand << paramotopy_info.step2mode << " ";
 	if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
 		mpicommand << " > /dev/null ";
 	}
