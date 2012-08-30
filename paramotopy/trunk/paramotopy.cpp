@@ -242,7 +242,7 @@ int main(int argC, char *args[]){
 				
 				currentChoice = Step2;
 				paramotopy_info.location = paramotopy_info.base_dir;
-
+				paramotopy_info.step2mode = 2;
 				steptwo_case(paramotopy_settings,
 							 paramotopy_info);
 				
@@ -252,7 +252,7 @@ int main(int argC, char *args[]){
 				
 			case 8: //do failed path whatnot.
 				currentChoice = FailedPaths;
-				
+				paramotopy_info.step2mode = 3;
 				fail_info.MainMenu(paramotopy_settings,paramotopy_info);
 				paramotopy_info.UpdateAndSave();
 				break;

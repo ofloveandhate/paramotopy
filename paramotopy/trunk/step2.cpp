@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
 	
 	int numfilesatatime;//added march7,11 db
 	int saveprogresseverysomany;
-	int devshm, newfilethreshold, buffersize;
+	int devshm, newfilethreshold, buffersize, step2mode;
 	int myid;
 	int numprocs;
 	int namelen;
@@ -84,10 +84,9 @@ int main(int argc, char* argv[]){
 
 
 
-	//  bool firstrun = true;
 	ToSave *TheFiles;
 	std::string filename, location;
-//	int numsubfolders;
+
 	int numfiles;
 	int numparam;
 
@@ -117,7 +116,7 @@ int main(int argc, char* argv[]){
     //////////////////
 	
   for (int i = 0; i < argc; ++i){
-    commandss << argv[i] << " ";
+    commandss << argv[i] << " ";  //put the argv on the commandss, so that can convert appropriate types (integers, etc)
   }
   
   if ( (argc!=1) && (numprocs>1)){
@@ -151,6 +150,9 @@ int main(int argc, char* argv[]){
 	  if (devshm==1) {
 		  commandss >> sharedmemorylocation;
 	  }
+	  
+	  commandss >> step2mode;
+	  
 	  commandss.clear();
 	  commandss.str("");
 
@@ -209,10 +211,11 @@ int main(int argc, char* argv[]){
 	if (myid==headnode){
 	  
 		master(filename, 
-			 numfilesatatime, 
-			 saveprogresseverysomany,
-			 called_dir,
-			 location);
+			   numfilesatatime, 
+			   saveprogresseverysomany,
+			   called_dir,
+			   location,
+			   step2mode);
 	}
 	else{
 

@@ -177,11 +177,13 @@ public:
 	void ParallelismMenu();
 	void GeneralMenu();
 	
+	void ManagePathFailureBertini();
 	
 	//set defaults
 	void default_main_values();
 	void default_basic_bertini_values_stepone();
 	void default_basic_bertini_values_steptwo();
+	void default_basic_bertini_values_pathfailure();
 	void default_path_failure_settings();
 	
 	//display all settings in a given category
@@ -203,6 +205,7 @@ public:
 
 	
 	void set_path_failure_settings();
+	void set_path_failure_settings_from_steptwo();
 	void tightentolerances();
 	
 	
