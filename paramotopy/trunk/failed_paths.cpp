@@ -196,7 +196,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 			failinfo::copy_step_one(paramotopy_info.base_dir, paramotopy_info.location, mm);
 		}
 		//run a step2 on the failed points.
-		
+		paramotopy_settings.save();
 		steptwo_case(paramotopy_settings, paramotopy_info); // in menu_cases.cpp
 		failinfo::find_failed_paths(paramotopy_info);
 		
