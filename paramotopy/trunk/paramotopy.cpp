@@ -173,13 +173,14 @@ int main(int argC, char *args[]){
 				mkdirunix(paramotopy_info.base_dir);
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";
-				if (!paramotopy_info.GetPrevRandom()){  //if didn't find previous values to load, make new ones (but only if use wants to
-					if (paramotopy_settings.settings["MainSettings"]["newrandom_newfolder"].intvalue == 1){
-						paramotopy_info.MakeRandomValues();
-						std::cout << "made new random values" << std::endl;
-					}
+				paramotopy_info.GetPrevRandom();  //if didn't find previous values to load, make new ones (but only if use wants to
+				if ( (paramotopy_info.RandomValues.size()==0) || ((paramotopy_info.made_new_folder) && (paramotopy_settings.settings["MainSettings"]["newrandom_newfolder"].intvalue == 1)) )
+				{
+					paramotopy_info.MakeRandomValues();
+					std::cout << "made new random values" << std::endl;
 				}
-
+				
+				
 				paramotopy_info.UpdateAndSave();
 				break;
 				

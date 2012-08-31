@@ -874,6 +874,7 @@ void runinfo::MakeConstants(std::stringstream & fout){
 		<< RandomValues[i].second
 		<< "*I;\n";
 	}
+	
 	for (int i = 0; i < int(ConstantNames.size());++i){
 		fout << "\n" << ConstantNames[i];
 	}
@@ -1318,10 +1319,12 @@ void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs
 		base_dir = found_runs[choice].string();
 		std::cout << "loading old directory " << base_dir << "\n";
 		runinfo::load(base_dir);//gets the run number, initiation date, and last time updated.
+		made_new_folder = false;
 	}
 	else{
 		std::cout << "making new directory\n";
 		runinfo::SetBaseDirNew(found_runs);
+		
 	}
 		
 	
@@ -1362,6 +1365,7 @@ void runinfo::SetBaseDirNew(std::vector< boost::filesystem::path> found_runs){
 	mkdirunix(base_dir);
 	runinfo::save();
 	
+	made_new_folder = true;
 	return;
 }
 
@@ -1415,6 +1419,7 @@ void runinfo::ScanData(){
 	if (found_runs.size()==0) {
 		std::cout << "found no previous data, starting new folder\n";
 		runinfo::SetBaseDirZero();
+		made_new_folder = true;
 	}
 	else {
 		runinfo::SetBaseDirManual(found_runs);

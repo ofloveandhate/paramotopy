@@ -116,6 +116,7 @@ public:
 	void ParseData(std::string dir);
 	void ParseDataGuts(std::ifstream & fin);
 	
+	bool made_new_folder;
 	void DataManagementMainMenu();
 	void RandomMenu(){
 		std::stringstream ss;
