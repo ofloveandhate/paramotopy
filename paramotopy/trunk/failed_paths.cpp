@@ -23,14 +23,14 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 	menu << "\n\nPath Failure Menu:\n\n"
 	<< "1) ReRun Failed Paths\n"
 	<< "2) Clear Failed Path Data (start over)\n"
-	<< "3) Change path failure settings\n"
+	<< "3) Change path failure settings (resets tolerance tightening)\n"
 	<< "*\n"
 	<< "0) Go Back\n"
 	<< "\n: ";
 	int choice = -1001;
 	while (choice!=0) {
 		paramotopy_settings.DisplayCurrentSettings("PathFailure");
-		choice = get_int_choice(menu.str(),0,7);
+		choice = get_int_choice(menu.str(),0,3);
 		
 		switch (choice) {
 			case 0:
@@ -39,6 +39,7 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 				break;
 				
 			case 1:
+				paramotopy_settings.save();
 				failinfo::PerformAnalysis(paramotopy_settings, paramotopy_info);
 				break;
 				
@@ -53,6 +54,7 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 				
 			case 3:
 				paramotopy_settings.PathFailureMenu();
+				paramotopy_settings.set_path_failure_settings();//sets the current settings from the base 
 				break;
 				
 			default:
@@ -229,7 +231,7 @@ void failinfo::report_failed_paths(runinfo paramotopy_info){
 	if (totalfails>30) {
 		std::cout << "last ";
 	}
-	std::cout << std::min(30,totalfails-30) << " parameter points with failures:\n\n";
+	std::cout << std::min(30,totalfails) << " parameter points with failures:\n\n";
 	
 
 

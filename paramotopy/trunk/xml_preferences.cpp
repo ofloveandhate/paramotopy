@@ -1202,7 +1202,6 @@ void ProgSettings::ChangeSetting(std::string category_name){
 	size_t found;
 	
 	while ( 1 ) {
-
 		std::cout << "what is the exact name (caps,spelling) of setting?   % cancels\n: ";
 		std::cin >> setting_name;
 		found=setting_name.find('%');
@@ -1251,6 +1250,7 @@ void ProgSettings::AddSetting(std::string category_name){
 	//first, get setting name
 	std::string setting_name = "neverusethisname";
 	
+
 	std::cout << "what is the exact name (caps,spelling) of setting?     % cancels\n: ";
 	std::cin >> setting_name;
 
@@ -1307,6 +1307,7 @@ void ProgSettings::RemoveSetting(std::string category_name){
 	size_t found;
 	
 	while (1) {
+		
 		std::cout << "what is the exact name (caps,spelling) of setting?    % cancels\n";
 		std::cin >> setting_name;
 		found=setting_name.find('%');
@@ -1477,7 +1478,7 @@ void ProgSettings::ManagePathFailureBertini(){
 		<< "\n: ";
 	int choice = -1001;
 	while (choice!=0) {
-		ProgSettings::DisplayCurrentSettings("PathFailureBertiniCurrent");
+		ProgSettings::DisplayCurrentSettings("PathFailureBertiniBase");
 		
 		choice = get_int_choice(menu.str(),0,5);
 		
@@ -1486,24 +1487,24 @@ void ProgSettings::ManagePathFailureBertini(){
 				break;
 				
 			case 1:
-				ProgSettings::ChangeSetting("PathFailureBertiniCurrent");
+				ProgSettings::ChangeSetting("PathFailureBertiniBase");
 				break;
 				
 			case 2:
-				ProgSettings::RemoveSetting("PathFailureBertiniCurrent");
+				ProgSettings::RemoveSetting("PathFailureBertiniBase");
 				break;
 				
 			case 3:
-				ProgSettings::AddSetting("PathFailureBertiniCurrent");
+				ProgSettings::AddSetting("PathFailureBertiniBase");
 				break;
 				
 			case 4:
-				settings["PathFailureBertiniCurrent"].clear();
+				settings["PathFailureBertiniBase"].clear();
 				ProgSettings::default_basic_bertini_values_pathfailure();
 				break;
 				
 			case 5:
-				settings["PathFailureBertiniCurrent"].clear();
+				settings["PathFailureBertiniBase"].clear();
 				ProgSettings::set_path_failure_settings_from_steptwo();
 				break;
 				
