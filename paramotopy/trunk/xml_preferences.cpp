@@ -827,7 +827,7 @@ int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
 	int intvalue;
 	double doubvalue;
 	
-	TiXmlElement* pElem=hRoot.FirstChild( catname ).FirstChild().Element();
+	TiXmlElement* pElem=hRoot.FirstChild( catname.c_str() ).FirstChild().Element();
 	for( pElem; pElem; pElem=pElem->NextSiblingElement())
 	{
 		TiXmlHandle setting_handle(pElem);  //get the handle for the setting
@@ -1202,6 +1202,7 @@ void ProgSettings::ChangeSetting(std::string category_name){
 	size_t found;
 	
 	while ( 1 ) {
+
 		std::cout << "what is the exact name (caps,spelling) of setting?   % cancels\n: ";
 		std::cin >> setting_name;
 		found=setting_name.find('%');
@@ -1250,7 +1251,6 @@ void ProgSettings::AddSetting(std::string category_name){
 	//first, get setting name
 	std::string setting_name = "neverusethisname";
 	
-
 	std::cout << "what is the exact name (caps,spelling) of setting?     % cancels\n: ";
 	std::cin >> setting_name;
 
@@ -1307,7 +1307,6 @@ void ProgSettings::RemoveSetting(std::string category_name){
 	size_t found;
 	
 	while (1) {
-		
 		std::cout << "what is the exact name (caps,spelling) of setting?    % cancels\n";
 		std::cin >> setting_name;
 		found=setting_name.find('%');
@@ -1478,7 +1477,7 @@ void ProgSettings::ManagePathFailureBertini(){
 		<< "\n: ";
 	int choice = -1001;
 	while (choice!=0) {
-		ProgSettings::DisplayCurrentSettings("PathFailureBertiniBase");
+		ProgSettings::DisplayCurrentSettings("PathFailureBertiniCurrent");
 		
 		choice = get_int_choice(menu.str(),0,5);
 		
@@ -1487,24 +1486,24 @@ void ProgSettings::ManagePathFailureBertini(){
 				break;
 				
 			case 1:
-				ProgSettings::ChangeSetting("PathFailureBertiniBase");
+				ProgSettings::ChangeSetting("PathFailureBertiniCurrent");
 				break;
 				
 			case 2:
-				ProgSettings::RemoveSetting("PathFailureBertiniBase");
+				ProgSettings::RemoveSetting("PathFailureBertiniCurrent");
 				break;
 				
 			case 3:
-				ProgSettings::AddSetting("PathFailureBertiniBase");
+				ProgSettings::AddSetting("PathFailureBertiniCurrent");
 				break;
 				
 			case 4:
-				settings["PathFailureBertiniBase"].clear();
+				settings["PathFailureBertiniCurrent"].clear();
 				ProgSettings::default_basic_bertini_values_pathfailure();
 				break;
 				
 			case 5:
-				settings["PathFailureBertiniBase"].clear();
+				settings["PathFailureBertiniCurrent"].clear();
 				ProgSettings::set_path_failure_settings_from_steptwo();
 				break;
 				
