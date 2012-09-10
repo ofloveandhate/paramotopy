@@ -193,7 +193,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		}
 		else{
 			
-			failinfo::copy_step_one(paramotopy_info.base_dir, paramotopy_info.location, mm);
+			failinfo::copy_step_one(paramotopy_info.base_dir, paramotopy_info.location, mm, paramotopy_settings.settings["MainSettings"]["startfilename"].value());
 		}
 		//run a step2 on the failed points.
 		paramotopy_settings.save();
@@ -295,12 +295,14 @@ void failinfo::report_failed_paths(runinfo paramotopy_info){
 
 
 
-void failinfo::copy_step_one(std::string from_dir, std::string to_dir, int iteration){
+void failinfo::copy_step_one(std::string from_dir, std::string to_dir, int iteration, std::string startfilename){
 	
 	std::string tmpstr;
 	std::string from_file = from_dir, to_file = to_dir;
-	from_file.append("/step1/nonsingular_solutions");
-	to_file.append("/step1/nonsingular_solutions");
+	from_file.append("/step1/");
+	from_file.append(startfilename);
+	to_file.append("/step1/");
+	to_file.append(startfilename);
 	
 	std::ifstream fin(from_file.c_str());
 	if (!fin.is_open()) {
