@@ -31,7 +31,8 @@ void WriteData(std::string outstring,
 
 
 void GetStart(std::string dir,
-					std::string & start);
+			  std::string & start,
+			  std::string startfilename);
 
 int GetLastNumSent(std::string base_dir,
 					std::vector< int > & lastnumsent,

@@ -335,7 +335,8 @@ std::string failinfo::new_step_one(ProgSettings paramotopy_settings,runinfo para
 	
 	
 	GetStart(paramotopy_info.base_dir,
-			 start);
+			 start,
+			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
 	
 	//write step2 to memory.
 	paramotopy_info.RandomValues = paramotopy_info.MakeRandomValues(42);//lol  the integer passed here is only to use polymorphism to get a slightly different function.  joke's on you.  lol lol lollololooolol.  

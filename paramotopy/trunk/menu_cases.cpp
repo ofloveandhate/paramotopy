@@ -212,7 +212,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	//	// read in the start file
 	GetStart(paramotopy_info.location,
-			 start);
+			 start,
+			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
 	
 	
 	// for the step 2.1 solve, we need random values

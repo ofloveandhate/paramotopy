@@ -160,7 +160,8 @@ void master(std::string filename,
 	
 //	// read in the start file
 	GetStart(paramotopy_info.location,
-				   start);
+			 start,
+			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
 
 	
 	// for the step 2.1 solve, we need random values
