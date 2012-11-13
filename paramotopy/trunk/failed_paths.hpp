@@ -60,7 +60,7 @@ private:
 	std::string new_step_one(ProgSettings paramotopy_settings,runinfo paramotopy_info);
 	
 	void write_failed_paths(runinfo paramotopy_info, int iteration);
-	void copy_step_one(std::string from_dir, std::string to_dir, int iteration, std::string startfilename);
+	void copy_step_one(std::string from_dir, std::string to_dir, int iteration);
 	
 	void report_failed_paths(runinfo paramotopy_info);
 	

@@ -39,6 +39,16 @@ int main(int argC, char *args[]){
 	
 	// Data members used throughout the program  
 	std::string homedir = getenv("HOME");
+	//	std::string mp_buffer_mem_value = getenv("MP_BUFFER_MEM");
+	//	std::string mp_eager_limit_value = getenv("MP_EAGER_LIMIT");
+	
+
+	//	std::cout << "MP_BUFFER_MEM = " << mp_buffer_mem_value
+	//  << "\n\n"
+	//  << "MP_EAGER_LIMIT = " << mp_eager_limit_value
+	//  << "\n\n";
+	
+
 	OPTIONS currentChoice = Start;
 	std::string path_to_inputfile;
 	bool parsed = false;
@@ -201,8 +211,10 @@ int main(int argC, char *args[]){
 				
 				
 				
-				
-			case 5: // Write Step1
+		case 5: // Level step1
+		  std::cout << "Don't have this completely programmed yet ... getting there. Choose another option.\n";
+		  
+		case 6: // Write Step1
 				currentChoice=WriteStepOne;
 				paramotopy_info.location = paramotopy_info.base_dir;
 				paramotopy_info.WriteOriginalParamotopy(paramotopy_info.base_dir);
@@ -214,7 +226,7 @@ int main(int argC, char *args[]){
 				
 				
 				
-			case 6: //run step 1
+			case 7: //run step 1
 				
 				currentChoice = RunStepOne;
 				paramotopy_info.location = paramotopy_info.base_dir;
@@ -239,7 +251,7 @@ int main(int argC, char *args[]){
 				
 				
 				
-			case 7:  //run step 2
+			case 8:  //run step 2
 				
 				currentChoice = Step2;
 				paramotopy_info.location = paramotopy_info.base_dir;
@@ -251,7 +263,7 @@ int main(int argC, char *args[]){
 				break;
 				
 				
-			case 8: //do failed path whatnot.
+			case 9: //do failed path whatnot.
 				currentChoice = FailedPaths;
 				paramotopy_info.step2mode = 3;
 				fail_info.MainMenu(paramotopy_settings,paramotopy_info);
@@ -260,7 +272,7 @@ int main(int argC, char *args[]){
 				
 				
 				
-			case 9:  //change preferences
+			case 10:  //change preferences
 				currentChoice=DetPrefs;
 				paramotopy_settings.MainMenu();
 				break;

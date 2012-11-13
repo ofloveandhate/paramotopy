@@ -157,7 +157,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	std::string mcfname = paramotopy_info.location;
 	mcfname.append("/mc");
-	std::vector< int > KVector;// for the index making function
+	std::vector< unsigned long long > KVector;// for the index making function
 	std::ofstream mc_out_stream;
 	std::ifstream mc_in_stream;
 	
@@ -212,8 +212,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	//	// read in the start file
 	GetStart(paramotopy_info.location,
-			 start,
-			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
+			 start);
 	
 	
 	// for the step 2.1 solve, we need random values
@@ -377,6 +376,7 @@ while (1) {
 		t1 = omp_get_wtime();
 #endif			//write the mc line if not userdefined
 		if (!paramotopy_info.userdefined) {
+		  std::cout << "Writing to mc!\n";
 			for (int j=0; j<paramotopy_info.numparam; ++j) {
 				mc_out_stream << data[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " "
 					<< data[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";

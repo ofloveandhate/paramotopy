@@ -148,8 +148,6 @@ public:
 	void GetNumProcs();
 	void GetNumFilesTime();
 	
-	void GetStartFileName();
-	
 	void GetDataFolderMethod();
 	void GetNewRandomAtNewFolder();
 	
