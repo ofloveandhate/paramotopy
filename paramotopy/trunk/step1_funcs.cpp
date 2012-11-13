@@ -34,9 +34,17 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 	}
 	
 	std::cout << command.str().c_str() << std::endl;
-	system(command.str().c_str());
+
+	double step1timestart = omp_get_wtime();
 	
+
+	system(command.str().c_str());
+	double step1timeend = omp_get_wtime();
+	std::cout << "step1 took : " << step1timeend - step1timestart << " to complete.\n";
+
 	chdir(startingfolder.c_str());  // return to the initial folder
+
+
 	return;
 }
 
@@ -53,7 +61,7 @@ void WriteStep1(ProgSettings paramotopy_settings,
 
 	
 	std::string config = paramotopy_settings.WriteConfigStepOne();
-	std::string input   = paramotopy_info.WriteInputStepOne();
+	std::string input   = paramotopy_info.WriteInputStepOne(paramotopy_settings);
 	
 
 

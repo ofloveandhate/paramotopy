@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include "slave.hpp"
+// #include "bertini_funcs.h"
 
 
 //from the bertini library.
@@ -66,9 +67,10 @@ void slave(ToSave *TheFiles,
 	int numparam = ParamNames.size();
 	int myid;
 
-	
+	int numprocs;
 	
 	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 	MPI_Status status;
 	
 #ifdef timingstep2
@@ -89,12 +91,12 @@ void slave(ToSave *TheFiles,
 #endif
 	
 	void *v;
-    int flag;
-    int norunflag;
+	int flag;
+	int norunflag;
 	MPI_Comm_get_attr( MPI_COMM_WORLD, MPI_TAG_UB, &v, &flag );
 	norunflag = *(int*)v - 1;
 	
-	double datareceived[numfilesatatime*(2*numparam+1)]; //for catching from the mpi
+	double* datareceived = new double[numfilesatatime*(2*numparam+1)]; //for catching from the mpi
 
 	char *args_parse[11];
 	args_parse[0] = "bertini";
@@ -150,15 +152,8 @@ void slave(ToSave *TheFiles,
 	myss.clear();
 	myss.str("");
 
-	
 	std::vector<std::pair<double,double> >  AllParams;
 	AllParams.resize(numparam);//preallocate
-
-	
-
-	
-	
-
 	
 	
 	
@@ -184,27 +179,38 @@ void slave(ToSave *TheFiles,
 	//
 	///////////
 #ifdef verbosestep2
-	std::cout << "receiving from master the number of chars to expect.\n";
+	std::cout << "receiving from master the number of chars to expect in processor " << myid << ".\n";
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
 #endif	
-	MPI_Bcast(&vectorlengths, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Recv(&vectorlengths[0], 2, MPI_INT, 0, 38, MPI_COMM_WORLD, &status);
+	
 #ifdef timingstep2
 	t_send += omp_get_wtime()-t1;
 	sendcounter++;
 #endif
 	
-	char start_char[vectorlengths[0]];
-	char input_char[vectorlengths[1]];
+	//	char start_char[vectorlengths[0]]; // this is incorrect
+	//	char input_char[vectorlengths[1]]; // this is incorrect
+	
+	char* start_char = new char[vectorlengths[0]]; 	
+	char* input_char = new char[vectorlengths[1]]; 
+	
+
 #ifdef verbosestep2
-	std::cout << myid << ", getting start and config files.\n";
+	std::cout << myid << ", getting start and input files.\n";
 #endif
 #ifdef timingstep2
 	t1 = omp_get_wtime();
 #endif	
-	MPI_Bcast(&start_char, vectorlengths[0], MPI_CHAR, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&input_char, vectorlengths[1], MPI_CHAR, 0, MPI_COMM_WORLD);	
+
+
+	MPI_Recv(&start_char[0], vectorlengths[0], MPI_CHAR, 0, 44, MPI_COMM_WORLD, &status); // corresponds with master -- men
+
+	MPI_Recv(&input_char[0], vectorlengths[1], MPI_CHAR, 0, 42, MPI_COMM_WORLD, &status); // corresponds to master -- men
+	
+	
 #ifdef timingstep2
 	t_send += omp_get_wtime()-t1;
 	sendcounter++;
@@ -212,7 +218,7 @@ void slave(ToSave *TheFiles,
 #endif
 	///////
 	//
-	//      now have the start and config files.  need to write to file.
+	//      now have the start and input files.  need to write to file.
 	//
 	///////////
 	
@@ -239,10 +245,11 @@ void slave(ToSave *TheFiles,
 	
 	//////////////////////////
 	//
-	//     done writing the config, start, and input files
+	//     done writing the (config,?) start, and input files
 	//
 	///////////////////////
 	
+
 	
 	
 	
@@ -250,7 +257,15 @@ void slave(ToSave *TheFiles,
 #ifdef timingstep2
 	t1 = omp_get_wtime();
 #endif
-	MPI_Bcast(&arbitraryint, 1, MPI_INT, 0, MPI_COMM_WORLD);// recieve a bcast from head telling its ok to proceed
+	unsigned long long myull[1] = {0};
+	
+	std::cout << "line 276\n";
+	std::cout << "b4 receiving go ahead for init run on slave " 
+		  << myid << "\n";
+	// verified on master.cpp 
+	MPI_Recv(&myull[0], 1, MPI_INT, 0, 64, MPI_COMM_WORLD, &status);
+	std::cout << "after receiving go ahead for init run on slave " << myid << "\n";
+	
 #ifdef timingstep2
 	t_receive+= omp_get_wtime() - t1;
 	receivecounter++;
@@ -295,7 +310,21 @@ void slave(ToSave *TheFiles,
 #ifdef timingstep2
 	t1 = omp_get_wtime();
 #endif
-	MPI_Bcast(&arbitraryint, 1, MPI_INT, 0, MPI_COMM_WORLD); //agree w headnode that done w initial solve.
+	unsigned long long arbitraryulonglong  = 0;
+	//	std::cout << "after sending arbitraryulonglong = " << arbitraryulonglong << " in processor " << myid << "\n";
+	// send message to head that i is finished
+	// with initial solve
+	
+	// MPI_Bcast(&arbitraryint, 1, MPI_INT, 0, MPI_COMM_WORLD); //agree w headnode that done w initial solve.
+	
+	
+	//	for (int i = 1; i < numprocs; ++i){
+	//	std::cout << "Before MPI_Send(&myull[0], etc.)\n";
+	MPI_Send(&myull[0], 1, MPI_UNSIGNED_LONG_LONG, 0, 46,MPI_COMM_WORLD);
+	//	std::cout << "After MPI_Send(&myull[0], etc.)\n";
+	//	}
+	
+	
 #ifdef timingstep2
 	t_receive+= omp_get_wtime() - t1;
 	receivecounter++;
@@ -311,8 +340,8 @@ void slave(ToSave *TheFiles,
 	
 	std::string target_file;
 	while (1) {
-		
-		/* Receive parameter points and line numbers from the master */
+	  
+	  /* Receive parameter points and line numbers from the master */
 #ifdef timingstep2
 		t1 = omp_get_wtime();
 #endif
@@ -500,7 +529,15 @@ void slave(ToSave *TheFiles,
 #endif
 	
 
-	
+        ////////////////////////                                              
+        //                                                                             
+        //    delete input_char and start_char                                                                  
+	//     
+        ///////////////////////   
+
+	delete[] input_char;
+	delete[] start_char;
+	delete[] datareceived;
 	return;
 }//re:slave
 

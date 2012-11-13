@@ -18,6 +18,7 @@
 #include "para_aux_funcs.hpp"
 #include "xml_preferences.hpp"
 #include "runinfo.hpp"
+#include <omp.h>
 
 #ifndef __STEPONE_H__
 #define __STEPONE_H__

@@ -76,8 +76,7 @@ void WriteData(std::string outstring,
 
 
 void GetStart(std::string dir,
-			  std::string & start,
-			  std::string startfilename){
+					std::string & start){
 	
 
 	std::stringstream tempss;
@@ -86,8 +85,7 @@ void GetStart(std::string dir,
 	//get start file in memory
 	std::string copyme;
 	std::string startstring=dir;
-	startstring.append("/step1/");
-	startstring.append(startfilename);
+	startstring.append("/step1/nonsingular_solutions");
 	fin.open(startstring.c_str());
 	
 	if (!fin.is_open()) {
