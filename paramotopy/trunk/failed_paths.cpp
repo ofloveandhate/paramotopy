@@ -80,8 +80,6 @@ void failinfo::StartOver(runinfo & paramotopy_info){
 	
 	for (int ii = 0; ii<int(found_runs.size()); ++ii) {
 		std::stringstream command;
-		// std::ofstream fout2("matt.test");
-		system("pwd > matt.test");
 		command << "rm -rf "
 			<< found_runs[ii].string();
 		std::cout << command.str() << std::endl;
@@ -195,7 +193,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		}
 		else{
 			
-			failinfo::copy_step_one(paramotopy_info.base_dir, paramotopy_info.location, mm);
+			failinfo::copy_step_one(paramotopy_info.base_dir, paramotopy_info.location, mm, paramotopy_settings.settings["MainSettings"]["startfilename"].value());
 		}
 		//run a step2 on the failed points.
 		paramotopy_settings.save();
@@ -297,12 +295,14 @@ void failinfo::report_failed_paths(runinfo paramotopy_info){
 
 
 
-void failinfo::copy_step_one(std::string from_dir, std::string to_dir, int iteration){
+void failinfo::copy_step_one(std::string from_dir, std::string to_dir, int iteration, std::string startfilename){
 	
 	std::string tmpstr;
 	std::string from_file = from_dir, to_file = to_dir;
-	from_file.append("/step1/nonsingular_solutions");
-	to_file.append("/step1/nonsingular_solutions");
+	from_file.append("/step1/");
+	from_file.append(startfilename);
+	to_file.append("/step1/");
+	to_file.append(startfilename);
 	
 	std::ifstream fin(from_file.c_str());
 	if (!fin.is_open()) {
@@ -337,7 +337,8 @@ std::string failinfo::new_step_one(ProgSettings paramotopy_settings,runinfo para
 	
 	
 	GetStart(paramotopy_info.base_dir,
-			 start);
+			 start,
+			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
 	
 	//write step2 to memory.
 	paramotopy_info.RandomValues = paramotopy_info.MakeRandomValues(42);//lol  the integer passed here is only to use polymorphism to get a slightly different function.  joke's on you.  lol lol lollololooolol.  

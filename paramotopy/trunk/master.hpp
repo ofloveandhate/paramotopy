@@ -34,7 +34,7 @@ void FormNextValues(int numfilesatatime,
 						int localcounter,	
 						std::vector< std::vector< std::pair<double,double> > > Values,
 						int countingup,
-					  std::vector< unsigned long long > KVector,
+					  std::vector< int > KVector,
 						double tempsends[]);
 	
 void FormNextValues_mc(int numfilesatatime,
