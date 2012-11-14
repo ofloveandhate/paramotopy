@@ -178,12 +178,12 @@ void runinfo::SetLocation(){
 
 
 
-std::string runinfo::WriteInputStepOne(ProgSettings paramotopy_settings){
+std::string runinfo::WriteInputStepOne(){
 
 	std::stringstream inputfilestream;
 
 	inputfilestream << "\nINPUT\n";
-	runinfo::MakeVariableGroups(inputfilestream, paramotopy_settings);
+	runinfo::MakeVariableGroups(inputfilestream);
 	runinfo::MakeDeclareConstants(inputfilestream);
 	runinfo::MakeDeclareFunctions(inputfilestream);
 	runinfo::MakeConstants(inputfilestream);
@@ -821,34 +821,14 @@ void runinfo::MakeFunctions(std::stringstream & inputfilestream){
 
 
 //writes variable groups to stringstream for bertini input file.
-void runinfo::MakeVariableGroups(std::stringstream & fout, ProgSettings paramotopy_settings){
+void runinfo::MakeVariableGroups(std::stringstream & fout){
 
-
-  // need to change variable_group to variable 
-  // if USERHOMOTOPY in ProgSettings is set to 1
-  // Need access to ProgSettings -- or a pointer to ProgSettings in the RunInfo class?
-
-
-  if (paramotopy_settings.settings["Step1Settings"]["USERHOMOTOPY"].value() == "1"){
-    fout << "\n";
-    fout << "variable ";
-    for (int i = 0; i < numvargroup;++i){
-      fout << VarGroups[i];
-      fout << (i != numvargroup -1 ? ", " : "");
-    }
-    fout << ";\n";
-
-  }
-  else { // may be wrong if USERHOMOTOPY is 2
 	for (int i = 0; i < numvargroup;++i){
 		fout << "\n";
 		fout << "variable_group ";
-	     
 		fout << VarGroups[i];
 		fout << ";";    
 	}
-  }
-  
 }
 
 
@@ -1572,7 +1552,7 @@ void runinfo::load(std::string filename){
 //returns via reference the run number, time initiated, and time updated, of a run.
 void runinfo::get_run_xml(std::string filename, int & run, time_t  & wheninitiated, time_t & whenupdated){
 	
-  TiXmlDocument* doc = new TiXmlDocument(filename.c_str());
+	TiXmlDocument* doc = new TiXmlDocument(filename);
 	
 	bool doc_loaded = doc->LoadFile();
 	if (!doc_loaded){

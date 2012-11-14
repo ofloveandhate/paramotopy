@@ -142,18 +142,17 @@ int GetUserChoice(){
 	<< "2) Data Management. \n"
 	<< "3)   -unprogrammed- \n"
 	<< "4) Manage start point (load/save/new). \n"
-	<< "5) Create Level Step 1. \n"
-	<< "6) Write Step 1.\n"	
-	<< "7) Run Step 1.\n"
-	<< "8) Run Step 2.\n"
-	<< "9) Failed Path Analysis.\n"
+	<< "5) Write Step 1.\n"
+	<< "6) Run Step 1.\n"
+	<< "7) Run Step 2.\n"
+    << "8) Failed Path Analysis.\n"
 	<< "\n"
-	<< "10) Preferences.\n"
+	<< "9) Preferences.\n"
 	<< "*\n"
 	<< "0) Quit the program.\n\n"
 	<< "Enter the integer value of your choice : ";
 	
-	int intChoice = get_int_choice(menu.str(), 0, 10);//= -1;
+	int intChoice = get_int_choice(menu.str(), 0, 9);//= -1;
 	
 	return intChoice;
 }  //   re: getuserchoice

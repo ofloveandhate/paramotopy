@@ -92,8 +92,8 @@ std::string ProgSettings::WriteConfigStepOne(){
 		config << setting_name << ": "
 			<< settings["Step1Settings"][setting_name].value() << ";\n";
 	}
-	//	config << "USERHOMOTOPY: 0;\n"
-		config << "END;\n\n";
+	config << "USERHOMOTOPY: 0;\n"
+		<< "END;\n\n";
 	return config.str();
 }
 
@@ -154,6 +154,7 @@ std::string ProgSettings::WriteConfigFail(){
 void ProgSettings::default_main_values(){
 	setValue("MainSettings","newrandom_newfolder",0);
 	setValue("MainSettings","previousdatamethod",1);
+	setValue("MainSettings","startfilename","nonsingular_solutions");
 }
 
 
@@ -167,7 +168,6 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 	setValue("Step1Settings","PRINTPATHMODULUS",20);
 	setValue("Step1Settings","IMAGTHRESHOLD",1e-4);
 	setValue("Step1Settings","SECURITYLEVEL",0);
-	setValue("Step1Settings", "USERHOMOTOPY", 0);
 	ProgSettings::save();
 	return;
 }
@@ -429,6 +429,9 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 10:
 			ProgSettings::GetBufferSize();
 			break;
+		case 11:
+			ProgSettings::GetStartFileName();
+			break;
 		default:
 			std::cout << "GetPref code not yet written for case " << settingcase << "\n"; 
 			break;
@@ -453,6 +456,7 @@ void ProgSettings::setRequiredValues(){
 	main_required_values["stifle"] = 8;
 	main_required_values["step2location"] = 9;
 	main_required_values["buffersize"] = 10;
+	main_required_values["startfilename"] = 11;
 //adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
 	
 	
@@ -951,11 +955,12 @@ void ProgSettings::GeneralMenu(){
 		<< "2) Generation of random values at new folder (during program)\n"
 		<< "3) Manually set location of bertini executable\n"
 		<< "4) Manually set location of step2 executable\n"
+		<< "5) Set the file to use for step2 start file\n"
 		<< "*\n"
 		<< "0) go back\n"
 		<< "\n: ";
 	while (choice!=0) {
-		choice = get_int_choice(menu.str(),0,4);
+		choice = get_int_choice(menu.str(),0,5);
 		
 		switch (choice) {
 			case 0:
@@ -978,6 +983,9 @@ void ProgSettings::GeneralMenu(){
 				ProgSettings::GetProgramLocationManual("step2","MainSettings","step2location");
 				break;
 				
+			case 5:
+				ProgSettings::GetStartFileName();
+				break;
 			default:
 				break;
 		}
@@ -1209,7 +1217,6 @@ void ProgSettings::ChangeSetting(std::string category_name){
 		if ( (haveSetting(category_name,setting_name)) ||  (int(found)==0) ) {
 			break;
 		}
-	       
 	}
 	
 	if (int(found)==0) {
@@ -1243,16 +1250,6 @@ void ProgSettings::ChangeSetting(std::string category_name){
 		default:
 			break;
 	}
-
-	/*	if (category_name.c_str() = "Step1Settings" && setting_name.c_str() == "USERHOMOTOPY" && newvalue.c_str() == "1"){
-	  // need to add a new setting for the location of the start file
-	  std::string filename;
-	  std::cout << "Enter the file name (absolute or relative) of the start file for the Step1 run: ";
-	  std::cin >> filename;
-	  setValue("Step1Settings", "startFile", filename);
-
-	}
-	*/
 	ProgSettings::save();
 }
 
@@ -1454,6 +1451,34 @@ void ProgSettings::GetDataFolderMethod(){
 	return;
 		
 }
+
+void ProgSettings::GetStartFileName(){
+	int choice = -10;
+	std::stringstream menu;
+	menu << "\n\n"
+	<< "Which file to use for the start for step2?\n\n"
+	<< "1) nonsingular_solutions\n"
+	<< "2) finite_solutions\n"
+	<< "\n: ";
+	
+	choice = get_int_choice(menu.str(),1,2);
+	switch (choice) {
+		case 1:
+			setValue("MainSettings","startfilename","nonsingular_solutions");
+			break;
+		case 2:
+			setValue("MainSettings","startfilename","finite_solutions");
+			break;
+		default:
+			
+			break;
+	}
+		
+	ProgSettings::save();
+	return;
+}
+
+
 
 void ProgSettings::GetNewRandomAtNewFolder(){
 
