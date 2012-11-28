@@ -92,8 +92,8 @@ std::string ProgSettings::WriteConfigStepOne(){
 		config << setting_name << ": "
 			<< settings["Step1Settings"][setting_name].value() << ";\n";
 	}
-	config << "USERHOMOTOPY: 0;\n"
-		<< "END;\n\n";
+	
+	config	<< "END;\n\n";
 	return config.str();
 }
 
@@ -168,6 +168,7 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 	setValue("Step1Settings","PRINTPATHMODULUS",20);
 	setValue("Step1Settings","IMAGTHRESHOLD",1e-4);
 	setValue("Step1Settings","SECURITYLEVEL",0);
+	setValue("Step1Settings", "USERHOMOTOPY", 0);
 	ProgSettings::save();
 	return;
 }

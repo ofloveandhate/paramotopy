@@ -53,7 +53,7 @@ void WriteStep1(ProgSettings paramotopy_settings,
 
 	
 	std::string config = paramotopy_settings.WriteConfigStepOne();
-	std::string input   = paramotopy_info.WriteInputStepOne();
+	std::string input   = paramotopy_info.WriteInputStepOne(paramotopy_settings);
 	
 
 
