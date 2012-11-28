@@ -3,18 +3,17 @@
 
 #i understand that including personal machine specifics is a bit selfish, but it's only until we start using a tool like configure
 #if you add a machine to this file, please add an option to this list.
-#machine can be:     sam - macbrake - cray
-MACHINE := macbrake
-
+#machine can be:     sam - macbrake - cray - macniemerg
+MACHINE := macniemerg
 
 #User-set options.  cannot use some options on the cray.  
-OPT  := #-Wall  -g # -O3 -funroll-loops -fexpensive-optimizations # -g 
+OPT  := -Wall  -g  -O3 -funroll-loops -fexpensive-optimizations # -g 
 
 #use timing info for step 2?  YES, or NO (or anything other than YES really)
 TIMING := YES
 
 #print extra stuff to screen in step 2?  YES or NO (or anything other than YES really)
-VERBOSE := YES
+VERBOSE :=YES
 
 
 ##################################
@@ -23,7 +22,7 @@ VERBOSE := YES
 STATICFLAG:= 
 ifeq (sam,${MACHINE})
 	#sam (hopefully user independent)
-	MCC := mpic++
+	MCC := mpic++ 
 	CC  := g++
 	MANDATORYOPT := -fopenmp
 	BOOSTLOC := /usr/local/boost/lib/
@@ -59,7 +58,19 @@ ifeq (cray,${MACHINE})
 	STATICFLAG := -static
 endif
 
+ifeq (macniemerg,${MACHINE})
+	#matt n's macintosh
+MCC:= mpic++ -mpe=mpicheck
+CC:= g++
+BOOSTLOC := /usr/local/lib/
+INCLUDE := -I/usr/local/include
+MANDATORYOPT := -fopenmp
+BOOSTSUFFIX :=#nothing
+BERTINILIB := ./libbertinimacmn.a
+MPFRLOC:=#already in path
+STATICFLAG :=#nothing
 
+endif
 
 
 
@@ -90,13 +101,12 @@ DEFS := #initialize DEFS
 
 
 ifeq (YES,${TIMING})
-	DEFS := $(DEFS) -Dtimingstep2
+	DEFS := $(DEFS)   -Dtimingstep2
 endif
 
 ifeq (YES,${VERBOSE})
-	DEF := $(DEFS) -Dverbosestep2
+	DEFS := $(DEFS) -Dverbosestep2
 endif
- 
 
 
 
@@ -111,12 +121,12 @@ LIBSboost := $(BOOSTLOC)libboost_system$(BOOSTSUFFIX).a $(BOOSTLOC)libboost_file
 
 
 # Describe how to build the executable file
-all:	paramotopy step2
+all: paramotopy step2
 
-paramotopy:	 paramotopy.o $(OBJScommon) 
+paramotopy: paramotopy.o $(OBJScommon) 
 	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o paramotopy paramotopy.cpp $(OBJScommon) $(LIBS) $(LIBSboost) $(STATICFLAG)
 
-step2:	step2.o $(OBJScommon) 
+step2: step2.o $(OBJScommon) 
 	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o step2 step2.cpp $(OBJScommon)  $(LIBS) $(LIBSboost) $(STATICFLAG)
 
 
