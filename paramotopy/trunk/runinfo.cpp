@@ -178,12 +178,12 @@ void runinfo::SetLocation(){
 
 
 
-std::string runinfo::WriteInputStepOne(){
+std::string runinfo::WriteInputStepOne(ProgSettings paramotopy_settings){
 
 	std::stringstream inputfilestream;
 
 	inputfilestream << "\nINPUT\n";
-	runinfo::MakeVariableGroups(inputfilestream);
+	runinfo::MakeVariableGroups(inputfilestream, paramotopy_settings);
 	runinfo::MakeDeclareConstants(inputfilestream);
 	runinfo::MakeDeclareFunctions(inputfilestream);
 	runinfo::MakeConstants(inputfilestream);
@@ -821,14 +821,27 @@ void runinfo::MakeFunctions(std::stringstream & inputfilestream){
 
 
 //writes variable groups to stringstream for bertini input file.
-void runinfo::MakeVariableGroups(std::stringstream & fout){
+void runinfo::MakeVariableGroups(std::stringstream & fout, ProgSettings paramotopy_settings){
 
-	for (int i = 0; i < numvargroup;++i){
-		fout << "\n";
-		fout << "variable_group ";
-		fout << VarGroups[i];
-		fout << ";";    
-	}
+  if (paramotopy_settings.settings["Step1Settings"]["USERHOMOTOPY"].value() == "1"){
+    fout << "\n";
+    fout << "variable ";
+    for (int i = 0; i < numvargroup; ++i){
+      fout << VarGroups[i];
+      fout << (i != numvargroup - 1 ? ", " : "");
+    }
+    fout << ";\n";
+    
+  }
+  else{
+    for (int i = 0; i < numvargroup;++i){
+      fout << "\n";
+      fout << "variable_group ";
+      fout << VarGroups[i];
+      fout << ";";    
+    }
+    
+  }
 }
 
 

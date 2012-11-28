@@ -23,7 +23,7 @@
 #include <boost/regex.hpp>
 
 #include "tinyxml.h"
-
+#include "xml_preferences.hpp"
 
 
 #ifndef __RUNINFO_H__
@@ -86,7 +86,7 @@ public:
 	runinfo(){step2mode = -1;};//default constructor
 	
 
-	std::string WriteInputStepOne();
+	std::string WriteInputStepOne(ProgSettings paramotopy_settings);
 	std::string WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues);
 	
 	void GetOriginalParamotopy();
@@ -187,7 +187,7 @@ private:
 	
 	void MakeParameterNames();
 	
-	void MakeVariableGroups(std::stringstream & fout);
+  void MakeVariableGroups(std::stringstream & fout, ProgSettings paramotopy_settings);
 	
 	void MakeDeclareConstants(std::stringstream & fout);
 	void MakeConstants(std::stringstream & fout);
