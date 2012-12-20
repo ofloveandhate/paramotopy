@@ -32,8 +32,10 @@ bool runinfo::CheckRunStepOne(){
 	return true;
 }
 
+
+//reads in the entire paramotopy input file to memory, and puts it in the string called 'paramotopy_file'
 void runinfo::GetOriginalParamotopy(){
-	paramotopy_file = "";
+	this->paramotopy_file = "";
 	std::string tmpstr;
 	std::ifstream fin;
 	fin.open(this->inputfilename.c_str());
@@ -41,17 +43,20 @@ void runinfo::GetOriginalParamotopy(){
 		std::cerr << "failed to open paramotopy_input_file " << this->inputfilename  << "for reading" <<  std::endl;
 	}
 	while (getline(fin,tmpstr)) {
-		paramotopy_file.append(tmpstr);
-		paramotopy_file.append("\n");
+		this->paramotopy_file.append(tmpstr);
+		this->paramotopy_file.append("\n");
 	}
 	fin.close();
 	
 	return;
 }
 
+
+//writes the original paramotopy input file, in its entirety, to the current run folder.
+//
 //assumes that you are in the original directory
 void runinfo::WriteOriginalParamotopy(std::string dir){
-
+	
 	std::string filetoopen = dir;
 	
 	std::ofstream fout;
@@ -60,7 +65,7 @@ void runinfo::WriteOriginalParamotopy(std::string dir){
 	if (!fout.is_open()) {
 		std::cerr << "writing paramotopy file " << filetoopen << " failed." << std::endl;
 	}
-	fout << paramotopy_file;	
+	fout << this->paramotopy_file;
 	fout.close();
 	
 	
@@ -76,6 +81,7 @@ void runinfo::WriteOriginalParamotopy(std::string dir){
 }
 
 
+//this function writes a modified paramotopy file, derived from the original, which is used in step2 failure analysis, to make the input file use a program-generated user-defined file of parameter points, which consist of the failed points.
 void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
 	
 	std::string filetoopen = dir;
@@ -90,18 +96,21 @@ void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
 	}
 	if (this->numconsts > 0) {
 		paramotopy_file_str << this->Constants[0] << "\n";
-
+		
 		for (int ii=0; ii < this->numconsts; ++ii) {
 			paramotopy_file_str << this->ConstantNames[ii] << "\n";
 		}
 	}
+	
 	paramotopy_file_str << "1\n";
 	paramotopy_file_str << "failed_points" << iteration << "\n";
-
+	
 	
 	for (int ii = 0; ii < this->numparam; ++ii) {
 		paramotopy_file_str << this->ParameterNames[ii] << "\n";
 	}
+	
+	paramotopy_file_str << this->CustomLines << "\n"; //added 121127 dab  puts in the last lines of the paramotopy file.
 	
 	
 	std::ofstream fout;
@@ -139,9 +148,9 @@ void runinfo::make_base_dir_name(){
 	
 	fundamental_dir = base_dir;
 	
-
+	
 	boost::filesystem::path prefix_path(inputfilename);
-
+	
 	prefix = prefix_path.root_name().string();
 	//std::cout << "prefix" << prefix << "\n";
 	return;
@@ -152,19 +161,6 @@ void runinfo::make_base_dir_name(){
 
 
 
-//tests if step2 finished.
-bool runinfo::test_if_finished(){
-	bool finished = false;
-	
-	std::string finishedfile = base_dir;
-	finishedfile.append("/step2finished");
-	struct stat filestatus;
-	
-	if (stat( finishedfile.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
-		finished = true;
-	}
-	return finished;
-}
 
 
 void runinfo::SetLocation(){
@@ -181,12 +177,13 @@ void runinfo::SetLocation(){
 std::string runinfo::WriteInputStepOne(ProgSettings paramotopy_settings){
 
 	std::stringstream inputfilestream;
-
+	
 	inputfilestream << "\nINPUT\n";
 	runinfo::MakeVariableGroups(inputfilestream, paramotopy_settings);
 	runinfo::MakeDeclareConstants(inputfilestream);
 	runinfo::MakeDeclareFunctions(inputfilestream);
 	runinfo::MakeConstants(inputfilestream);
+	runinfo::MakeCustomLines(inputfilestream);
 	runinfo::MakeFunctions(inputfilestream);
 	inputfilestream << "\nEND;\n";
 	
@@ -201,10 +198,10 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
 	
 	inputfilestream << "\nINPUT\n\n";
 	// Variable Group portion
-	inputfilestream << "variable ";  
+	inputfilestream << "variable ";
 	for (int i = 0; i < int(VarGroups.size());++i){
-		inputfilestream << VarGroups[i] 
-		<< ( i != numvargroup-1? ",":";\n\n" );    
+		inputfilestream << VarGroups[i]
+		<< ( i != numvargroup-1? ",":";\n\n" );
 		
 		
 	}
@@ -237,6 +234,11 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
 	// Declare Functions
 	runinfo::MakeDeclareFunctions(inputfilestream);
 	runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream);
+	
+	//print the user-supplied custom stuffs.
+	runinfo::MakeCustomLines(inputfilestream);
+	
+	//print the actual function definitions
 	runinfo::MakeFunctions(inputfilestream);
 	inputfilestream << "END;\n";
 	
@@ -270,7 +272,7 @@ void runinfo::GetInputFileName(){
 	inputfilename = filename;
 	
 	runinfo::make_base_dir_name();
-
+	
 	return;
 }
 
@@ -284,7 +286,7 @@ void runinfo::GetInputFileName(std::string suppliedfilename){
 		runinfo::GetInputFileName();
 	}
 	runinfo::make_base_dir_name();
-
+	
 	return;
 }
 
@@ -311,7 +313,7 @@ void runinfo::WriteRandomValues(){
 }
 
 void runinfo::SaveRandom(){
-
+	
 	std::string randpointfilename;
 	std::cout << "Enter the filename you want to save the random start points to : ";
 	std::cin >> randpointfilename;
@@ -326,7 +328,7 @@ void runinfo::SaveRandom(){
 	}
 	fout.close();
 	
-	return;	
+	return;
 }
 
 
@@ -373,7 +375,7 @@ void runinfo::LoadRandom(){
 			RandomValues[ccount].second = crandimaginary;
 			std::cout << ParameterNames[ccount]
 			<< " = "
-			<< RandomValues[ccount].first 
+			<< RandomValues[ccount].first
 			<< " + "
 			<< RandomValues[ccount].second
 			<< "*I\n";
@@ -400,7 +402,7 @@ bool runinfo::GetPrevRandom(){
 	
 	struct stat filestatus;
 	if (stat(randomfilename.c_str(),&filestatus)==0) {
-
+		
 		
 		std::ifstream fin;
 		fin.open(randomfilename.c_str());
@@ -410,7 +412,7 @@ bool runinfo::GetPrevRandom(){
 			return loadedrandom;
 		}
 		else{
-				
+			
 			std::string tmpstr;
 			int ccount=0;
 			while(getline(fin,tmpstr)){
@@ -420,7 +422,7 @@ bool runinfo::GetPrevRandom(){
 				myss >> crand.first;
 				myss >> crand.second;
 				RandomValues.push_back(crand);
-
+				
 				++ccount;
 			}
 			fin.close();
@@ -434,7 +436,7 @@ bool runinfo::GetPrevRandom(){
 					<<  "there were " << RandomValues.size() << " read values, and " << numparam << " necessary values"
 					<< std::endl;
 			}
-				
+			
 		}
 	}
 	
@@ -442,7 +444,7 @@ bool runinfo::GetPrevRandom(){
 }
 
 void runinfo::SetRandom(){
-
+	
 	MTRand drand(time(0));
 	int randchoice;
 	std::cout << "1) Default range [0 to 1)\n"
@@ -461,8 +463,8 @@ void runinfo::SetRandom(){
 	}
 	if (randchoice == 2){
 		
-		int paramrandchoice = 1;	
-		while (paramrandchoice != 0){ 
+		int paramrandchoice = 1;
+		while (paramrandchoice != 0){
 			std::cout << "0 - Done specifying random values\n";
 			for (int i = 0; i < numparam;++i){
 				std::cout << i+1 << " - " << ParameterNames[i]
@@ -498,7 +500,7 @@ void runinfo::SetRandom(){
 				std::cout << "Imaginary Low : ";
 				std::cin >> cimaginarylow;
 				std::cout << "Imaginary High : ";
-				std::cin >> cimaginaryhigh;	  
+				std::cin >> cimaginaryhigh;
 				double crandreal = drand();
 				double crandimaginary = drand();
 				crandreal*=(crealhigh-creallow);
@@ -519,7 +521,7 @@ void runinfo::SetRandom(){
 
 
 void runinfo::PrintRandom(){
-
+	
 	std::cout << "The random initial values for the parameters are : \n";
 	for (int i = 0; i < int(ParameterNames.size());++i){
 		std::cout << ParameterNames[i] << " = " << RandomValues[i].first
@@ -551,11 +553,11 @@ void runinfo::CopyUserDefinedFile(){
 		thecommand.append(" ");
 		thecommand.append(fileloc.string());
 		std::cout << thecommand << std::endl;
-		system(thecommand.c_str());
+		system(thecommand.c_str());  // replace this by non-system command;
 		
-
-
-
+		
+		
+		
 	}
 }
 
@@ -574,17 +576,17 @@ void runinfo::ParseData(std::string dir){
 	
 	runinfo::ParseDataGuts(fin);
 	
-	fin.close();  
+	fin.close();
 	// temporary output of the parsed data
-
+	
 	
 	runinfo::MakeRandomValues();
-
+	
 	return;
-
+	
 }
-									
-			//this is the function to parse an input file to memory.		 
+
+//this is the function to parse an input file to memory.
 void runinfo::ParseData(){
 	runinfo::make_base_dir_name();
 	runinfo::GetOriginalParamotopy();
@@ -593,17 +595,17 @@ void runinfo::ParseData(){
 	fin.open(inputfilename.c_str());
 	if (!fin.is_open()) {
 		std::cerr << "failed to open paramotopy input file " << inputfilename << std::endl;
-	} 
+	}
 	runinfo::ParseDataGuts(fin);
-	fin.close();  
+	fin.close();
 	
 	
 	// temporary output of the parsed data
-
+	
 	
 	runinfo::DisplayAllValues();
-
-
+	
+	
 }
 
 void runinfo::ParseDataGuts(std::ifstream & fin){
@@ -643,12 +645,28 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
 		runinfo::MakeValues();
 	}
 	
+	runinfo::ReadCustomLines(fin);
+	
 	GetNumVariables();
 	
 	return;
 	
 }
 
+void runinfo::ReadCustomLines(std::ifstream & fin){
+	
+	this-> CustomLines.clear();
+	CustomLines = "";
+	
+	std::string tmpstr;
+	
+	while (getline(fin, tmpstr)) {
+		this-> CustomLines.append(tmpstr);
+		this-> CustomLines.append("\n");
+	}
+	
+	return;
+}
 
 //part of the suite of parse input functions, reads the top line of paramotopy input file.
 void runinfo::ReadSizes(std::ifstream & fin){
@@ -696,8 +714,8 @@ void runinfo::MakeRandomValues(){
 }
 
 
-void runinfo::MakeRandomValues(std::vector< std::pair< std::pair< double, double >, 
-				 std::pair< double, double > > > RandomRanges){
+void runinfo::MakeRandomValues(std::vector< std::pair< std::pair< double, double >,
+							   std::pair< double, double > > > RandomRanges){
 	
 	RandomValues.clear();
 	
@@ -705,7 +723,7 @@ void runinfo::MakeRandomValues(std::vector< std::pair< std::pair< double, double
 	for (int i = 0; i < int(RandomRanges.size()); ++i){
 		double crandreal = drand();
 		double crandimaginary = drand();
-		crandreal*=(RandomRanges[i].first.second 
+		crandreal*=(RandomRanges[i].first.second
 					- RandomRanges[i].first.first);
 		crandreal+=RandomRanges[i].first.first;
 		crandimaginary*=(RandomRanges[i].second.second
@@ -743,7 +761,7 @@ std::vector<std::pair<double, double> > runinfo::MakeRandomValues(int garbageint
 void runinfo::ReadFunctions(std::ifstream & fin){
 	Functions.clear();
 	for (int i = 0; i < numfunct; ++i){
-		std::string tmp;  
+		std::string tmp;
 		getline(fin,tmp);
 		Functions.push_back(tmp);
 	}
@@ -799,7 +817,7 @@ void runinfo::GetNumVariables(){
 		while ( comma_found != std::string::npos ) {
 			count++;
 			comma_found = VarGroups[i].find(",",comma_found+1,1);
-		}	
+		}
 	}
 	numvariables = count;
 	return;
@@ -871,7 +889,7 @@ void runinfo::MakeDeclareFunctions(std::stringstream & inputfilestream){
 		}
 		else{
 			inputfilestream << ";\n";
-		}    
+		}
 	}
 	return;
 }
@@ -895,10 +913,18 @@ void runinfo::MakeConstants(std::stringstream & fout){
 }
 
 
+void runinfo::MakeCustomLines(std::stringstream & inputfilestream){
+	
+	inputfilestream << "\n\n" << this->CustomLines;
+	
+	return;
+}
+
+
 void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CValues, std::stringstream & inputfilestream){
 	
 	for (int i = 0; i < int(ParameterNames.size()); ++i){
-		inputfilestream << "rand" 
+		inputfilestream << "rand"
 		<< ParameterNames[i]
 		<< " = "
 		<< RandomValues[i].first << " + " << RandomValues[i].second
@@ -906,7 +932,7 @@ void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CValues
 	}
 	
 	for (int i = 0; i < int(ParameterNames.size()); ++i){
-		inputfilestream << "here" 
+		inputfilestream << "here"
 		<< ParameterNames[i]
 		<< " = "
 		<< CValues[i].first << " + " << CValues[i].second
@@ -976,11 +1002,11 @@ void runinfo::MakeValues(){
 		ss << Parameters[i];
 		ss >> temp;
 		//   ss >> userdefined;
-		//   if (!userdefined){ 
+		//   if (!userdefined){
 		// values given by lep, rep, and # of mesh points
 		double lepr; // left end point real
 		double lepi; // right end point real
-		double repr; // 
+		double repr; //
 		double repi;
 		int meshpoints;
 		std::vector< std::pair<double,double> > currentmesh;
@@ -1005,7 +1031,7 @@ void runinfo::MakeValues(){
 		// fin.close();
 		
 	}
-	return; 
+	return;
 }
 
 
@@ -1027,47 +1053,54 @@ void runinfo::MakeParameterNames(){
 
 
 void runinfo::DisplayAllValues(){
-
-	std::cout << "nfunc " << numfunct << "\n";
+	
+	std::cout << "nfunc " << numfunct << std::endl;
 	for (int ii=0; ii<numfunct; ++ii) {
-		std::cout << Functions[ii] << "\n";
+		std::cout << Functions[ii] << std::endl;
 	}
 	
-	std::cout << "nvargrp " << numvargroup << "\n";
+	std::cout << "nvargrp " << numvargroup << std::endl;
 	for (int ii=0; ii<numvargroup; ++ii) {
-		std::cout << VarGroups[ii] << "\n";
+		std::cout << VarGroups[ii] << std::endl;
 	}
 	
-	std::cout << "nparam " << numparam << "\n";
+	std::cout << "nparam " << numparam << std::endl;
 	for (int ii=0; ii<numparam; ++ii) {
-		std::cout << Parameters[ii] << "\n";
+		std::cout << Parameters[ii] << std::endl;
 	}
 	for (int ii=0; ii<numparam; ++ii) {
-		std::cout << "name " << ParameterNames[ii] << "\n";
+		std::cout << "name " << ParameterNames[ii] << std::endl;
 	}
 	
 	
-	std::cout << "nconst " << numconsts << "\n";
+	std::cout << "nconst " << numconsts << std::endl;
 	for (int ii=0; ii<numconsts; ++ii) {
-		std::cout  << ConstantNames[ii] << "\n";
+		std::cout  << ConstantNames[ii] << std::endl;
 	}
 	if (numconsts>0) {
-		std::cout  << Constants[0] << "\n";
+		std::cout  << Constants[0] << std::endl;
 	}
-
 	
 	
 	
 	std::cout << "base_dir " << base_dir << " " 
 		<< "inputfilename " << inputfilename << "\n";
 	
-	std::cout << "nvar " << numvariables << "\n";
+	std::cout << "base_dir " << base_dir << " "
+	<< "inputfilename " << inputfilename << std::endl;
+	
+	std::cout << "nvar " << numvariables << std::endl;
 	if (userdefined==1) {
-		std::cout << "userdefined, with mcfname: " << mcfname << "\n";
+		std::cout << "userdefined, with mcfname: " << mcfname << std::endl;
 	}
 	else{
 		std::cout << "computer-generated mesh." << std::endl;
 	}
+	
+	if ( int(this->CustomLines.size()>0) ) {
+		std::cout << "custom lines: " << this->CustomLines << std::endl;
+	}
+	
 	return;
 }
 
@@ -1097,19 +1130,21 @@ void runinfo::DisplayAllValues(){
 
 void runinfo::DataManagementMainMenu(){
 	
+	datagatherer lets_gather_some_data(this->base_dir, this->fundamental_dir,this->numvariables);
 	
 	std::stringstream menu;
 	
-	menu << "\n\nData Management Options\n\n" //		<< "2) Gather Data\n"
-		<< "1) Change Run Folder\n" //make menu
-		<< "*\n"
-		<< "0) Go Back\n"
-		<< "\n: ";
+	menu << "\n\nData Management Options\n\n" //
+	<< "1) Change Run Folder\n" //make menu
+	<< "2) Gather Data\n"
+	<< "*\n"
+	<< "0) Go Back\n"
+	<< "\n: ";
 	int choice = -1001;
 	while (choice!=0) {
 		
 		
-		choice = get_int_choice(menu.str(),0,1);//display menu, get choice
+		choice = get_int_choice(menu.str(),0,2);//display menu, get choice
 		
 		switch (choice) {
 			case 0:
@@ -1119,11 +1154,12 @@ void runinfo::DataManagementMainMenu(){
 				runinfo::ScanData();
 				break;
 				
-//			case 2:
-//				runinfo::GatherData();
-//				break;
+			case 2:
 				
-					
+				lets_gather_some_data.GatherDataFromMenu();
+				break;
+				
+				
 			default:
 				std::cout << "somehow an unacceptable entry submitted :(\n";
 				break;
@@ -1133,151 +1169,42 @@ void runinfo::DataManagementMainMenu(){
 	
 	
 	return;
-
+	
 }
 
 
-////gather the data from a completed step2 run.  does not do anything to find failed paths.
-//void runinfo::GatherData(){
-//	std::vector< boost::filesystem::path > found_runs = FindDirectories(fundamental_dir, "^run");
-//	std::vector< boost::filesystem::path > completed_runs;
-//	
-//	
-//	///////////////////////////////
-//	//get the runs available
-//	//////////////////////////////
-//	int completed_counter = 0;
-//	for	(int ii = 0; ii<int(found_runs.size()); ii++){
-//		if (runinfo::checkiffinished(found_runs[ii])){
-//			
-//			completed_runs.push_back(found_runs[ii]);
-//			std::cout << completed_counter << ": " << found_runs[ii].string() << "\n";
-//			completed_counter++;
-//		}
-//		else{
-//			
-//		}
-//	}
-//	
-//	completed_counter;
-//	if (completed_counter==0){
-//		std::cout << "found no completed runs.  sorry.\n";
-//		return;
-//	}
-//	
-//	boost::filesystem::path run_to_analyze;
-//	if (completed_counter==1){
-//		run_to_analyze = completed_runs[0];
-//	}
-//	else{
-//		int choice = get_int_choice("which run?\n: ",0,completed_counter-1);
-//		run_to_analyze = completed_runs[choice];
-//	}
-//	
-//	///////////////////////////////
-//	//get the file type to analyze
-//	//////////////////////////////
-//	
-//	
-////	const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] =
-////	{ "real_solutions", "nonsingular_solutions", "singular_solutions", "raw_data", "raw_solutions","main_data","midpath_data"   };
-//	
-//	std::vector < std::string > possible_savefiles, gather_savefiles;
-//	possible_savefiles.push_back("real_solutions");
-//	possible_savefiles.push_back("nonsingular_solutions");
-//	possible_savefiles.push_back("singular_solutions");
-//	possible_savefiles.push_back("raw_data");
-//	possible_savefiles.push_back("raw_solutions");
-//	possible_savefiles.push_back("main_data");
-//	possible_savefiles.push_back("midpath_data");
-//	possible_savefiles.push_back("failed_paths");
-//
-//	
-//	for (ii = 0; ii < int(possible_savefiles.size())	, ii++){
-//		boost::filesystem::path temppath = run_to_analyze;
-//		temppath /= "step2/DataCollected/c1";
-//		std::string expression = "^";  //specify beginning of string
-//		expression.append(possible_savefiles[ii].string())
-//		std::vector < boost::filesystem::path > filelist = FindFiles(temppath.string(), expression);
-//		if (int(filelist.size())>0){
-//			gather_savefiles.push_back(possible_savefiles[ii])
-//		}
-//	}
-//	
-//	for (ii=0;ii<int(gather_savefiles.size());++ii){
-//		CollectSpecificFiles(gather_savefiles[ii],run_to_analyze.string())
-//	}
-//	
-//	return;
-//}
-//
-//
-//void runinfo::CollectSpecificFiles(std::string file_to_gather, std::string folder_to_analyze){
-//	//folder to analyze comes in as "bfiles_name/run*"
-//	std::string folder_to_analyze_local = folder_to_analyze;
-//	std::vector< std::string > foldervector = GetFoldersForData(folder_to_analyze_local);
-//	
-//	std::map < std::string, std::ifstream> fileidentifier_map;
-//	
-//	for (ii=0;ii<int(foldervector.size());++ii){
-//		
-//		fileidentifier_map[foldervector[ii]] = 
-//	}
-//	
-//	//67108864
-//}
-//
-//
-//
-//std::vector< std::string > runinfo::GetFoldersForData(std::string dir){
-//	
-//	std::vector< std::string > foldervector;
-//	
-//	
-//	//read in folder file.
-//	std::string foldername = dir;
-//	foldername.append("/folders");
-//	std::ifstream folderstream;
-//	folderstream.open(foldername.c_str());
-//	
-//	if (!folderstream.is_open()) {
-//		std::cerr << "failed to open file to read folders " << foldername << std::endl;
-//	}
-//	else{
-//		std::string tmpstr;
-//		
-//		
-//		while (getline(folderstream,tmpstr)) {
-//			foldervector.push_back(tmpstr);
-//		}
-//		folderstream.close();
-//	}
-//	
-//	return foldervector;
-//}
-//
-//
-//
-//
-//
-//bool runinfo::checkiffinished(boost::filesystem::path path_to_check){
-//	bool completed = false;
-//	
-//	boost::filesystem::path appended_path = path_to_check;
-//	appended_path /= "step2finished";
-//	
-//	if (boost::filesystem::exists(appended_path)){
-//		return true;
-//	}
-//	else{
-//		return false;
-//	}
-//}
-//
-//
 
 
 
+
+
+//tests if step2 finished.
+//todo:  rewrite using boost
+bool runinfo::test_if_finished(){
+	bool finished = false;
+	
+	std::string finishedfile = this->base_dir;
+	finishedfile.append("/step2finished");
+	struct stat filestatus;
+	
+	if (stat( finishedfile.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
+		finished = true;
+	}
+	return finished;
+}
+
+
+
+
+
+
+////////////////
+//
+//
+//       functions for managing data folders.
+//
+///
+///////////////////
 
 
 
@@ -1303,7 +1230,7 @@ void runinfo::SetBaseDirZero(){
 
 
 void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs){
-	time_t wheninitiated, whenupdated;  //for display 
+	time_t wheninitiated, whenupdated;  //for display
 	
 	
 	std::cout << "the following are your options for data folders:\n\n";
@@ -1339,7 +1266,7 @@ void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs
 		runinfo::SetBaseDirNew(found_runs);
 		
 	}
-		
+	
 	
 	
 	return;
@@ -1391,7 +1318,7 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
 	std::string tmpdir = "";
 	time_t wheninitiated, whenupdated;
 	int tmprun;
-	int runindex;
+	int runindex = 0;
 	
 	std::cout << "\n   name                date modified\n\n";
 	
@@ -1399,7 +1326,7 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
 		tmpdir = found_runs[ii].string();
 		tmpdir.append("/info.xml");
 		get_run_xml(tmpdir,tmprun,wheninitiated,whenupdated);
-
+		
 		std::cout << found_runs[ii].string();
 		for (int jj=0; jj<(20 - int(found_runs[ii].string().length())); ++jj) {
 			std::cout << " ";
@@ -1437,7 +1364,7 @@ void runinfo::ScanData(){
 	else {
 		runinfo::SetBaseDirManual(found_runs);
 	}
-
+	
 	runinfo::save();
 	
 	
@@ -1536,7 +1463,7 @@ void runinfo::save(){
 	std::string filename = base_dir;
 	filename.append("/info.xml");
 	//save it
-	if(doc->SaveFile(filename.c_str())){  
+	if(doc->SaveFile(filename.c_str())){
 		
 	}
 	else{

@@ -30,7 +30,7 @@ void WriteData(std::string outstring,
 			   std::vector<std::string> ParamStrings);
 
 
-void GetStart(std::string dir,
+int GetStart(std::string dir,
 			  std::string & start,
 			  std::string startfilename);
 

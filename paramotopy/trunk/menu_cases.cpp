@@ -15,7 +15,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	runinfo paramotopy_info;
 	paramotopy_info.ParseData(paramotopy_info_original.location);
 	paramotopy_info.location = paramotopy_info_original.location;
-	
+	paramotopy_info.steptwomode = paramotopy_info_original.steptwomode;
 	
 	std::vector< int > lastnumsent;
 	lastnumsent.resize(1);
@@ -220,7 +220,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);
 	std::string inputstring;
 	
-	switch (paramotopy_info.step2mode) {
+	switch (paramotopy_info.steptwomode) {
 		case 2:
 			inputstring = WriteStep2(tmprandomvalues,
 									 paramotopy_settings,
@@ -234,8 +234,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 			
 			break;
 		default:
-			std::cerr << "bad step2mode: " << paramotopy_info.step2mode << " -- exiting!" << std::endl;
-			exit(-202);
+			std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
+			//exit(-202);
 			break;
 	}
 	
@@ -660,7 +660,7 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 	if (paramotopy_settings.settings["MainSettings"]["useramdisk"].intvalue==1){
 		mpicommand << " " << paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value() << " ";
 	}
-	mpicommand << paramotopy_info.step2mode << " ";
+	mpicommand << paramotopy_info.steptwomode << " ";
 	if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
 		mpicommand << " > /dev/null ";
 	}
@@ -704,15 +704,24 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	boost::filesystem::path step2path(paramotopy_info.location);
 	step2path /= ("step2");  //concatenation in boost
 	
-	if (boost::filesystem::exists(step2path)){  // if it can see the 'finished' file
+	if (boost::filesystem::exists(step2path)){  // if it can see the current run's step2 folder
 		if (get_int_choice("found previous step2 folder.  remove, or bail out?\n0) bail out\n1) remove and continue\n: ",0,1)==1){
 			boost::filesystem::remove_all( step2path );
+			
+			step2path += "finished";   // remove the step2finished file if it exists.
+			if (boost::filesystem::exists(step2path)) {
+				boost::filesystem::remove( step2path );
+			}
 		}
 		else{
 			std::cout << "returning to paramotopy main menu without running step2" << std::endl;
 			return;
 		}
 	}
+	
+	
+	
+
 	
 	paramotopy_settings.WriteConfigStepTwo();
 	
@@ -760,7 +769,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	randpointfilename.append("/randstart");
 	
 	fout.open(randpointfilename.c_str());
-	
+	fout.precision(16);
 	for (int i = 0; i < paramotopy_info.numparam; ++i){
 		fout << paramotopy_info.RandomValues[i].first << " "
 		<< paramotopy_info.RandomValues[i].second << "\n";

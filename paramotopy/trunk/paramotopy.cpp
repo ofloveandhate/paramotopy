@@ -21,6 +21,7 @@
 #include "paramotopy_enum.hpp"
 #include "menu_cases.hpp"
 #include "failed_paths.hpp"
+#include "datagatherer.hpp"
 #include "xml_preferences.hpp"
 //#include "preferences.h"
 #include "tinyxml.h"
@@ -32,7 +33,11 @@
 
 
 
-
+/**
+\brief This is the main function for the paramotopy program.  It acts as the user interface, and provides * the commands for calling bertini for step1, * the wrapper around the step2 program, * failed path functionality, *bertini settings.
+ 
+ main will load settings from previous session, load the input file, and provide the user with a numeric input selection.
+*/
 int main(int argC, char *args[]){
 	
 	
@@ -180,7 +185,7 @@ int main(int argC, char *args[]){
 					std::cout << "made new random values" << std::endl;
 				}
 				
-				
+				paramotopy_info.CopyUserDefinedFile();
 				paramotopy_info.UpdateAndSave();
 				break;
 				
@@ -243,7 +248,8 @@ int main(int argC, char *args[]){
 				
 				currentChoice = Step2;
 				paramotopy_info.location = paramotopy_info.base_dir;
-				paramotopy_info.step2mode = 2;
+				paramotopy_info.steptwomode = 2;
+				
 				steptwo_case(paramotopy_settings,
 							 paramotopy_info);
 				
@@ -253,7 +259,7 @@ int main(int argC, char *args[]){
 				
 			case 8: //do failed path whatnot.
 				currentChoice = FailedPaths;
-				paramotopy_info.step2mode = 3;
+				paramotopy_info.steptwomode = 3;
 				fail_info.MainMenu(paramotopy_settings,paramotopy_info);
 				paramotopy_info.UpdateAndSave();
 				break;
