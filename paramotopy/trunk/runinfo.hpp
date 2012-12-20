@@ -25,10 +25,10 @@
 #include "tinyxml.h"
 #include "xml_preferences.hpp"
 
+#include "datagatherer.hpp"
 
 #ifndef __RUNINFO_H__
 #define __RUNINFO_H__
-
 
 
 
@@ -62,7 +62,7 @@ public:
 	std::string inputfilename;
 	std::string prefix;
 	
-	int step2mode;// indicates to step2 whether to use step2 or pathfailure bertini settings.
+	int steptwomode;// indicates to step2 whether to use step2 or pathfailure bertini settings.
 	
 	std::vector<std::string> Functions;
 	std::vector<std::string> VarGroups; 
@@ -70,6 +70,8 @@ public:
 	std::vector<std::string> ParameterNames;
 	std::vector<std::string> Constants;
 	std::vector<std::string> ConstantNames;
+	std::string CustomLines;
+	
 	
 	std::vector< std::vector< std::pair<double,double> > > Values;
 	
@@ -83,7 +85,9 @@ public:
 	// -- pair is the real (first) and imaginary (second)
 	std::vector< std::pair<double,double> > RandomValues;
 	
-	runinfo(){step2mode = -1;};//default constructor
+	runinfo(){
+		steptwomode = -1;
+	};//default constructor
 	
 
 	std::string WriteInputStepOne(ProgSettings paramotopy_settings);
@@ -107,7 +111,8 @@ public:
 		Functions.clear(); VarGroups.clear(); 
 		Parameters.clear(); ParameterNames.clear(); 
 		Constants.clear(); ConstantNames.clear(); 
-		Values.clear(); NumMeshPoints.clear(); 
+		Values.clear(); NumMeshPoints.clear();
+		CustomLines.clear();
 		RandomValues.clear(); 
 		numfunct = 0; numvariables = 0; numvargroup = 0; numparam = 0; numconsts = 0; 
 		};
@@ -115,6 +120,8 @@ public:
 	void ParseData();
 	void ParseData(std::string dir);
 	void ParseDataGuts(std::ifstream & fin);
+	
+	void ReadCustomLines(std::ifstream & fin);
 	
 	bool made_new_folder;
 	void DataManagementMainMenu();
@@ -176,6 +183,32 @@ public:
 	void MakeRandomValues();
 	
 	bool CheckRunStepOne();
+	
+	
+	void GatherData();
+	
+	boost::filesystem::path GetAvailableRuns();
+	
+	void CollectSpecificFiles(std::string file_to_gather, std::vector < std::string > folders_with_data,std::string run_to_analyze, int parser_index, bool mergefailed);
+	std::vector< std::string > GetFoldersForData(std::string dir);
+	void IncrementOutputFolder(std::string & output_folder_name, std::string base_output_folder_name, int & output_folder_index);
+	void MergeFolders(std::string file_to_gather, std::string left_folder, std::string right_folder, std::string output_folder_name, int parser_index);
+	void finalize_run_to_file(std::string file_to_gather, std::string source_folder,std::string base_output_folder_name, int parser_index, bool mergefailed);
+	
+	
+	void rest_of_files(std::ifstream & datafile, std::string & output_buffer, std::ofstream & outputfile, std::vector < std::string > filelist, int file_index, int parser_index);
+	bool endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < std::string > filelist);
+	
+	///function for parsing ***_solutions files, as output from bertini.
+
+	bool ReadPoint(std::ifstream & fin, int & next_index, std::string & data, int parser_index);
+	std::string ParseSolutionsFile(std::ifstream & fin);
+	std::vector< std::vector < std::pair< std::string, std::string > > > ParseSolutionsFile_ActualSolutions(std::ifstream & fin);
+	
+	/// function for parsing the failed_paths file (just one instance of it)
+	//gets called repeatedly to see if any points had failed paths (each point has one failed_paths file.
+	std::string ParseFailedPaths(std::ifstream & fin);
+
 private:
 	void GetNumVariables();
 	void ReadSizes(std::ifstream & fin);
@@ -193,6 +226,7 @@ private:
 	void MakeConstants(std::stringstream & fout);
 	void MakeConstantsStep2(std::vector<std::pair<double, double> > CValues, std::stringstream & inputfilestream);
 	
+	void MakeCustomLines(std::stringstream & inputfilestream);
 	
 	void MakeDeclareFunctions(std::stringstream & inputstringstream);
 	void MakeFunctions(std::stringstream & inputstringstream);

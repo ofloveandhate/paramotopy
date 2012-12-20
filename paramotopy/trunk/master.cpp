@@ -12,7 +12,7 @@ void master(std::string filename,
 			int saveprogresseverysomany,
 			std::string called_dir,
 			std::string location,
-			int step2mode){
+			int steptwomode){
 	
 	std::string homedir = getenv("HOME");
 	std::string settingsfilename = homedir;
@@ -45,7 +45,7 @@ void master(std::string filename,
 	paramotopy_info.ParseData(location);
 	//std::cout << "parsed input file\n";
 	paramotopy_info.location = location;
-	paramotopy_info.step2mode = step2mode;
+	paramotopy_info.steptwomode = steptwomode;
 	std::string finishedfile = paramotopy_info.location;
 	finishedfile.append("/step2finished");
 	std::string lastoutfilename0 = paramotopy_info.location;
@@ -168,7 +168,7 @@ void master(std::string filename,
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(42);  //the 42 here is irrelevant. it is merely a flag to indicate to use a particular version of the MakeRandomValues function.
 	
 	std::string inputstring;
-	switch (paramotopy_info.step2mode) {
+	switch (paramotopy_info.steptwomode) {
 		case 2:
 			inputstring = WriteStep2(tmprandomvalues,
 									 paramotopy_settings,
@@ -182,7 +182,7 @@ void master(std::string filename,
 
 			break;
 		default:
-			std::cerr << "bad step2mode: " << paramotopy_info.step2mode << " -- exiting!" << std::endl;
+			std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
 			exit(-202);
 			break;
 	}
@@ -518,7 +518,7 @@ void master(std::string filename,
 	  
 	  
 #ifdef timingstep2
-	  t1 = omp_get_wtime();
+		t1 = omp_get_wtime();
 #endif
 	  MPI_Send(&tempsends[0],      /* message buffer */
 		   numfilesatatime*(2*paramotopy_info.numparam+1),                 /* number of data items */
@@ -527,8 +527,8 @@ void master(std::string filename,
 		   sendymcsendsend,           /* user chosen message tag */
 		   MPI_COMM_WORLD);   /* default communicator */
 #ifdef timingstep2
-	  t_send += omp_get_wtime()-t1;
-	  sendcounter++;
+		t_send += omp_get_wtime()-t1;
+		sendcounter++;
 #endif
 	  delete[] tempsends;
 	}//re: initial sends
@@ -536,7 +536,7 @@ void master(std::string filename,
 	
 #ifdef verbosestep2
 	std::cout << "smallest index seeded: " << smallestnumsent << "\n"
-		  << "largest index seeded:  " << biggestnumsent << "\n";
+			  << "largest index seeded:  " << biggestnumsent << "\n";
 #endif
 	
 	
@@ -563,33 +563,33 @@ void master(std::string filename,
 	int countingup = biggestnumsent+1; //essentially the last linenumber of the mc file.
 	
 	while (countingup < terminationint) {
-	  
-	  smallestnumsent = countingup;
-	  //figure out how many files to do
-	  numtodo = numfilesatatime;
-	  if (numtodo+countingup>=terminationint) {
-	    numtodo = terminationint - countingup;
-	  }
-	  
+		
+		smallestnumsent = countingup;
+		//figure out how many files to do
+		numtodo = numfilesatatime;
+		if (numtodo+countingup>=terminationint) {
+			numtodo = terminationint - countingup;
+		}
+		
 		
 		
 #ifdef timingstep2
-	  t1 = omp_get_wtime();
+		t1 = omp_get_wtime();
 #endif
-	  /* Receive results from a slave */
-	  MPI_Recv(&filereceived,       /* message buffer */
-		   1,                 /* one data item */
-		   MPI_INT,           /* of type int */
-		   MPI_ANY_SOURCE,    /* receive from any sender */
-		   MPI_ANY_TAG,       /* any type of message */
-		   MPI_COMM_WORLD,    /* default communicator */
-		   &status);          /* info about the received message */
+		/* Receive results from a slave */
+		MPI_Recv(&filereceived,       /* message buffer */
+				 1,                 /* one data item */
+				 MPI_INT,           /* of type int */
+				 MPI_ANY_SOURCE,    /* receive from any sender */
+				 MPI_ANY_TAG,       /* any type of message */
+				 MPI_COMM_WORLD,    /* default communicator */
+				 &status);          /* info about the received message */
 #ifdef timingstep2
-	  t_receive+= omp_get_wtime() - t1;
-	  receivecounter++;
+		t_receive+= omp_get_wtime() - t1;
+		receivecounter++;
 #endif
 #ifdef verbosestep2
-	  std::cout << "received from : " << status.MPI_SOURCE << "\n";
+		std::cout << "received from : " << status.MPI_SOURCE << "\n";
 #endif
 	  
 	  
@@ -608,27 +608,27 @@ void master(std::string filename,
 	    }			
 	    
 #ifdef timingstep2
-	    t1 = omp_get_wtime();
+			t1 = omp_get_wtime();
 #endif			//write the mc line if not userdefined
-	    if (!paramotopy_info.userdefined) {
-	      for (int j=0; j<paramotopy_info.numparam; ++j) {
-		mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
-	      }
-	      mc_out_stream << "\n";
-	    }
+			if (!paramotopy_info.userdefined) {
+				for (int j=0; j<paramotopy_info.numparam; ++j) {
+					mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
+				}
+				mc_out_stream << "\n";
+			}
 #ifdef timingstep2
-	    t_write+= omp_get_wtime()-t1;
-	    writecounter++;
+			t_write+= omp_get_wtime()-t1;
+			writecounter++;
 #endif
-	    //increment
-	    localcounter++;
-	    countingup++;
-	  } //re: make tempsends in the step2 loop
-	  
-	  
-	  
+			//increment
+			localcounter++;
+			countingup++;
+	    } //re: make tempsends in the step2 loop
+		
+		
+		
 #ifdef timingstep2
-	  t1 = omp_get_wtime();
+		t1 = omp_get_wtime();
 #endif
 	  /* Send the slave a new work unit */
 	  MPI_Send(&tempsends[0],             /* message buffer */
@@ -638,41 +638,40 @@ void master(std::string filename,
 		   numtodo,           /* user chosen message tag */
 		   MPI_COMM_WORLD);   /* default communicator */
 #ifdef timingstep2
-	  t_send+= omp_get_wtime()-t1;
-	  sendcounter++;
+		t_send+= omp_get_wtime()-t1;
+		sendcounter++;
 #endif
-	  
-	  
-	  
-	  lastnumsent[status.MPI_SOURCE] = smallestnumsent;//int(tempsends[(2*numparam)]);
-	  
-	  if ((lastoutcounter%saveprogresseverysomany)==0) {
+		
+		
+		
+		lastnumsent[status.MPI_SOURCE] = smallestnumsent;//int(tempsends[(2*numparam)]);
+		
+		if ((lastoutcounter%saveprogresseverysomany)==0) {
 #ifdef timingstep2
-	    t1 = omp_get_wtime();
+			t1 = omp_get_wtime();
 #endif
-	    std::ofstream lastout;
-	    if (lastoutcounter%(2*saveprogresseverysomany)==0) {
-	      lastout.open(lastoutfilename1.c_str());
-	    }
-	    else {
-	      lastout.open(lastoutfilename0.c_str());
-	    }
-	    
-	    std::stringstream tempss;
-	    for (int i=1; i<numprocs; ++i) {
-	      tempss << lastnumsent[i] << "\n";
-	    }		
-	    lastout << tempss.str();
-	    tempss.clear();
-	    tempss.str("");
-	    lastout.close();
-	    
+			std::ofstream lastout;
+			if (lastoutcounter%(2*saveprogresseverysomany)==0) {
+				lastout.open(lastoutfilename1.c_str());
+			}
+			else {
+				lastout.open(lastoutfilename0.c_str());
+			}
+			
+			std::stringstream tempss;
+			for (int i=1; i<numprocs; ++i) {
+				tempss << lastnumsent[i] << "\n";
+			}		
+			lastout << tempss.str();
+			tempss.clear();
+			tempss.str("");
+			lastout.close();
+			
 #ifdef timingstep2
-	    t_write += omp_get_wtime() - t1;
-	    writecounter++;
+			t_write += omp_get_wtime() - t1;
+			writecounter++;
 #endif
-	  }
-	  
+		}
 		
 	  lastoutcounter++;//essentially counts this loop.  will take mod 10, for the time being, and if 0, will write lastout
 	  delete[] tempsends;
@@ -693,41 +692,41 @@ void master(std::string filename,
 	
 	
 	/* There's no more work to be done, so receive all the outstanding
-	   results from the slaves. */
+     results from the slaves. */
 	double arbitrarydouble = -1;//this way the number of things sent matches the number expected to recieve.
 	
 	
 	for (rank = 1; rank < numprocs; ++rank) {
 		
 #ifdef timingstep2
-	  t1 = omp_get_wtime();
+		t1 = omp_get_wtime();
 #endif
-	  
-	  MPI_Recv(&filereceived, 
-		   1, 
-		   MPI_INT, 
-		   MPI_ANY_SOURCE,
-		   MPI_ANY_TAG, 
-		   MPI_COMM_WORLD, 
-		   &status);
+		
+		MPI_Recv(&filereceived, 
+				 1, 
+				 MPI_INT, 
+				 MPI_ANY_SOURCE,
+				 MPI_ANY_TAG, 
+				 MPI_COMM_WORLD, 
+				 &status);
 #ifdef timingstep2
-	  t_receive += omp_get_wtime() - t1;
-	  receivecounter++;
+		t_receive += omp_get_wtime() - t1;
+		receivecounter++;
 #endif
-	  
+		
 #ifdef verbosestep2
-	  std::cout << "finally received from " << status.MPI_SOURCE << "\n";
-	  std::cout << "Sending kill tag to rank " << rank << "\n";
+		std::cout << "finally received from " << status.MPI_SOURCE << "\n";
+		std::cout << "Sending kill tag to rank " << rank << "\n";
 #endif
 #ifdef timingstep2
-	  t1 = omp_get_wtime();
+		t1 = omp_get_wtime();
 #endif
-	  MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, rank, 0, MPI_COMM_WORLD);//send everybody the kill signal.
+		MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, rank, 0, MPI_COMM_WORLD);//send everybody the kill signal.
 #ifdef timingstep2
-	  t_send += omp_get_wtime()-t1;
-	  sendcounter++;
+		t_send += omp_get_wtime()-t1;
+		sendcounter++;
 #endif
-	  
+		
 	}
 	
 	
@@ -750,13 +749,13 @@ void master(std::string filename,
 #ifdef timingstep2
 	timingout.open(timingname.c_str(),std::ios::out);
 	if (!timingout.is_open()) {
-	  std::cerr << "master timing out file " << timingname << "failed to open" << std::endl;
+		std::cerr << "master timing out file " << timingname << "failed to open" << std::endl;
 	}
 	timingout <<  "initialize: " << t_initial << "\n"
-		  << "write time: " << t_write << "\n"
-		  << "send time: " << t_send << "\n"
-		  << "receive time: " << t_receive << "\n"
-		  << "total time: " << omp_get_wtime() - t_start << "\n";
+	<< "write time: " << t_write << "\n"
+	<< "send time: " << t_send << "\n"
+	<< "receive time: " << t_receive << "\n"
+	<< "total time: " << omp_get_wtime() - t_start << "\n";
 	timingout.close();
 #endif
 	

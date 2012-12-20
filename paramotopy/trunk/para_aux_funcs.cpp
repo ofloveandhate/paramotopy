@@ -1,5 +1,101 @@
 #include "para_aux_funcs.hpp"
 
+//int get_parser_index(std::string filename,std::map< std::string, int> parsermap){
+//
+//	std::cout << filename << "." << std::endl;
+//	
+//	
+//
+//	
+//	std::cout << filename << " " << parsermap[filename] << std::endl;
+//	return parsermap[filename];
+//};
+
+
+
+void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::string > & gather_savefiles, std::vector< int > & gather_parser_indices){
+	std::vector < std::string > possible_savefiles;
+	possible_savefiles.push_back("real_solutions");
+	possible_savefiles.push_back("nonsingular_solutions");
+	possible_savefiles.push_back("singular_solutions");
+	possible_savefiles.push_back("raw_data");
+	possible_savefiles.push_back("raw_solutions");
+	possible_savefiles.push_back("main_data");
+	possible_savefiles.push_back("midpath_data");
+	possible_savefiles.push_back("failed_paths");
+
+	std::vector < int > possible_parser_indices;
+	possible_parser_indices.push_back(1);//real_
+	possible_parser_indices.push_back(1);//nonsingular
+	possible_parser_indices.push_back(1);//singular_
+	possible_parser_indices.push_back(-1);//raw_data
+	possible_parser_indices.push_back(-1);//raw_solutions
+	possible_parser_indices.push_back(-1);//main_data
+	possible_parser_indices.push_back(-1);//midpath_data
+	possible_parser_indices.push_back(2);//failed_paths
+
+
+	for (int ii = 0; ii < int(possible_savefiles.size()); ii++){
+		boost::filesystem::path temppath = run_to_analyze;
+		temppath /= "step2/DataCollected/c1";  // scan the c1 folder, because every run has a c1 folder, and it will always contain data.
+		std::string expression = "^";  //specify beginning of string
+		expression.append(possible_savefiles[ii]);
+		std::vector < std::string > filelist = FindFiles(temppath.string(), expression);  //this function is in para_aux_funcs
+		if (int(filelist.size())>0){
+			gather_savefiles.push_back(possible_savefiles[ii]);
+			gather_parser_indices.push_back(possible_parser_indices[ii]);
+			std::cout << possible_savefiles[ii] << std::endl;
+		}
+	}
+	
+	return;
+}
+
+
+		
+
+bool TestIfFinished(boost::filesystem::path & path_to_check){
+	
+	
+	boost::filesystem::path appended_path = path_to_check;
+	appended_path /= "step2finished";
+	
+	if (boost::filesystem::exists(appended_path)){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
+
+///the parser for the failed_paths file type, which is output from bertini.
+int ParseFailedPaths(std::ifstream & fin, int numvariables){
+	int tempfailnum = 0;
+	std::string tmpstr;
+	
+
+	while (1) {
+		
+		getline(fin,tmpstr);
+		//faily_myfailfail << tmpstr;
+		if (tmpstr.length()==0) { // if do not have a solution
+			break;
+		}
+		else { //have a soln
+			for (int i=0; i<3+numvariables; ++i) {
+				getline(fin,tmpstr);
+				//faily_myfailfail << tmpstr;
+			}
+			tempfailnum++;
+		}
+	}
+	return tempfailnum;
+}
+
+
+
+
 std::string replace_tilde_with_home(std::string workwithme){
 	
 	size_t found;

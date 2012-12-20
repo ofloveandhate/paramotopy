@@ -6,6 +6,7 @@
 #machine can be:     sam - macbrake - cray - macniemerg
 MACHINE := macniemerg
 
+
 #User-set options.  cannot use some options on the cray.  
 OPT  := -Wall  -g  -O3 -funroll-loops -fexpensive-optimizations # -g 
 
@@ -13,7 +14,7 @@ OPT  := -Wall  -g  -O3 -funroll-loops -fexpensive-optimizations # -g
 TIMING := YES
 
 #print extra stuff to screen in step 2?  YES or NO (or anything other than YES really)
-VERBOSE :=YES
+VERBOSE := YES
 
 
 ##################################
@@ -38,8 +39,8 @@ ifeq (macbrake, ${MACHINE})
 	MCC := mpic++ -cxx=g++
 	CC  := g++
 	MANDATORYOPT := -fopenmp
-	BOOSTLOC := /usr/local/Cellar/boost/1.49.0/lib/
-	INCLUDE := -I/usr/local/Cellar/boost/1.49.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
+	BOOSTLOC := /usr/local/Cellar/boost/1.52.0/lib/
+	INCLUDE := -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
 	BOOSTSUFFIX :=-mt#no spaces
 	BERTINILIB := ./libbertinimacdb.a
 	MPFRLOC :=#in path
@@ -89,7 +90,7 @@ endif
 
 
 # Define the object files to be used
-OBJScommon :=  failed_paths.o menu_cases.o master.o slave.o step2readandwrite.o runinfo.o mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o tinyxmlerror.o tinyxml.o tinystr.o tinyxmlparser.o  xml_preferences.o
+OBJScommon :=  point.o datagatherer.o failed_paths.o menu_cases.o master.o slave.o step2readandwrite.o runinfo.o mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o tinyxmlerror.o tinyxml.o tinystr.o tinyxmlparser.o  xml_preferences.o 
 
            
 # Define Libary Locations
@@ -101,12 +102,13 @@ DEFS := #initialize DEFS
 
 
 ifeq (YES,${TIMING})
-	DEFS := $(DEFS)   -Dtimingstep2
+	DEFS := $(DEFS) -Dtimingstep2
 endif
 
 ifeq (YES,${VERBOSE})
 	DEFS := $(DEFS) -Dverbosestep2
 endif
+ 
 
 
 
@@ -121,12 +123,12 @@ LIBSboost := $(BOOSTLOC)libboost_system$(BOOSTSUFFIX).a $(BOOSTLOC)libboost_file
 
 
 # Describe how to build the executable file
-all: paramotopy step2
+all:	paramotopy step2
 
-paramotopy: paramotopy.o $(OBJScommon) 
+paramotopy:	 paramotopy.o $(OBJScommon) 
 	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o paramotopy paramotopy.cpp $(OBJScommon) $(LIBS) $(LIBSboost) $(STATICFLAG)
 
-step2: step2.o $(OBJScommon) 
+step2:	step2.o $(OBJScommon) 
 	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o step2 step2.cpp $(OBJScommon)  $(LIBS) $(LIBSboost) $(STATICFLAG)
 
 

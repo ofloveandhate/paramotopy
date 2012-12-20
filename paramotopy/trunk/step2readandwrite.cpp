@@ -75,7 +75,7 @@ void WriteData(std::string outstring,
 
 
 
-void GetStart(std::string dir,
+int GetStart(std::string dir,
 			  std::string & start,
 			  std::string startfilename){
 	
@@ -91,8 +91,15 @@ void GetStart(std::string dir,
 	fin.open(startstring.c_str());
 	
 	if (!fin.is_open()) {
-		std::cout << "failed to open nonsingular solutions file: " << startstring <<"\n";
+		std::cout << "failed to open specified solutions file: " << startstring <<"\n";
 	}
+	
+	getline(fin,copyme);
+	std::stringstream converter;
+	tempss << copyme << "\n";
+	converter << copyme;
+	int numsolutions;
+	converter >> numsolutions;
 	
 	while (!fin.eof()) {
 		getline(fin,copyme);
@@ -101,6 +108,8 @@ void GetStart(std::string dir,
 	fin.close();
 	//end get start in memory
 	start = tempss.str();
+	
+	return numsolutions;
 }
 
 

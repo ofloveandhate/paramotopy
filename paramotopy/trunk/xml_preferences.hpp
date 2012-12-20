@@ -10,6 +10,8 @@
 #include <set>
 #include "tinyxml.h"
 #include "para_aux_funcs.hpp"
+#include <boost/algorithm/string/case_conv.hpp>
+
 
 #ifndef __XMLPREFS__
 #define __XMLPREFS__

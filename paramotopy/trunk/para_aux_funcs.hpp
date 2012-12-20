@@ -34,6 +34,17 @@
 #define __PARA_AUX_H__
 
 
+void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::string > & gather_savefiles, std::vector< int > & gather_parser_indices);
+
+
+
+bool TestIfFinished(boost::filesystem::path & path_to_check);
+
+
+
+int ParseFailedPaths(std::ifstream & fin, int numvariables);
+
+/// takes in a string, finds a user-entered tilde, and replaces it with the $HOME variable.
 std::string replace_tilde_with_home(std::string workwithme);
 
 
