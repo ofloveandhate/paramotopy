@@ -748,7 +748,7 @@ void master(std::string filename,
 	  
 #ifdef verbosestep2
     std::cout << "finally received from " << status.MPI_SOURCE << "\n";
-    std::cout << "Sending kill tag to rank " << rank << "\n";
+    std::cout << "Sending kill tag to rank " << int(status.MPI_SOURCE) << "\n";
 #endif
 #ifdef timingstep2
     t1 = omp_get_wtime();
@@ -757,7 +757,7 @@ void master(std::string filename,
 
 
     
-    MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, rank, 0, MPI_COMM_WORLD);//send everybody the kill signal.
+    MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, int(status.MPI_SOURCE), 0, MPI_COMM_WORLD);//send everybody the kill signal.
 #ifdef timingstep2
     t_send += omp_get_wtime()-t1;
     sendcounter++;
