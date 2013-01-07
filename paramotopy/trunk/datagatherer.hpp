@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <omp.h>
+
 #include "random.hpp"
 #include "para_aux_funcs.hpp"
 

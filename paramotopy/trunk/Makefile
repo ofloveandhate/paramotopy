@@ -4,7 +4,7 @@
 #i understand that including personal machine specifics is a bit selfish, but it's only until we start using a tool like configure
 #if you add a machine to this file, please add an option to this list.
 #machine can be:     sam - macbrake - cray - macniemerg
-MACHINE := macniemerg
+MACHINE := sam
 
 
 #User-set options.  cannot use some options on the cray.  
