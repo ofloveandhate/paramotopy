@@ -101,27 +101,6 @@ std::string MakeTargetFilename(std::string base_dir,
 
 
 
-//unused
-//// assumes base_dir ends in a '/'
-//void TouchFilesToSave(ProgSettings paramotopy_settings,
-//					  std::string base_dir){
-//	
-//	settingmap::iterator iter;
-//	
-//	for (iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end();++iter){
-//		// File Count has been set correctly already
-//		// touch the appropriate files so no yelling ...
-//		if ((*iter).second.intvalue==1){
-//			std::stringstream command;
-//			command << "touch ";
-//			command << base_dir
-//				<< (*iter).first
-//				<< paramotopy_settings.settings["SaveFiles"][(*iter).first].filenumber;
-//			system(command.str().c_str());
-//		}
-//	}
-//}
-
 
 //SetFileCount is called initially.  guarantees that no old data will be overwritten.
 void SetFileCount(ProgSettings & paramotopy_settings,

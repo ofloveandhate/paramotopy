@@ -1212,8 +1212,11 @@ void ProgSettings::ChangeSetting(std::string category_name){
 	size_t found;
 	
 	while ( 1 ) {
-		std::cout << "what is the exact name (caps,spelling) of setting?   % cancels\n: ";
+		std::cout << "what is the exact name of setting?   % cancels\n: ";
 		std::cin >> setting_name;
+		
+		boost::to_upper(setting_name);
+		
 		found=setting_name.find('%');
 		if ( (haveSetting(category_name,setting_name)) ||  (int(found)==0) ) {
 			break;
@@ -1261,9 +1264,11 @@ void ProgSettings::AddSetting(std::string category_name){
 	std::string setting_name = "neverusethisname";
 	
 
-	std::cout << "what is the exact name (caps,spelling) of setting?     % cancels\n: ";
+	std::cout << "what is the exact name of setting?     % cancels\n: ";
 	std::cin >> setting_name;
-
+	
+	boost::to_upper(setting_name);
+	
 	size_t found=setting_name.find('%');
 	if ( int(found)==0 ) {
 		std::cout << "canceling\n";
@@ -1273,7 +1278,7 @@ void ProgSettings::AddSetting(std::string category_name){
 	
 	
 	std::stringstream prompt;
-	prompt << "what is the type of"
+	prompt << "what is the type of "
 		<< setting_name
 		<< "?\n 0 = string\n 1 = integer / 0-1 bool\n 2= float/double\n\n:";
 	int typeint = get_int_choice(prompt.str(),0,2);
@@ -1318,10 +1323,14 @@ void ProgSettings::RemoveSetting(std::string category_name){
 	
 	while (1) {
 		
-		std::cout << "what is the exact name (caps,spelling) of setting?    % cancels\n";
+		std::cout << "what is the exact name of setting?    % cancels\n";
 		std::cin >> setting_name;
+		
+		boost::to_upper(setting_name);
+		
 		found=setting_name.find('%');
 		if ( (haveSetting(category_name,setting_name)) ||  (int(found)==0) ) {
+			std::cout << "no setting of that name." << std::endl;
 			break;
 		}
 	}

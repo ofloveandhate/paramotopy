@@ -86,11 +86,12 @@ void failinfo::StartOver(runinfo & paramotopy_info){
 	std::vector< boost::filesystem::path > found_runs = FindDirectories(dirtosearch, "^pass");
 	
 	for (int ii = 0; ii<int(found_runs.size()); ++ii) {
-		std::stringstream command;
-		command << "rm -rf "
-			<< found_runs[ii].string();
-		std::cout << command.str() << std::endl;
-		system(command.str().c_str());
+		boost::filesystem::remove_all(found_runs[ii]);
+//		std::stringstream command;
+//		command << "rm -rf "
+//			<< found_runs[ii].string();
+//		std::cout << command.str() << std::endl;
+//		system(command.str().c_str());
 	}
 
 	this->master_fails.clear();

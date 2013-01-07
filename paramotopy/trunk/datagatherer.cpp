@@ -167,7 +167,10 @@ void datagatherer::GatherDataFromMenu(){
 	std::vector< std::string > folders_with_data = GetFoldersForData(run_to_analyze.string());
 	
 	for (int ii=0;ii<int(gather_savefiles.size());++ii){
+		std::cout << "collecting " << gather_savefiles[ii] << std::endl;
+		double t1 = omp_get_wtime();
 		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze.string(), gather_parser_indices[ii], true);
+		std::cout << "sorting " << gather_savefiles[ii] << " took " << omp_get_wtime()-t1 << " seconds." << std::endl;
 	}
 	
 	
@@ -207,34 +210,55 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 		//if get here, then had more than one processor.
 		
 		
+		int numlevels = 0;
+		int n = folders_with_data.size();
 		
-		//initial merge.
+		std::vector< int > num_iterations_at_each_level;
+		while (n!=1){
+			num_iterations_at_each_level.push_back( (n-(n%2))/2 );
+			n = (n + (n%2))/2;
+			numlevels++;
+		}
 		
-		datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
-		boost::filesystem::remove_all(output_folder_name);
-		boost::filesystem::create_directory(output_folder_name);
-		datagatherer::MergeFolders(file_to_gather, folders_with_data[0],folders_with_data[1],output_folder_name,parser_index);
+		std::vector< std::string > current_folders = folders_with_data; // seed
+		std::vector< std::string > next_folders;  
 		
-		
-		//subsequent merges
-		if ( int(folders_with_data.size())>2 ){
+		int current_num_folders;
+		for (int ii = 0; ii<numlevels; ++ii) {
+			current_num_folders = current_folders.size();
 			
-			for (int ii=2; ii<int(folders_with_data.size()); ++ii) {
-				std::string previous_output_name = output_folder_name;
+			next_folders.clear();
+			 
+			for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj=jj+2) {
 				datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
 				boost::filesystem::create_directory(output_folder_name);
-				datagatherer::MergeFolders( file_to_gather, previous_output_name, folders_with_data[ii], output_folder_name,parser_index);
+				//std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << ii << " iteration " << jj/2+1 << std::endl;
+				datagatherer::MergeFolders( file_to_gather, current_folders[jj], current_folders[jj+1], output_folder_name,parser_index);
+				next_folders.push_back(output_folder_name); //put on the list for next level of sorting
 				
-				boost::filesystem::remove_all(previous_output_name);  //remove the previous step's files
+				if (ii!=0) { //if not on the first level (that is, to leave the raw unsorted data intact), remove the data.
+					boost::filesystem::remove_all(current_folders[jj]);  //remove the previous step's files
+					boost::filesystem::remove_all(current_folders[jj+1]);  //remove the previous step's files
+					// i reiterate how awesome the boost library is.
+				}
 			}
+			
+			if ( (current_num_folders%2) == 1) { //if there is an odd man out.
+				next_folders.push_back(current_folders[current_num_folders-1]); // put the last folder on (-1) for zero indexing
+			}
+			
+			current_folders = next_folders;
+			
 		}
-		source_folder = output_folder_name;
+		
+		
+		source_folder = output_folder_name; // set this for finalizing.
 		
 	}//re:  if - else for processor numbers (interpreted from number of folders
 	
 		
 	
-	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);   //finish me
+	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);   
 	
 	boost::filesystem::remove_all(source_folder);  //remove the previous step's files
 	
@@ -251,12 +275,7 @@ std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 	
 	if (!boost::filesystem::exists(filetoopen)) {
 		std::cout << filetoopen.string() << " does not exist, for reading in successful re-solves." << std::endl;
-		
-		
-		std::cout << "todo: read failed path info here." << std::endl;
 		return successful_resolves;
-
-		
 	}
 	
 	std::string resolved_file_name;
@@ -404,6 +423,8 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 		datagatherer::WriteUnsuccessfulResolves(successful_resolves);
 	}
 	
+	bool passed_check = true;
+	
 	for (int ii=0; ii< int(filelist.size()); ++ii) {
 		std::ifstream sourcefile(filelist[ii].c_str());
 		
@@ -423,6 +444,7 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 			//check the integrity of the data
 			if (next_index!=(previous_index+1)){
 				std::cerr << "index mismatch, filename " << file_to_gather	<< ", with indices " << previous_index << " & " << next_index << std::endl;
+				passed_check = false;
 			}
 			
 			if (mergefailed) {
@@ -440,6 +462,15 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 	
 	output_file.close();
 	
+	std::cout << "done finalizing file " << file_to_gather << "." << std::endl;
+	
+	if (passed_check) {
+		std::cout << "passed integrity check for in-orderness of points." << std::endl;
+	}
+	else{
+		std::cout << "failed integrity check.  one or more points were out of order or missing." << std::endl;
+		std::cout << "todo:  keep record of missing points" << std::endl; //remove me when completed
+	}
 	
 	
 	return;

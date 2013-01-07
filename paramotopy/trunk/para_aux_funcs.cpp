@@ -1,16 +1,5 @@
 #include "para_aux_funcs.hpp"
 
-//int get_parser_index(std::string filename,std::map< std::string, int> parsermap){
-//
-//	std::cout << filename << "." << std::endl;
-//	
-//	
-//
-//	
-//	std::cout << filename << " " << parsermap[filename] << std::endl;
-//	return parsermap[filename];
-//};
-
 
 
 void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::string > & gather_savefiles, std::vector< int > & gather_parser_indices){
@@ -44,7 +33,6 @@ void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::s
 		if (int(filelist.size())>0){
 			gather_savefiles.push_back(possible_savefiles[ii]);
 			gather_parser_indices.push_back(possible_parser_indices[ii]);
-			std::cout << possible_savefiles[ii] << std::endl;
 		}
 	}
 	
