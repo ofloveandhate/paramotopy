@@ -69,6 +69,7 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 				break;
 		}
 		paramotopy_info.UpdateAndSave();
+		
 	}
 	
 	
@@ -87,22 +88,23 @@ void failinfo::StartOver(runinfo & paramotopy_info){
 	
 	for (int ii = 0; ii<int(found_runs.size()); ++ii) {
 		boost::filesystem::remove_all(found_runs[ii]);
-//		std::stringstream command;
-//		command << "rm -rf "
-//			<< found_runs[ii].string();
-//		std::cout << command.str() << std::endl;
-//		system(command.str().c_str());
 	}
 
 	this->master_fails.clear();
 	this->initial_fails.clear();
 	this->terminal_fails.clear();
-	current_iteration = 0;
-	
+
 	paramotopy_info.location = paramotopy_info.base_dir;
 	failinfo::find_failed_paths(paramotopy_info,0,0);
 	initial_fails[0] = this->master_fails;
-	//failinfo::find_failed_paths(paramotopy_info,1,current_iteration);
+	
+	
+	this->current_iteration=0;
+	failinfo::set_location_fail(paramotopy_info);
+	failinfo::write_successful_resolves(paramotopy_info);
+	paramotopy_info.location = paramotopy_info.base_dir;
+	
+
 	failinfo::report_failed_paths(paramotopy_info);
 	
 	paramotopy_info.GetPrevRandom();
@@ -126,7 +128,9 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 	std::string dirtosearch = paramotopy_info.base_dir;
 	std::vector< boost::filesystem::path > failure_paths = FindDirectories(dirtosearch,"^failure_analysis");
 	if (failure_paths.size()==0) {
-		current_iteration = 0;
+		this->current_iteration=0;
+		failinfo::set_location_fail(paramotopy_info);
+		failinfo::write_successful_resolves(paramotopy_info);
 		paramotopy_info.location = paramotopy_info.base_dir;
 	}
 	else{
@@ -135,7 +139,9 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 		std::vector< boost::filesystem::path > found_runs = FindDirectories(dirtosearch, "^pass"); // carat means beginning is `pass'
 		int tmpiteration;
 		if (found_runs.size()==0) {
-			current_iteration=0;
+			this->current_iteration=0;
+			failinfo::set_location_fail(paramotopy_info);
+			failinfo::write_successful_resolves(paramotopy_info);
 			paramotopy_info.location = paramotopy_info.base_dir;
 		}
 		else{
@@ -430,15 +436,11 @@ void failinfo::write_successful_resolves(runinfo paramotopy_info){
 			std::stringstream datalist;
 			
 			for ( iter=master_fails[ii].collected_data.begin(); iter!=master_fails[ii].collected_data.end(); ++iter) {
-//				std::cout << iter->first << " ";
-//				std::cout << iter->second << std::endl;
-				
 				namelist << iter->first << " ";
 				datalist << iter->second;
 			}
 			outputfile << namelist.str() << "\n";
 			outputfile << datalist.str();
-//			std::cout << std::endl;
 		}
 	}
 	outputfile.close();
