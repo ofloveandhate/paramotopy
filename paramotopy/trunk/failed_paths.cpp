@@ -13,6 +13,9 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 
 	//set settings for path failure.
 
+	initial_fails.clear();
+	master_fails.clear();
+	terminal_fails.clear();
 
 	failinfo::find_failed_paths(paramotopy_info,0,0);
 	initial_fails[0] = this->master_fails;   //seed the data
@@ -104,7 +107,8 @@ void failinfo::StartOver(runinfo & paramotopy_info){
 	failinfo::write_successful_resolves(paramotopy_info);
 	paramotopy_info.location = paramotopy_info.base_dir;
 	
-
+	failinfo::write_successful_resolves(paramotopy_info);
+	
 	failinfo::report_failed_paths(paramotopy_info);
 	
 	paramotopy_info.GetPrevRandom();
@@ -129,7 +133,7 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 	std::vector< boost::filesystem::path > failure_paths = FindDirectories(dirtosearch,"^failure_analysis");
 	if (failure_paths.size()==0) {
 		this->current_iteration=0;
-		failinfo::set_location_fail(paramotopy_info);
+//		failinfo::set_location_fail(paramotopy_info);
 		failinfo::write_successful_resolves(paramotopy_info);
 		paramotopy_info.location = paramotopy_info.base_dir;
 	}
@@ -140,12 +144,12 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 		int tmpiteration;
 		if (found_runs.size()==0) {
 			this->current_iteration=0;
-			failinfo::set_location_fail(paramotopy_info);
+//			failinfo::set_location_fail(paramotopy_info);
 			failinfo::write_successful_resolves(paramotopy_info);
 			paramotopy_info.location = paramotopy_info.base_dir;
 		}
 		else{
-			int highestiteration = 0;
+			int highestiteration = -1;
 			for (int ii = 0; ii<int(found_runs.size()); ++ii) {
 				std::cout << "found " << found_runs[ii].string() << std::endl;
 				std::string tmppath = found_runs[ii].string();
@@ -169,6 +173,7 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 				if (tmpiteration > highestiteration){
 					highestiteration = tmpiteration;
 				}
+				
 				
 
 				this->current_iteration = tmpiteration;
@@ -260,12 +265,15 @@ void failinfo::make_master_from_recovered(std::map< int, point > successful_reso
 
 void failinfo::set_location_fail(runinfo & paramotopy_info){
 	
+	
+	
 	paramotopy_info.location = paramotopy_info.base_dir;
 	paramotopy_info.location.append("/failure_analysis/pass");
 	std::stringstream ss;
 	ss << (this->current_iteration);
 	paramotopy_info.location.append(ss.str());
 	
+	std::cout << "setting location fail " << paramotopy_info.location << std::endl;
 	boost::filesystem::create_directory(paramotopy_info.location);
 	
 	return;
@@ -295,7 +303,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		std::string openme = paramotopy_info.location;
 		openme.append("/info");
 		std::ofstream fout(openme.c_str());
-		fout << current_iteration;
+		fout << this->current_iteration;
 		fout.close();
 		failinfo::write_failed_paths(paramotopy_info, current_iteration);
 		
@@ -361,8 +369,6 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		
 		
 		
-		
-		
 		paramotopy_settings.save();
 		steptwo_case(paramotopy_settings, paramotopy_info); // in menu_cases.cpp
 		
@@ -372,8 +378,6 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 			paramotopy_settings.setValue("MainSettings","startfilename",previous_start_file);
 			paramotopy_settings.save();
 		}
-		
-
 		
 		paramotopy_settings.setValue("MainSettings","numprocs",previous_num_procs);
 		paramotopy_settings.setValue("MainSettings","numfilesatatime",previous_numfilesatatime);
@@ -385,20 +389,25 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		if (!TestIfFinished(path_to_check)){
 			//
 			std::cout << "it appears the run failed.  removing files." << std::endl;
-			boost::filesystem::remove_all(path_to_check);
+			//boost::filesystem::remove_all(path_to_check);
 			break;
 		}
 		
-		failinfo::find_failed_paths(paramotopy_info,2,current_iteration); // we find the points which had failures.
+		failinfo::find_failed_paths(paramotopy_info,2,this->current_iteration); // we find the points which had failures.
 		
 		failinfo::find_successful_resolves(paramotopy_info);
-		failinfo::write_successful_resolves(paramotopy_info);
-		std::cout << "\nThere were " << totalfails << " points with path failures, out of " << num_points_inspected << " total points.\n";
+		//
+		std::cout << "done find_successful_resolves" << std::endl;
 		
-		initial_fails[current_iteration+1] = terminal_fails[current_iteration];
+		failinfo::write_successful_resolves(paramotopy_info);
+		std::cout << "done write_successful_resolves" << std::endl;
+		
+		std::cout << "\nThere were " << this->totalfails << " points with path failures, out of " << this->num_points_inspected << " total points.\n";
+		
+		this->initial_fails[this->current_iteration+1] = this->terminal_fails[this->current_iteration];
 		
 		paramotopy_info.GetPrevRandom();
-		current_iteration++;
+		this->current_iteration++;
 	}
 	//run a (step1) run to get new start point.
 	
@@ -413,9 +422,10 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 void failinfo::write_successful_resolves(runinfo paramotopy_info){
 	
 	
-	boost::filesystem::path file_to_write_to = paramotopy_info.location;
+	boost::filesystem::path file_to_write_to = paramotopy_info.base_dir;
 	
-	file_to_write_to /= "successful_resolves";
+	
+	file_to_write_to /= "failure_analysis/successful_resolves";
 	
 	std::ofstream outputfile(file_to_write_to.string().c_str());
 	
@@ -519,7 +529,7 @@ void failinfo::report_failed_paths(runinfo paramotopy_info){
 
 	
 	if (this->initial_fails[current_iteration].size() == 0) {
-		std::cout << "congratulations, your run had 0 path failures total!\n";
+		std::cout << current_iteration << " congratulations, your run had 0 path failures total!\n";
 		return;
 	}
 
@@ -646,14 +656,14 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
 	
 	//write step2 to memory.
 
-	std::vector< std::pair< double, double> > new_random_values = paramotopy_info.MakeRandomValues(42);
+	std::vector< std::pair< double, double> > new_random_values = paramotopy_info.MakeRandomValues(42);//lol  the integer passed here is only to use polymorphism to get a slightly different function.  joke's on you.  lol lol lollololooolol.
 	
 	//now need to write to file in location.
 	std::string inputstring = WriteFailStep2(new_random_values,
 										 paramotopy_settings,
 										 paramotopy_info);
 	
-	paramotopy_info.RandomValues = new_random_values;//lol  the integer passed here is only to use polymorphism to get a slightly different function.  joke's on you.  lol lol lollololooolol.
+	paramotopy_info.RandomValues = new_random_values;
 	
 	
 	std::string bertinifilename = paramotopy_info.location;

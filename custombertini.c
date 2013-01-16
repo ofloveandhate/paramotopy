@@ -142,31 +142,32 @@ else {
       bclock(&time2);
       totalTime(&parse_time, time1, time2);
 
-      // call the main functions
-      if (sharpenOnly)
-      { // sharpen the endpoints from a previous run
-        sharpen_process_main(MPType, trackType, currentSeed, my_id, num_processes, headnode);
-      }
-      else
-      { // do either function evaluation, zero dimensional or positive dimensional tracking
-        if (trackType == 0)
-        { // zero dimensional tracking
-          zero_dim_main(MPType, parse_time, currentSeed, startName, my_id, num_processes, headnode);
-        }
-        else if (trackType == 1 || trackType == 2 || trackType == 3 || trackType == 4 || trackType == 5 || trackType == 6 || trackType == 7)
-        { // positive dimensional tracking
-          pos_dim_main(trackType, genType, MPType, currentSeed, startName, my_id, num_processes, headnode);
-        }
-        else if (trackType == -4 || trackType == -3)
-        { // function evaluation
-          function_eval_main(trackType == -3, MPType, currentSeed, startName, my_id, num_processes, headnode);
-        }
-        else if (trackType == -2 || trackType == -1)
-        { // newton evaluation
-          newton_eval_main(trackType == -1, MPType, currentSeed, startName, my_id, num_processes, headnode);
-        }
-      }
-
+		if (noparse!=2){
+		  // call the main functions
+		  if (sharpenOnly)
+		  { // sharpen the endpoints from a previous run
+			sharpen_process_main(MPType, trackType, currentSeed, my_id, num_processes, headnode);
+		  }
+		  else
+		  { // do either function evaluation, zero dimensional or positive dimensional tracking
+			if (trackType == 0)
+			{ // zero dimensional tracking
+			  zero_dim_main(MPType, parse_time, currentSeed, startName, my_id, num_processes, headnode);
+			}
+			else if (trackType == 1 || trackType == 2 || trackType == 3 || trackType == 4 || trackType == 5 || trackType == 6 || trackType == 7)
+			{ // positive dimensional tracking
+			  pos_dim_main(trackType, genType, MPType, currentSeed, startName, my_id, num_processes, headnode);
+			}
+			else if (trackType == -4 || trackType == -3)
+			{ // function evaluation
+			  function_eval_main(trackType == -3, MPType, currentSeed, startName, my_id, num_processes, headnode);
+			}
+			else if (trackType == -2 || trackType == -1)
+			{ // newton evaluation
+			  newton_eval_main(trackType == -1, MPType, currentSeed, startName, my_id, num_processes, headnode);
+			}
+		  }
+		}
       free(inputName);
       free(startName);
 

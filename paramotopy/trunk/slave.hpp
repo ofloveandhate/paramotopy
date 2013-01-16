@@ -41,7 +41,9 @@ void slave(ToSave *TheFiles,
 		   std::string tmpfolder,
 		   int newfilethreshold,
 		   std::string location,
-		   int buffersize);
+		   int buffersize,
+		   ProgSettings & paramotopy_settings,
+		   runinfo & paramotopy_info);
 
 
 #endif

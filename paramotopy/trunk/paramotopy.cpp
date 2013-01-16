@@ -149,7 +149,7 @@ int main(int argC, char *args[]){
 
 	while(currentChoice!=Quit){
 		
-		intChoice = GetUserChoice();
+		intChoice = ParamotopyMainMenu();
 		
 		switch (intChoice){
 			case 1 :
@@ -237,9 +237,11 @@ int main(int argC, char *args[]){
 				
 				paramotopy_info.WriteRandomValues();
 				CallBertiniStep1(paramotopy_settings, 
-								 paramotopy_info);//base_dir);
+								 paramotopy_info);
 				
 				paramotopy_info.UpdateAndSave();
+				
+				
 				break;
 				
 				

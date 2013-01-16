@@ -51,7 +51,14 @@ std::string replace_tilde_with_home(std::string workwithme);
 std::vector<std::string> FindFiles(std::string dir, std::string expression);
 std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression);
 
+std::string getAlphaNumeric_WithSpaces();
+std::string getAlphaNumeric();
 
+bool parseDouble( std::string const& text, double& results );
+double getDouble();
+
+int getInteger();
+bool parseInteger( std::string const& text, int& results );
 int get_int_choice(std::string display_string,int min_value,int max_value);
 
 
@@ -61,7 +68,7 @@ std::string make_base_dir_name(std::string filename);
 
 
 // the main menu for paramotopy
-int GetUserChoice();
+int ParamotopyMainMenu();
 
 
 

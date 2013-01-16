@@ -257,7 +257,7 @@ void runinfo::GetInputFileName(){
 	while (!finfound) {
 		
 		std::cout << "Enter the input file's name.\n: ";
-		std::cin >> filename;
+		filename = getAlphaNumeric();
 		
 		struct stat filestatus;
 		
@@ -316,7 +316,7 @@ void runinfo::SaveRandom(){
 	
 	std::string randpointfilename;
 	std::cout << "Enter the filename you want to save the random start points to : ";
-	std::cin >> randpointfilename;
+	randpointfilename = getAlphaNumeric();
 	
 	std::ofstream fout;
 	fout.precision(16);
@@ -343,7 +343,7 @@ void runinfo::LoadRandom(){
 	while ( !fin.is_open() ) {
 		std::cout << "Enter the filename of the random points you"
 		<< " want to load (% to cancel): ";
-		std::cin >> randfilename;
+		randfilename = getAlphaNumeric();
 		
 		size_t found=randfilename.find('%');
 		if (found!=std::string::npos) {
@@ -447,17 +447,15 @@ void runinfo::SetRandom(){
 	
 	MTRand drand(time(0));
 	int randchoice;
-	std::cout << "1) Default range [0 to 1)\n"
+	std::stringstream menu;
+	
+	menu << "1) Default range [0 to 1)\n"
 	<< "2) User-specified range\n"
 	<< "Enter in if you would like to use the standard \n"
 	<< "default range for random floats or if you would \n"
 	<< "like to specify the range : ";
-	std::cin >> randchoice;
-	while (randchoice != 1 && randchoice != 2){
-		std::cout << "Please enter 1 for the default range or 2 for"
-		<< " a user-specified range : ";
-		std::cin >> randchoice;
-	}
+	
+	randchoice = get_int_choice(menu.str(), 1, 2);
 	if (randchoice == 1){
 		MakeRandomValues();
 	}
@@ -470,18 +468,8 @@ void runinfo::SetRandom(){
 				std::cout << i+1 << " - " << ParameterNames[i]
 				<< "\n";
 			}
-			std::cout << "Enter the parameter you want to rerandomize : ";
-			std::cin >> paramrandchoice;
-			while (paramrandchoice < 0 || paramrandchoice > int(ParameterNames.size())){
-				
-				std::cout << "0 - Done specifying random values\n";
-				for (int i = 0; i < int(ParameterNames.size());++i){
-					std::cout << i+1 << " - " << ParameterNames[i]
-					<< "\n";
-				}
-				std::cout << "Enter the parameter you want to rerandomize : ";
-				std::cin >> paramrandchoice;
-			}
+			paramrandchoice = get_int_choice("Enter the parameter you want to rerandomize : ",0,numparam);
+			
 			if (paramrandchoice !=0){
 				std::cout << "Enter a low range followed "
 				<< "by a high range for the"
@@ -494,13 +482,13 @@ void runinfo::SetRandom(){
 				double cimaginarylow;
 				double cimaginaryhigh;
 				std::cout << "\n" << "Real Low : ";
-				std::cin >> creallow;
+				creallow = getDouble();
 				std::cout << "Real High : ";
-				std::cin >> crealhigh;
+				crealhigh = getDouble();
 				std::cout << "Imaginary Low : ";
-				std::cin >> cimaginarylow;
+				cimaginarylow = getDouble();
 				std::cout << "Imaginary High : ";
-				std::cin >> cimaginaryhigh;
+				cimaginaryhigh = getDouble();
 				double crandreal = drand();
 				double crandimaginary = drand();
 				crandreal*=(crealhigh-creallow);
@@ -528,7 +516,7 @@ void runinfo::PrintRandom(){
 		<< " + " << RandomValues[i].second << "*I\n";
 		
 	}
-	std::cout << "\n";
+	std::cout << std::endl;
 	return;
 }
 
@@ -738,21 +726,22 @@ void runinfo::MakeRandomValues(std::vector< std::pair< std::pair< double, double
 }
 
 
-std::vector<std::pair<double, double> > runinfo::MakeRandomValues(int garbageint){
-	std::vector<std::pair<double, double> > BlaRandomValues;
-	MTRand drand(time(0));
-	for (int ii = 1; ii < fabs(ceil(42*drand())); ++ii){
-		drand();
+std::vector<std::pair<double, double> > runinfo::MakeRandomValues(int seed_value){
+	std::vector<std::pair<double, double> > NewRandomValues;
+	
+	MTRand drand(seed_value);
+
+	
+//	for (int ii = 1; ii < fabs(ceil(42*drand())); ++ii){
+//		drand();
+//	}
+	
+	for (int ii = 0; ii < numparam;++ii){
+		NewRandomValues.push_back(std::pair<double,double>(  double(drand()),double(drand())  ));
 	}
 	
-	for (int i = 0; i < numparam;++i){
-		double creal = double(drand());
-		double cimaginary = double(drand());
-		BlaRandomValues.push_back(std::pair<double,double>(creal,cimaginary));
-	}
 	
-	
-	return BlaRandomValues;
+	return NewRandomValues;
 	
 }
 
@@ -867,13 +856,13 @@ void runinfo::MakeVariableGroups(std::stringstream & fout, ProgSettings paramoto
 void runinfo::MakeDeclareConstants(std::stringstream & fout){
 	fout << "\n";
 	fout << "constant ";
-	for (int i = 0; i < int(ParameterNames.size());++i){
-		fout << ParameterNames[i]
-			<< (i != int(ParameterNames.size())-1?",":";\n");
+	for (int i = 0; i < int(this->ParameterNames.size());++i){
+		fout << this->ParameterNames[i]
+			<< (i != int(this->ParameterNames.size())-1?",":";\n");
 		
 	}
-	if (Constants.size()!=0){
-		fout << Constants[0]
+	if (this->Constants.size()!=0){
+		fout << this->Constants[0]
 		<< "\n";
 	}
 }
@@ -897,17 +886,17 @@ void runinfo::MakeDeclareFunctions(std::stringstream & inputfilestream){
 
 void runinfo::MakeConstants(std::stringstream & fout){
 	
-	for (int i = 0; i < int(RandomValues.size());++i){
-		fout << ParameterNames[i]
+	for (int i = 0; i < int(this->RandomValues.size());++i){
+		fout << this->ParameterNames[i]
 		<< " = "
-		<< RandomValues[i].first
+		<< this->RandomValues[i].first
 		<< " + "
-		<< RandomValues[i].second
+		<< this->RandomValues[i].second
 		<< "*I;\n";
 	}
 	
 	for (int i = 0; i < int(ConstantNames.size());++i){
-		fout << "\n" << ConstantNames[i];
+		fout << "\n" << this->ConstantNames[i];
 	}
 	fout << "\n";
 }
@@ -921,34 +910,34 @@ void runinfo::MakeCustomLines(std::stringstream & inputfilestream){
 }
 
 
-void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CValues, std::stringstream & inputfilestream){
+void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream){
 	
-	for (int i = 0; i < int(ParameterNames.size()); ++i){
+	for (int i = 0; i < int(this->ParameterNames.size()); ++i){
 		inputfilestream << "rand"
-		<< ParameterNames[i]
+		<< this->ParameterNames[i]
 		<< " = "
-		<< RandomValues[i].first << " + " << RandomValues[i].second
+		<< this->RandomValues[i].first << " + " << this->RandomValues[i].second
 		<< "*I;\n";
 	}
 	
-	for (int i = 0; i < int(ParameterNames.size()); ++i){
+	for (int i = 0; i < int(this->ParameterNames.size()); ++i){
 		inputfilestream << "here"
-		<< ParameterNames[i]
+		<< this->ParameterNames[i]
 		<< " = "
-		<< CValues[i].first << " + " << CValues[i].second
+		<< CurrentValues[i].first << " + " << CurrentValues[i].second
 		<< "*I;\n";
 	}
-	for (int i = 0; i < int(ConstantNames.size());++i){
-		inputfilestream << ConstantNames[i]
+	for (int i = 0; i < int(this->ConstantNames.size());++i){
+		inputfilestream << this->ConstantNames[i]
 		<< "\n";
 	}
 	
-	for (int i = 0; i < int(ParameterNames.size()); ++i){
-		inputfilestream << ParameterNames[i]
+	for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+		inputfilestream << this->ParameterNames[i]
 		<< "= t*rand"
-		<< ParameterNames[i]
+		<< this->ParameterNames[i]
 		<< " + (1-t)*here"
-		<< ParameterNames[i]
+		<< this->ParameterNames[i]
 		<< ";\n";
 	}
 	return;
