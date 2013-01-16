@@ -209,6 +209,7 @@ public:
 	//gets called repeatedly to see if any points had failed paths (each point has one failed_paths file.
 	std::string ParseFailedPaths(std::ifstream & fin);
 
+	void PrintRandom();
 private:
 	void GetNumVariables();
 	void ReadSizes(std::ifstream & fin);
@@ -224,7 +225,7 @@ private:
 	
 	void MakeDeclareConstants(std::stringstream & fout);
 	void MakeConstants(std::stringstream & fout);
-	void MakeConstantsStep2(std::vector<std::pair<double, double> > CValues, std::stringstream & inputfilestream);
+	void MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream);
 	
 	void MakeCustomLines(std::stringstream & inputfilestream);
 	
@@ -239,7 +240,7 @@ private:
 	
 	void MakeValues(std::ifstream & fin);
 	void MakeValues();
-	void PrintRandom();
+	
 	
 	
 	

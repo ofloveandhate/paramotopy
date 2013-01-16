@@ -36,6 +36,9 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 	std::cout << command.str().c_str() << std::endl;
 	system(command.str().c_str());
 	
+	std::string toss;
+	std::getline(std::cin, toss);
+	
 	chdir(startingfolder.c_str());  // return to the initial folder
 	return;
 }

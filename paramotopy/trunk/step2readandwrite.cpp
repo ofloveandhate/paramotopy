@@ -9,8 +9,86 @@ extern "C" {
 	void computeNumDenom(char **numer, char **denom, char *s);
 }
 
-std::string AppendData(int runid, 
-					   std::string orig_file, 
+
+bool SlaveCollectAndWriteData(int & numfiles,
+							  std::vector<std::string> & runningfile,
+							  const int  linenumber,
+							  ToSave * TheFiles,
+							  const std::vector<std::string> ParamNames,
+							  const std::vector<std::pair<double,double> > AllParams,
+							  double & t_read,
+							  int & readcounter,
+							  int & buffersize,
+							  const std::string DataCollectedbase_dir,
+							  std::vector< int > & filesizes,
+							  double & t_write,
+							  int & writecounter,
+							  const int newfilethreshold,
+							  const int myid){
+	
+	double t1;
+	
+	
+	// Collect the Data
+	for (int j = 0; j < numfiles;++j){
+		
+		
+		//get data from file
+#ifdef timingstep2
+		t1= omp_get_wtime();
+#endif
+		
+		runningfile[j].append(AppendData(linenumber,
+										 TheFiles[j].filename,
+										 ParamNames,
+										 AllParams));
+#ifdef verbosestep2
+		std::cout << "read in from file " << TheFiles[j].filename << std::endl;
+#endif
+		
+		
+#ifdef timingstep2
+		t_read += omp_get_wtime() - t1;
+		readcounter++; //increment the counter
+#endif
+		
+		
+		//if big enough
+		if (int(runningfile[j].size()) > buffersize){
+			std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);
+			filesizes[j] += int(runningfile[j].size());
+#ifdef verbosestep2
+			std::cout << "writing data to " << target_file << " from worker " << myid << std::endl;
+#endif
+#ifdef timingstep2
+			t1= omp_get_wtime();
+#endif
+			
+			WriteData(runningfile[j],
+					  target_file,
+					  ParamNames);
+			
+#ifdef timingstep2
+			t_write += omp_get_wtime() - t1;
+			writecounter++; //increment the counter
+#endif
+			runningfile[j].clear();//reset the string
+			if (filesizes[j] > newfilethreshold) { //update the file count
+				TheFiles[j].filecount+=1;
+				filesizes[j] = 0;
+			}
+		}
+		
+		
+	}
+	return true;
+}
+
+
+
+
+std::string AppendData(int runid,
+					   std::string orig_file,
 					   std::vector<std::string> ParamStrings,
 					   std::vector<std::pair<double, double> > CValues){
 	
@@ -92,6 +170,7 @@ int GetStart(std::string dir,
 	
 	if (!fin.is_open()) {
 		std::cout << "failed to open specified solutions file: " << startstring <<"\n";
+		exit(721);
 	}
 	
 	getline(fin,copyme);
@@ -239,6 +318,7 @@ void GetRandomValues(std::string base_dir,
 	
 	if (!fin.is_open()) {
 		std::cout << "failed to open randfilename: " << randfilename << "\n";
+		exit(731);
 	}
 	
 	int ccount=0;
@@ -253,15 +333,16 @@ void GetRandomValues(std::string base_dir,
 		myss >> crandimaginary;
 		RandomValues[ccount].first = crandreal;
 		RandomValues[ccount].second = crandimaginary;
-		std::cout << "Parameter" << ccount
+		std::cout << "random values:" << std::endl
+		<< "Parameter" << ccount
 		<< " = "
 		<< RandomValues[ccount].first 
 		<< " + "
 		<< RandomValues[ccount].second
-		<< "*I\n";
+		<< "*I" << std::endl;
 		++ccount;
 	}
-	std::cout << "\n";
+	std::cout << std::endl;
 	fin.close();
 	//end get random values
 	
@@ -407,17 +488,18 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 	std::stringstream ss, writess;
 	std::ofstream fout;
 	fout.open("num.out");
-	
+	if (!fout.is_open()) {
+		std::cerr << "failed to open num.out" << std::endl;
+		exit(741);
+	}
 	
 	
 	
 	//write the first two lines
-	//fout << Numoutvector[0] << "\n" << Numoutvector[1] << "\n";
 	writess << Numoutvector[0] << "\n" << Numoutvector[1] << "\n";
 
 	//write the random values associated with this run:
 	for (int ii=0; ii<2*numparam; ++ii) {
-		//fout << Numoutvector[ii+2] << "\n";
 		writess << Numoutvector[ii+2] << "\n";
 
 	}
@@ -425,7 +507,6 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 	//write the parameter lines
 	for (int ii = 0; ii<numparam; ++ii) {
 		if (AllParams[ii].first==0) {
-			//fout << "0/1 ;\n";
 			writess << "0/1 ;\n";
 		}
 		else {
@@ -437,13 +518,11 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 			//make a call from the bertini library 
 			computeNumDenom(&numer, &denom, (char *) convertmetochar.c_str());
 			
-			//fout << numer << "/" << denom << " ;\n";
 			writess << numer << "/" << denom << " ;\n";
 		}
 		
 		
 		if (AllParams[ii].second==0) {
-			//fout << "0/1 ;\n";
 			writess << "0/1 ;\n";
 		}
 		else {
@@ -453,14 +532,12 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 			ss.str("");
 			
 			computeNumDenom(&numer, &denom, (char *) convertmetochar.c_str());
-			//fout << numer << "/" << denom << " ;\n";
 			writess << numer << "/" << denom << " ;\n";
 		}
 		
 	}
 	
 	for (int ii = (2+4*numparam); ii< int(Numoutvector.size())-1; ++ii) {
-		//fout << Numoutvector[ii] << "\n";
 		writess << Numoutvector[ii] << "\n";
 	}
 	

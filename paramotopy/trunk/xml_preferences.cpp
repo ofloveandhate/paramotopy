@@ -152,9 +152,13 @@ std::string ProgSettings::WriteConfigFail(){
 
 
 void ProgSettings::default_main_values(){
+	
 	setValue("MainSettings","newrandom_newfolder",0);
 	setValue("MainSettings","previousdatamethod",1);
 	setValue("MainSettings","startfilename","nonsingular_solutions");
+	setValue("MainSettings","deletetmpfilesatend",1);
+	
+	return;
 }
 
 
@@ -168,7 +172,7 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 	setValue("Step1Settings","PRINTPATHMODULUS",20);
 	setValue("Step1Settings","IMAGTHRESHOLD",1e-4);
 	setValue("Step1Settings","SECURITYLEVEL",0);
-	setValue("Step1Settings", "USERHOMOTOPY", 0);
+	setValue("Step1Settings","USERHOMOTOPY", 0);
 	ProgSettings::save();
 	return;
 }
@@ -215,7 +219,7 @@ void ProgSettings::GetProgramLocationManual(std::string program_name, std::strin
 	size_t found;
 	std::string path_to_detect;
 	std::cout << "please supply the path to " << program_name << ".  (% cancels) \n: \n";
-	std::cin >> path_to_detect;
+	path_to_detect = getAlphaNumeric();
 	
 	path_to_detect = replace_tilde_with_home(path_to_detect);
 	
@@ -228,7 +232,7 @@ void ProgSettings::GetProgramLocationManual(std::string program_name, std::strin
 	temp_path /= program_name;
 	while (! boost::filesystem::exists(temp_path)) {
 		std::cout << program_name << " program not found at " << temp_path.string() << ".  please supply the path (% cancels)\n: \n";
-		std::cin >> path_to_detect;
+		path_to_detect = getAlphaNumeric();
 		found=path_to_detect.find('%');
 		if ( (int(found)==0) ) {
 			return;
@@ -314,12 +318,12 @@ void ProgSettings::FindProgram(std::string program_name, std::string category_na
 	if (found_program == false){
 		std::string path_to_detect;
 		std::cout << program_name << " program not found in current directory or PATH.\nplease supply the path to " << program_name << ".\n: ";
-		std::cin >> path_to_detect;
+		path_to_detect = getAlphaNumeric();
 		boost::filesystem::path temp_path(path_to_detect);
 		temp_path /= program_name;
 		while (! boost::filesystem::exists(temp_path)) {
 			std::cout << program_name << " program not found at that location.  please supply the path: \n";
-			std::cin >> path_to_detect;
+			path_to_detect = getAlphaNumeric();
 			temp_path = boost::filesystem::path(path_to_detect);
 			temp_path /= program_name;
 		}
@@ -433,6 +437,10 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 11:
 			ProgSettings::GetStartFileName();
 			break;
+
+		case 13:
+			ProgSettings::GetDeleteTmpFiles();
+			break;
 		default:
 			std::cout << "GetPref code not yet written for case " << settingcase << "\n"; 
 			break;
@@ -442,7 +450,10 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 
 
 //checks whether have a set of required settings
-void ProgSettings::setRequiredValues(){
+bool ProgSettings::setRequiredValues(){
+	
+	bool made_changes = false;
+	
 	std::stringstream menustream;
 	std::map<std::string,int>::iterator iter;
 	
@@ -458,6 +469,7 @@ void ProgSettings::setRequiredValues(){
 	main_required_values["step2location"] = 9;
 	main_required_values["buffersize"] = 10;
 	main_required_values["startfilename"] = 11;
+	main_required_values["deletetmpfilesatend"] = 13;
 //adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
 	
 	
@@ -465,9 +477,10 @@ void ProgSettings::setRequiredValues(){
 	for (iter=main_required_values.begin(); iter != main_required_values.end(); iter++) {
 		if (settings["MainSettings"].find( (*iter).first) == settings["MainSettings"].end() ) {
 			ProgSettings::RequiredSettingsSwitcharoo( (*iter).second );
+			made_changes = true;
 		}
 	}
-	return;
+	return made_changes;
 };
 
 
@@ -518,7 +531,7 @@ void ProgSettings::GetArchitecture(){ //case 1
 			break;
 		case 2:
 			std::cout << "enter your own command:\n";
-			std::cin >> valstr;
+			valstr = getAlphaNumeric_WithSpaces();
 			break;
 		default:
 			//how did you get here?
@@ -531,17 +544,56 @@ void ProgSettings::GetArchitecture(){ //case 1
 };
 
 void ProgSettings::GetMachineFile(){
-	std::string valstr;
+	std::string valstr = "";
 	int valint = get_int_choice("Does your machine use a machinefile?\n0) No.\n1) Yes.\n: ",0,1);
-	setValue("MainSettings","usemachine",valint);
+	
+	
+	
+	
 	if (valint==1) {
+		boost::filesystem::path home(getenv("HOME"));
+		size_t found;
+		
+		while (1) {
+			std::cout << "Enter the machine file to be used, relative to your home directory:  (% cancels)" << std::endl;
+			
+			
+			if (settings["MainSettings"].find("machinefile") != settings["MainSettings"].end()) {
+				std::cout << "     enter @ to use previous machinefile " << this->settings["MainSettings"]["machinefile"].value() << std::endl;
+			}
+			
+			valstr = getAlphaNumeric();
+			
+			
+
+
+			found=valstr.find('%');
+			if ( (int(found)==0) && (settings["MainSettings"].find("usemachine") != settings["MainSettings"].end())   ) {
+				return;
+			}
+			
+			found=valstr.find('@');
+			if ( (settings["MainSettings"].find("machinefile") != settings["MainSettings"].end())  &&  (int(found)==0)  ) {
+				valstr = this->settings["MainSettings"]["machinefile"].value();
+			}
+			
+			boost::filesystem::path testme = home;
+			testme /= valstr;
+			
+			if (boost::filesystem::exists(testme)) {
+				break;
+			}
+			else{
+				std::cout << "cannot find that file." << std::endl;
+			}
+		}
 		
 		
-		std::cout << "Enter the machine file to be used, relative to your home directory: ";
-		std::cin >> valstr;
 		
 		setValue("MainSettings","machinefile",valstr);		
 	}
+	
+	setValue("MainSettings","usemachine",valint);
 	return;
 };
 
@@ -553,10 +605,23 @@ void ProgSettings::GetNumProcs(){
 
 void ProgSettings::GetNumFilesTime(){
 		
-	int valint = get_int_choice("Enter step2 number of files at a time per processor: ",0,9000000);		
-	setValue("MainSettings","numfilesatatime",valint);
-	return;	
+	int valint = get_int_choice("Enter step2 number of files at a time per processor:   (0 for default of 400)",0,9000000);
+	
+	if (valint==0){
+		setValue("MainSettings","numfilesatatime",400);
+	}
+	else{
+		setValue("MainSettings","numfilesatatime",valint);
+	}
+	return;
 };
+
+void ProgSettings::GetDeleteTmpFiles(){
+	int val = get_int_choice("Delete temp files at end of runs?  (0 for no, 1 for yes)\n:",0,1);
+	setValue("MainSettings","deletetmpfilesatend",val);
+	return;
+};
+
 
 void ProgSettings::GetSaveProgress(){
 	
@@ -568,7 +633,7 @@ void ProgSettings::GetSaveProgress(){
 
 void ProgSettings::GetNewFileThresh(){
 
-	std::stringstream menustream;
+
 	int val = get_int_choice("Threshold in bytes for new data file \n (press 0 for default of 67108864 = 2^26): ",0,2147483647);
 	if (val == 0) {
 		setValue("MainSettings","newfilethreshold",67108864);
@@ -623,7 +688,7 @@ void ProgSettings::GetTemporaryFileLocation(){
 			if (choice==tmpfile_location_possibilities.size()) {
 				std::string tmplocation;
 				std::cout << "where should the root directory for temp files be?\n: " << std::endl;
-				std::cin >> tmplocation;
+				tmplocation = getAlphaNumeric();
 				setValue("MainSettings","tempfilelocation",tmplocation);
 			}
 			else{
@@ -634,7 +699,7 @@ void ProgSettings::GetTemporaryFileLocation(){
 			std::string tmplocation;
 			std::cout << "Did not find any of the standard places to look for shared memory access :(\n\n";
 			std::cout << "where should the root directory for temp files be?  (% cancels, and chooses not to use ramdisk)\n: " << std::endl;
-			std::cin >> tmplocation;
+			tmplocation = getAlphaNumeric();
 			found=tmplocation.find('%');
 			if ( (int(found)==0) ) {
 				setValue("MainSettings","useramdisk",0);
@@ -670,7 +735,6 @@ void ProgSettings::GetStifle(){
 //
 void ProgSettings::GetStepTwoLocation(){
 	std::stringstream menustream;
-	
 	
 	setValue("MainSettings","step2location",".");
 	return;	
@@ -767,6 +831,8 @@ int ProgSettings::SaveCategoryToXml(std::string catname, settingmap curr_setting
 //attempts to open the pFilename.  if cannot, checks for required values.  also goes through reset if xml file is broken.
 void ProgSettings::load(const char* pFilename){
 
+	bool changesmade=false;
+	
 	filename = pFilename;  //changes this data member of the ProgSettings variable
 	std::cout << "loading preferences from " << filename << "\n";
 	TiXmlDocument* doc = new TiXmlDocument(pFilename);
@@ -788,6 +854,7 @@ void ProgSettings::load(const char* pFilename){
 		ProgSettings::default_main_values();
 		ProgSettings::GetParallel();
 		//ProgSettings::SetSaveFiles(); no need.  do at end of function;
+		changesmade=true;
 	}
 	else {
 		TiXmlHandle hDoc(doc);
@@ -800,6 +867,7 @@ void ProgSettings::load(const char* pFilename){
 
 		if (!pElem) {
 			std::cerr << "bad xml file for prefs.  :( todo: check for backup\n";
+			changesmade=true;
 		}
 		else{
 			std::string main_name =pElem->Value();  //unused?
@@ -814,15 +882,23 @@ void ProgSettings::load(const char* pFilename){
 	}
 	
 	
-	ProgSettings::setRequiredValues();  //check for required settings, and set them if not found already.
+	bool made_changes_here = ProgSettings::setRequiredValues();  //check for required settings, and set them if not found already.
+	
+	if (made_changes_here) {
+		changesmade = true;
+	}
+	
 	if (!ProgSettings::CheckPrevSetFiles()) {
 		ProgSettings::SetSaveFiles();
+		changesmade=true;
 	}
 	
 	ProgSettings::FindProgram("step2","MainSettings","step2location");
 	ProgSettings::FindProgram("bertini","MainSettings","bertinilocation");
 	
-	ProgSettings::save();
+	if (changesmade) {
+		ProgSettings::save();
+	}
 }
 
 //for reading individual settings categories from the xml file.
@@ -957,11 +1033,12 @@ void ProgSettings::GeneralMenu(){
 		<< "3) Manually set location of bertini executable\n"
 		<< "4) Manually set location of step2 executable\n"
 		<< "5) Set the file to use for step2 start file\n"
+		<< "6) Deletion of tmp files\n"
 		<< "*\n"
 		<< "0) go back\n"
 		<< "\n: ";
 	while (choice!=0) {
-		choice = get_int_choice(menu.str(),0,5);
+		choice = get_int_choice(menu.str(),0,6);
 		
 		switch (choice) {
 			case 0:
@@ -987,7 +1064,13 @@ void ProgSettings::GeneralMenu(){
 			case 5:
 				ProgSettings::GetStartFileName();
 				break;
+				
+			case 6:
+				ProgSettings::GetDeleteTmpFiles();
+				break;
+				
 			default:
+				//seriously, how did you get here?
 				break;
 		}
 		ProgSettings::save();
@@ -1018,7 +1101,7 @@ void ProgSettings::ParallelismMenu(){
 	
 	while (choice!=0) {
 		ProgSettings::DisplayCurrentSettings("MainSettings");
-		choice = get_int_choice(menu.str(),0,9);
+		choice = get_int_choice(menu.str(),0,10);
 		
 		switch (choice) {
 			case 0:
@@ -1059,6 +1142,7 @@ void ProgSettings::ParallelismMenu(){
 			case 9:
 				ProgSettings::GetNewFileThresh();
 				break;
+				
 				
 			default:
 				std::cout << "somehow an unacceptable entry submitted :(\n";
@@ -1213,7 +1297,7 @@ void ProgSettings::ChangeSetting(std::string category_name){
 	
 	while ( 1 ) {
 		std::cout << "what is the exact name of setting?   % cancels\n: ";
-		std::cin >> setting_name;
+		setting_name = getAlphaNumeric();
 		
 		boost::to_upper(setting_name);
 		
@@ -1233,7 +1317,8 @@ void ProgSettings::ChangeSetting(std::string category_name){
 //	int typeint = get_int_choice("what is the type of the setting? \n string: 0\n integer / 0-1 bool: 1\n float/double: 2\n\n:",0,2);
 	std::cout << "new value\n:";
 	std::string newvalue;
-	std::cin >> newvalue;
+	newvalue = getAlphaNumeric();  // do type-specific stuff in the switch below.
+	
 	std::stringstream converter;
 	int intie;
 	double doubie;
@@ -1265,7 +1350,7 @@ void ProgSettings::AddSetting(std::string category_name){
 	
 
 	std::cout << "what is the exact name of setting?     % cancels\n: ";
-	std::cin >> setting_name;
+	setting_name = getAlphaNumeric();
 	
 	boost::to_upper(setting_name);
 	
@@ -1282,15 +1367,12 @@ void ProgSettings::AddSetting(std::string category_name){
 		<< setting_name
 		<< "?\n 0 = string\n 1 = integer / 0-1 bool\n 2= float/double\n\n:";
 	int typeint = get_int_choice(prompt.str(),0,2);
-	
-	std::cin.clear();
-	std::cin.ignore( 1000, '\n' );
+
 	
 	std::cout << "enter setting value" << std::endl <<  ": ";
 	
-	char newvalue[256];
-	std::cin.getline(newvalue,256,'\n');
 
+	std::string newvalue = getAlphaNumeric();
 	std::stringstream converter;
 	converter << newvalue;
 	int intie;
@@ -1324,7 +1406,7 @@ void ProgSettings::RemoveSetting(std::string category_name){
 	while (1) {
 		
 		std::cout << "what is the exact name of setting?    % cancels\n";
-		std::cin >> setting_name;
+		setting_name = getAlphaNumeric();
 		
 		boost::to_upper(setting_name);
 		

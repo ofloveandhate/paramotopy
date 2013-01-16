@@ -55,11 +55,12 @@ extern "C" {
 
 
 int main(int argc, char* argv[]){
-
+	srand(time(NULL));
+	
 	
 	int numfilesatatime;//added march7,11 db
 	int saveprogresseverysomany;
-	int devshm, newfilethreshold, buffersize, step2mode;
+	int devshm, newfilethreshold, buffersize, steptwomode;
 	int myid;
 	int numprocs;
 	int namelen;
@@ -151,7 +152,7 @@ int main(int argc, char* argv[]){
 		  commandss >> sharedmemorylocation;
 	  }
 	  
-	  commandss >> step2mode;
+	  commandss >> steptwomode;
 	  
 	  commandss.clear();
 	  commandss.str("");
@@ -207,6 +208,35 @@ int main(int argc, char* argv[]){
 			<< filename << "/tmpstep2"  ;
 
 	
+	std::string homedir = getenv("HOME");
+	std::string settingsfilename = homedir;
+	settingsfilename.append("/.paramotopy/paramotopyprefs.xml");
+	
+	if (!boost::filesystem::exists(settingsfilename)) {
+		std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! id:" << myid << std::endl;
+		exit(-219);
+	}
+	
+
+	ProgSettings paramotopy_settings(settingsfilename);
+	paramotopy_settings.load();
+	
+
+	
+	runinfo paramotopy_info;  //holds all the info for the run
+	
+	paramotopy_info.GetInputFileName(filename); //dear god please don't fail to find the file.
+	paramotopy_info.ParseData(location);
+	paramotopy_info.location = location;
+	paramotopy_info.steptwomode = steptwomode;
+	
+	
+	//get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.
+	GetRandomValues(paramotopy_info.location,
+					paramotopy_info.RandomValues);
+	
+	
+	
      //the main body of the program is here:
 	if (myid==headnode){
 	  
@@ -214,8 +244,9 @@ int main(int argc, char* argv[]){
 			   numfilesatatime, 
 			   saveprogresseverysomany,
 			   called_dir,
-			   location,
-			   step2mode);
+			   steptwomode,
+			   paramotopy_settings,
+			   paramotopy_info);
 	}
 	else{
 
@@ -228,7 +259,9 @@ int main(int argc, char* argv[]){
 			  tmpfolder.str(),
 			  newfilethreshold,
 			  location,
-			  buffersize);
+			  buffersize,
+			  paramotopy_settings,
+			  paramotopy_info);
 	}
 
 	
@@ -236,7 +269,7 @@ int main(int argc, char* argv[]){
 	int arbitraryinteger = 1;
 	MPI_Bcast(&arbitraryinteger, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	
-	if (myid==headnode) {
+	if (  (myid==headnode) && (paramotopy_settings.settings["MainSettings"]["deletetmpfilesatend"].intvalue==1) ) {
 		boost::filesystem::path temppath(tmpfolder.str());
 		boost::filesystem::remove_all(tmpfolder.str());
 	}

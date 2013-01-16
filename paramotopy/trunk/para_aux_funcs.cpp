@@ -194,30 +194,150 @@ void mkdirunix(std::string mydir){
 
 
 
+bool parseDouble( std::string const& text, double& results )
+{
+    std::istringstream parser( text );
+    return parser >> results >> std::ws && parser.peek() == EOF;
+}
+
+double getDouble()
+{
+	
+	
+	std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
+	std::cin.clear() ; // to be safe, clear error flags which may be set
+	
+    double results;
+    std::string line;
+	while (1){
+		while ( ! std::getline( std::cin, line )  )
+		{
+			
+			std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
+			std::cin.clear() ; // to be safe, clear error flags which may be set
+			
+		}
+		
+		if (! parseDouble( line, results )) {
+			std::cout << "Only 'numeric' value(s) allowed:" << std::endl;
+		}
+		else{
+			break;
+		}
+		
+	}
+    return results;
+}
+
+std::string getAlphaNumeric_WithSpaces(){
+	std::string tmpstr;
+	
+	while (!std::getline(std::cin,tmpstr)) {
+		std::cin.clear();
+	}
+	
+	std::cin.clear();
+	
+	return tmpstr;
+	
+};
+
+
+std::string getAlphaNumeric(){
+	std::string tmpstr;
+	
+	while (!std::getline(std::cin,tmpstr)) {
+		std::cin.clear();
+	}
+	
+	std::cin.clear();
+	
+	std::istringstream parser( tmpstr);
+	std::string returnme;
+	parser >> returnme;
+	return returnme;
+
+};
 
 
 
-//  use this function to get inout fro the user and ensure it is an interger (actually fails to detect non-integer numeric inputs
+bool parseInteger( std::string const& text, int& results )
+{
+    std::istringstream parser( text );
+    return parser >> results >> std::ws && parser.peek() == EOF;
+}
+
+int getInteger()
+{
+	
+	std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
+	std::cin.clear() ; // to be safe, clear error flags which may be set
+	
+    int results;
+    std::string line;
+	while (1){
+		while ( ! std::getline( std::cin, line )  )
+		{
+			
+			std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
+			std::cin.clear() ; // to be safe, clear error flags which may be set
+
+		}
+		
+		if (! parseInteger( line, results )) {
+			std::cout << "Only 'numeric' value(s) allowed:" << std::endl;
+		}
+		else{
+			break;
+		}
+		
+	}
+    return results;
+}
+
+
+//  use this function to get input from the user and ensure it is an integer (actually fails to detect non-integer numeric inputs
 int get_int_choice(std::string display_string,int min_value,int max_value){
 	
-	int userinput = min_value - 1;
+	std::cout << display_string;
 	
-	while (  (std::cout << display_string) && 
-		   ( !(std::cin >> userinput) || userinput < min_value || userinput > max_value))
+	int userinput = min_value - 1;
+
+	std::string tmpstr;
+	
+	while (1)
 	{
-		std::cout << "Invalid entry -- try again:\n";
-		std::cin.clear();
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		userinput = getInteger();
+		if (userinput <= max_value && userinput >= min_value){
+			break;
+		}
+		else{
+			std::cout << "value out of bounds." << std::endl;
+		}
     }
 	return userinput;
 }
 
+////  use this function to get inout fro the user and ensure it is an interger (actually fails to detect non-integer numeric inputs
+//int get_int_choice(std::string display_string,int min_value,int max_value){
+//	
+//	int userinput = min_value - 1;
+//	
+//	while (  (std::cout << display_string) &&
+//		   ( !(std::cin >> userinput) || userinput < min_value || userinput > max_value))
+//	{
+//		std::cout << "Invalid entry -- try again:\n";
+//		std::cin.clear();
+//		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+//    }
+//	return userinput;
+//}
 
 
 
 
 //the main choice function for paramotopy.
-int GetUserChoice(){
+int ParamotopyMainMenu(){
 	
 	std::stringstream menu;
 	

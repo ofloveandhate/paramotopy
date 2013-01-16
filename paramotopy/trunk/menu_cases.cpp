@@ -140,8 +140,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	
 #ifdef timingstep2
-	double t_start, t_initial, t_receive=0, t_send=0, t_write=0, t1,  t_read = 0, t_bertini = 0; //for timing the whatnot 
-	int readcounter = 0, writecounter = 0, sendcounter = 0, receivecounter = 0, bertinicounter = 0;
+	double t_start, t_initial=0, t_receive=0, t_send=0, t_write=0, t1,  t_read = 0, t_bertini = 0; //for timing the whatnot
+	int readcounter = 0, writecounter = 0, bertinicounter = 0;
 	t_start = omp_get_wtime();
 	std::ofstream timingout;
 	std::string timingname = paramotopy_info.location;
@@ -302,8 +302,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
 	
 	//NO double ParamSends[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into datacollected files
-	int I, J, index;
-	double a, b;//real and imaginary parts of the parameter values.
+	//int I, J, index;
+	//double a, b;//real and imaginary parts of the parameter values.
 	std::stringstream ssdeleteme;
 	
 int lastoutcounter=0;//for writing the lastnumsent file.  every so many, we write the file.

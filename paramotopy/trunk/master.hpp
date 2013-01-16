@@ -26,8 +26,9 @@ void master(std::string filename,
 			int numfilesatatime,
 			int saveprogresseverysomany,
 			std::string called_dir,
-			std::string location,
-			int step2mode);
+			int step2mode,
+			ProgSettings & paramotopy_settings,
+			runinfo & paramotopy_info);
 
 void FormNextValues(int numfilesatatime,
 						int numparam,

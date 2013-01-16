@@ -11,7 +11,10 @@
 #include "tinyxml.h"
 #include "para_aux_funcs.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
-
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/progress.hpp>
+#include <boost/regex.hpp>
 
 #ifndef __XMLPREFS__
 #define __XMLPREFS__
@@ -115,7 +118,7 @@ public:
 		save();};
 	void load(const char* pFilename);
 	void load() {load(filename.c_str());};
-	void setRequiredValues();
+	bool setRequiredValues();
 	
 	ProgSettings(std::string tempfilename) {filename = tempfilename;};
 	~ProgSettings() {};
@@ -149,6 +152,7 @@ public:
 	void GetMachineFile(); 
 	void GetNumProcs();
 	void GetNumFilesTime();
+	void GetDeleteTmpFiles();
 	
 	void GetStartFileName();
 	

@@ -4,11 +4,11 @@
 #i understand that including personal machine specifics is a bit selfish, but it's only until we start using a tool like configure
 #if you add a machine to this file, please add an option to this list.
 #machine can be:     sam - macbrake - cray - macniemerg
-MACHINE := sam
+MACHINE := macbrake
 
 
 #User-set options.  cannot use some options on the cray.  
-OPT  := -Wall  -g  -O3 -funroll-loops -fexpensive-optimizations # -g 
+OPT  := -Wall  -g  #-O3 -funroll-loops -fexpensive-optimizations # -g 
 
 #use timing info for step 2?  YES, or NO (or anything other than YES really)
 TIMING := YES
@@ -155,7 +155,7 @@ tinyxmlerror.o: tinyxml.h tinystr.h
 # Describe actions necessary to clean the current directory
 clean:
 	rm -f *.o paramotopy step2 *~
-
+	rm -rf paramotopy.dSYM step2.dSYM
 
 
 
