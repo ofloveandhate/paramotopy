@@ -232,19 +232,22 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 		std::cout << "will perform " << numlevels << "iterations this solve." << std::endl;
 		
 		std::vector< bool> current_folders_are_basic;
-		for (int ii=0; ii<folders_with_data.size(); ++ii) {
-			current_folders_are_basic.push_back(true);
-		}
+
 		
 		
-		std::vector< std::string > current_folders = folders_with_data; // seed
+		std::vector< std::string > next_folders = folders_with_data; // seed
 		std::vector< std::string > next_folders;  
 		std::vector< bool > next_folders_are_basic;
-		
+		for (int ii=0; ii<folders_with_data.size(); ++ii) {
+			next_folders_are_basic.push_back(true);
+		}
 		
 		int current_num_folders;
 		for (int ii = 0; ii<numlevels; ++ii) {
+			
+			current_folders = next_folders;
 			current_num_folders = current_folders.size();
+			current_folders_are_basic = next_folders_are_basic;
 			
 			next_folders.clear();
 			next_folders_are_basic.clear();
@@ -277,9 +280,7 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 				next_folders.push_back(current_folders[current_num_folders-1]); // put the last folder on (-1) for zero indexing
 				next_folders_are_basic.push_back(true);
 			}
-			
-			current_folders = next_folders;
-			
+						
 		}
 		
 		
