@@ -90,7 +90,7 @@ endif
 
 
 # Define the object files to be used
-OBJScommon :=  point.o datagatherer.o failed_paths.o menu_cases.o master.o slave.o step2readandwrite.o runinfo.o mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o tinyxmlerror.o tinyxml.o tinystr.o tinyxmlparser.o  xml_preferences.o 
+OBJScommon :=  point.o datagatherer.o failed_paths.o menu_cases.o master.o slave.o step2readandwrite.o runinfo.o mtrand.o random.o step2_funcs.o step1_funcs.o para_aux_funcs.o timing.o tinyxmlerror.o tinyxml.o tinystr.o tinyxmlparser.o  xml_preferences.o 
 
            
 # Define Libary Locations

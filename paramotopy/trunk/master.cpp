@@ -13,7 +13,9 @@ void master(std::string filename,
 			std::string called_dir,
 			int steptwomode,
 			ProgSettings & paramotopy_settings,
-			runinfo & paramotopy_info){
+			runinfo & paramotopy_info,
+			timer & process_timer)
+{
 	
 	
 #ifdef verbosestep2
@@ -43,16 +45,6 @@ void master(std::string filename,
 	
 	
 	
-#ifdef timingstep2
-	double t_start, t_initial, t_receive=0, t_send=0, t_write=0, t1;//, t2, t3, t4, t_end; //for timing the whatnot
-	int writecounter = 0, sendcounter = 0, receivecounter = 0;
-	t_start = omp_get_wtime();
-	std::ofstream timingout;
-	std::string timingname = paramotopy_info.location;
-	timingname.append("/timing/mastertiming");
-#endif
-	
-	
 	
 	/* Find out how many processes there are in the default
      communicator */
@@ -75,10 +67,7 @@ void master(std::string filename,
 	//GetLastNumSent(paramotopy_info.location,  //reads from two files.
 	//lastnumsent, // assigns this vector here
 	//numprocs);
-#ifdef verbosestep2
-	std::cout << smallestnumsent << "\n";
-#endif
-	
+
 	
 	
 	
@@ -125,14 +114,17 @@ void master(std::string filename,
 	
 	
 	
-	
-	
+#ifdef verbosestep2
+	process_timer.press_start("read");
+#endif
 	// read in the start file
 	std::string start;
 	GetStart(paramotopy_info.location,
 			 start,  //   <--   reads into memory here
 			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
-	
+#ifdef verbosestep2
+	process_timer.add_time("read");
+#endif
 	
 	///////////////////
 	//
@@ -189,7 +181,7 @@ void master(std::string filename,
 	std::cout << myid << " master is telling workers the number of chars to expect." << std::endl;
 #endif
 #ifdef timingstep2
-	t1 = omp_get_wtime();
+	process_timer.press_start("send");
 #endif
 	
 	for (int ii = 1; ii < numprocs; ++ii){
@@ -197,8 +189,7 @@ void master(std::string filename,
 		MPI_Send(&vectorlengths[0], 2, MPI_INT, ii, 12, MPI_COMM_WORLD);
 	}
 #ifdef timingstep2
-	t_send += omp_get_wtime()-t1;
-	sendcounter++;
+	process_timer.add_time("send",numprocs-1);
 #endif
 	
 	
@@ -215,14 +206,13 @@ void master(std::string filename,
 	start_send[start.size()] = '\0';
 	
 #ifdef timingstep2
-	t1 = omp_get_wtime();
+	process_timer.press_start("send");
 #endif
 	for (int ii = 1; ii < numprocs; ++ii){
 		MPI_Send(&start_send[0], vectorlengths[0], MPI_CHAR, ii, 13, MPI_COMM_WORLD);
 	}
 #ifdef timingstep2
-	t_send += omp_get_wtime()-t1;
-	sendcounter = sendcounter+numprocs-1;
+	process_timer.add_time("send",numprocs-1);
 #endif
 	
 	
@@ -235,14 +225,13 @@ void master(std::string filename,
 	input_send[inputstring.size()] = '\0';
 	
 #ifdef timingstep2
-	t1 = omp_get_wtime();
+	process_timer.press_start("send");
 #endif
 	for (int i = 1; i < numprocs; ++i){
 		MPI_Send(&input_send[0], vectorlengths[1], MPI_CHAR, i, 14, MPI_COMM_WORLD);
 	}
 #ifdef timingstep2
-	t_send += omp_get_wtime()-t1;
-	sendcounter = sendcounter+numprocs-1;  //one for each worker
+	process_timer.add_time("send",numprocs-1);  //one for each worker
 #endif
 	
 
@@ -312,11 +301,7 @@ void master(std::string filename,
 	
 	
 	
-#ifdef timingstep2
-	t_initial = omp_get_wtime() - t_start;
-#endif
-	
-	
+
 	
 
 	
@@ -435,7 +420,7 @@ void master(std::string filename,
 			
 			
 #ifdef timingstep2
-			t1 = omp_get_wtime();
+			process_timer.press_start("write");
 #endif
 			//write the mc line, but only if on an automated mesh
 			if (!paramotopy_info.userdefined) {
@@ -447,8 +432,7 @@ void master(std::string filename,
 			
 			
 #ifdef timingstep2
-			t_write+= omp_get_wtime() - t1;
-			writecounter++;
+			process_timer.add_time("write");
 #endif
 			
 			//increment
@@ -500,7 +484,7 @@ void master(std::string filename,
 		
 		
 #ifdef timingstep2
-		t1 = omp_get_wtime();
+		process_timer.press_start("send");
 #endif
 		
 		
@@ -514,8 +498,7 @@ void master(std::string filename,
 				 sendymcsendsend,           /* user chosen message tag */
 				 MPI_COMM_WORLD);   /* default communicator */
 #ifdef timingstep2
-		t_send += omp_get_wtime()-t1;
-		sendcounter++;
+		process_timer.add_time("send");
 #endif
 		delete[] tempsends;
 	}//re: initial sends
@@ -562,7 +545,7 @@ void master(std::string filename,
 		
 		
 #ifdef timingstep2
-		t1 = omp_get_wtime();
+		process_timer.press_start("receive");
 #endif
 		/* Receive results from a slave */
 		MPI_Recv(&filereceived,       /* message buffer */
@@ -575,12 +558,9 @@ void master(std::string filename,
 		
 		
 #ifdef timingstep2
-		t_receive+= omp_get_wtime() - t1;
-		receivecounter++;
+		process_timer.add_time("receive");
 #endif
-#ifdef verbosestep2
-		std::cout << "received from : " << status.MPI_SOURCE << "\n";
-#endif
+
 		
 		
 		
@@ -590,26 +570,34 @@ void master(std::string filename,
 		
 		localcounter=0;
 		for (int i = (status.MPI_SOURCE-1)*numfilesatatime; i < (status.MPI_SOURCE-1)*numfilesatatime+numtodo; ++i){
+			
+			
 			if (paramotopy_info.userdefined) {
+#ifdef timingstep2
+				process_timer.press_start("read");
+#endif
 				FormNextValues_mc(numfilesatatime,paramotopy_info.numparam,localcounter,countingup,mc_in_stream,tempsends);
+#ifdef timingstep2
+				process_timer.add_time("read");
+#endif
 			}
 			else {
 				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,KVector,tempsends);
-			}
-			
 #ifdef timingstep2
-			t1 = omp_get_wtime();
+				process_timer.press_start("write");
 #endif			//write the mc line if not userdefined
-			if (!paramotopy_info.userdefined) {
+
 				for (int j=0; j<paramotopy_info.numparam; ++j) {
 					mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
 				}
-				mc_out_stream << "\n";
-			}
+				mc_out_stream << std::endl;
 #ifdef timingstep2
-			t_write+= omp_get_wtime()-t1;
-			writecounter++;
+				process_timer.press_start("write");
 #endif
+			}
+			
+
+
 			//increment
 			localcounter++;
 			countingup++;
@@ -618,11 +606,8 @@ void master(std::string filename,
 		
 		
 #ifdef timingstep2
-		t1 = omp_get_wtime();
+		process_timer.press_start("send");
 #endif
-		
-		
-		
 		/* Send the slave a new work unit */
 		MPI_Send(&tempsends[0],             /* message buffer */
 				 numfilesatatime*(2*paramotopy_info.numparam+1),                 /* how many data items */
@@ -631,17 +616,22 @@ void master(std::string filename,
 				 numtodo,           /* user chosen message tag */
 				 MPI_COMM_WORLD);   /* default communicator */
 #ifdef timingstep2
-		t_send+= omp_get_wtime()-t1;
-		sendcounter++;
+		process_timer.add_time("send");
 #endif
 		
 		
 		
 		lastnumsent[status.MPI_SOURCE] = smallestnumsent;//int(tempsends[(2*numparam)]);
 		
-		if ((lastoutcounter%saveprogresseverysomany)==0) {
+		{
+			
+			std::stringstream tempss;
+			for (int i=1; i<numprocs; ++i) {
+				tempss << lastnumsent[i] << "\n";
+			}
+			
 #ifdef timingstep2
-			t1 = omp_get_wtime();
+			process_timer.press_start("write");
 #endif
 			std::ofstream lastout;
 			if (lastoutcounter%(2*saveprogresseverysomany)==0) {
@@ -650,20 +640,15 @@ void master(std::string filename,
 			else {
 				lastout.open(lastoutfilename0.c_str());
 			}
-			
-			std::stringstream tempss;
-			for (int i=1; i<numprocs; ++i) {
-				tempss << lastnumsent[i] << "\n";
-			}
+
 			lastout << tempss.str();
-			tempss.clear();
-			tempss.str("");
 			lastout.close();
-			
+			lastout.clear();
 #ifdef timingstep2
-			t_write += omp_get_wtime() - t1;
-			writecounter++;
+			process_timer.add_time("write");
 #endif
+			
+			
 		}
 		
 		lastoutcounter++;//essentially counts this loop.  will take mod 10, for the time being, and if 0, will write lastout
@@ -690,11 +675,12 @@ void master(std::string filename,
 	
 	
 	for (rank = 1; rank < numprocs; ++rank) {
+	
+		
 		
 #ifdef timingstep2
-		t1 = omp_get_wtime();
+		process_timer.press_start("receive");
 #endif
-		
 		MPI_Recv(&filereceived,
 				 1,
 				 MPI_INT,
@@ -702,37 +688,31 @@ void master(std::string filename,
 				 MPI_ANY_TAG,
 				 MPI_COMM_WORLD,
 				 &status);
-		
-		
-		
-		
 #ifdef timingstep2
-		t_receive += omp_get_wtime() - t1;
-		receivecounter++;
+		process_timer.add_time("receive");
 #endif
+		
+		
 		
 #ifdef verbosestep2
 		std::cout << "finally received from " << status.MPI_SOURCE << "\n";
 		std::cout << "Sending kill tag to rank " << int(status.MPI_SOURCE) << "\n";
 #endif
+		
+		
 #ifdef timingstep2
-		t1 = omp_get_wtime();
+		process_timer.press_start("send");
 #endif
-		
-		
-		
-		
 		MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, int(status.MPI_SOURCE), 0, MPI_COMM_WORLD);//send everybody the kill signal.
 #ifdef timingstep2
-		t_send += omp_get_wtime()-t1;
-		sendcounter++;
+		process_timer.add_time("send");
 #endif
 		
 	}
 	
 	
 #ifdef timingstep2
-	t1 = omp_get_wtime();
+	process_timer.press_start("write");
 #endif
 	
 	mc_out_stream.close();
@@ -742,22 +722,7 @@ void master(std::string filename,
 	fout.close();
 	
 #ifdef timingstep2
-	t_write += omp_get_wtime() - t1;
-	writecounter++;
-#endif
-	
-	
-#ifdef timingstep2
-	timingout.open(timingname.c_str(),std::ios::out);
-	if (!timingout.is_open()) {
-		std::cerr << "master timing out file " << timingname << "failed to open" << std::endl;
-	}
-	timingout <<  "initialize: " << t_initial << "\n"
-	<< "write time: " << t_write << "\n"
-	<< "send time: " << t_send << "\n"
-	<< "receive time: " << t_receive << "\n"
-	<< "total time: " << omp_get_wtime() - t_start << "\n";
-	timingout.close();
+	process_timer.add_time("write");
 #endif
 	
 	
