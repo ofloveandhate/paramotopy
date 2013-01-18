@@ -16,40 +16,31 @@ bool SlaveCollectAndWriteData(int & numfiles,
 							  ToSave * TheFiles,
 							  const std::vector<std::string> ParamNames,
 							  const std::vector<std::pair<double,double> > AllParams,
-							  double & t_read,
-							  int & readcounter,
 							  int & buffersize,
 							  const std::string DataCollectedbase_dir,
 							  std::vector< int > & filesizes,
-							  double & t_write,
-							  int & writecounter,
 							  const int newfilethreshold,
-							  const int myid){
+							  const int myid,
+							  timer & process_timer){
 	
-	double t1;
-	
-	
+
 	// Collect the Data
 	for (int j = 0; j < numfiles;++j){
 		
 		
 		//get data from file
 #ifdef timingstep2
-		t1= omp_get_wtime();
+		process_timer.press_start("read");
 #endif
 		
 		runningfile[j].append(AppendData(linenumber,
 										 TheFiles[j].filename,
 										 ParamNames,
 										 AllParams));
-#ifdef verbosestep2
-		std::cout << "read in from file " << TheFiles[j].filename << std::endl;
-#endif
 		
 		
 #ifdef timingstep2
-		t_read += omp_get_wtime() - t1;
-		readcounter++; //increment the counter
+		process_timer.add_time("read");
 #endif
 		
 		
@@ -61,7 +52,7 @@ bool SlaveCollectAndWriteData(int & numfiles,
 			std::cout << "writing data to " << target_file << " from worker " << myid << std::endl;
 #endif
 #ifdef timingstep2
-			t1= omp_get_wtime();
+			process_timer.press_start("write");
 #endif
 			
 			WriteData(runningfile[j],
@@ -69,8 +60,7 @@ bool SlaveCollectAndWriteData(int & numfiles,
 					  ParamNames);
 			
 #ifdef timingstep2
-			t_write += omp_get_wtime() - t1;
-			writecounter++; //increment the counter
+			process_timer.add_time("write");
 #endif
 			runningfile[j].clear();//reset the string
 			if (filesizes[j] > newfilethreshold) { //update the file count

@@ -16,6 +16,8 @@
 #include <omp.h>
 #include "bertini_funcs.hpp"
 #include "step2_funcs.hpp"
+#include "timing.hpp"
+
 
 #ifndef __STEP2READANDWRITE_H__
 #define __STEP2READANDWRITE_H__
@@ -26,15 +28,12 @@ bool SlaveCollectAndWriteData(int & numfiles,
 							  ToSave * TheFiles,
 							  const std::vector<std::string> ParamNames,
 							  const std::vector<std::pair<double,double> > AllParams,
-							  double & t_read,
-							  int & readcounter,
 							  int & buffersize,
 							  const std::string DataCollectedbase_dir,
 							  std::vector< int > & filesizes,
-							  double & t_write,
-							  int & writecounter,
 							  const int newfilethreshold,
-							  const int myid);
+							  const int myid,
+							  timer & process_timer);
 
 std::string AppendData(int runid, 
 				std::string orig_file, 

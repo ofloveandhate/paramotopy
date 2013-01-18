@@ -18,7 +18,7 @@
 #include "random.hpp"
 #include "step2readandwrite.hpp"
 #include "bertini_funcs.hpp"
-
+#include "timing.hpp"
 
 #ifndef __SLAVE_H_INCLUDED__
 #define __SLAVE_H_INCLUDED__
@@ -43,7 +43,8 @@ void slave(ToSave *TheFiles,
 		   std::string location,
 		   int buffersize,
 		   ProgSettings & paramotopy_settings,
-		   runinfo & paramotopy_info);
+		   runinfo & paramotopy_info,
+		   timer & process_timer);
 
 
 #endif

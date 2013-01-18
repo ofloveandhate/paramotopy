@@ -18,6 +18,7 @@
 #include "para_aux_funcs.hpp"
 #include "step2readandwrite.hpp"
 #include "runinfo.hpp"
+#include "timing.hpp"
 
 #ifndef __MASTER_H__
 #define __MASTER_H__
@@ -28,7 +29,8 @@ void master(std::string filename,
 			std::string called_dir,
 			int step2mode,
 			ProgSettings & paramotopy_settings,
-			runinfo & paramotopy_info);
+			runinfo & paramotopy_info,
+			timer & process_timer);
 
 void FormNextValues(int numfilesatatime,
 						int numparam,
