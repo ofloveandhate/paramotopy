@@ -24,15 +24,18 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_s
 		}
 		terminationint = KVector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
 		
+		boost::filesystem::remove(mcfname);
 		
-		//open mc file for writing out to
-		mc_out_stream.open(mcfname.c_str());
-		
-		//end open mc file
-		if (!mc_out_stream.is_open()){
-			std::cerr << "failed to open the parameter value out file: " << mcfname << "\n";
-			exit(11);
-		
+		if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+			//open mc file for writing out to
+			mc_out_stream.open(mcfname.c_str());
+			
+			//end open mc file
+			if (!mc_out_stream.is_open()){
+				std::cerr << "failed to open the parameter value out file: " << mcfname << "\n";
+				exit(11);
+			
+			}
 		}
 	}
 	

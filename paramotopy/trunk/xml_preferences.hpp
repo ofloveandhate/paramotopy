@@ -153,7 +153,7 @@ public:
 	void GetNumProcs();
 	void GetNumFilesTime();
 	void GetDeleteTmpFiles();
-	
+	void GetWriteMCFileUserDef();
 	void GetStartFileName();
 	
 	void GetDataFolderMethod();
