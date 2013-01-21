@@ -397,7 +397,6 @@ void slave(ToSave *TheFiles,
 				linenumber = int(datareceived[localcounter*(2*numparam+1)+2*numparam]);
 				
 			
-				// Call Bertini
 #ifdef timingstep2
 				process_timer.press_start("write");
 #endif
@@ -427,17 +426,21 @@ void slave(ToSave *TheFiles,
 				
 				
 				
-				
+				// Call Bertini
 #ifdef timingstep2
 				process_timer.press_start("bertini");
 #endif
+				
+#ifndef nosolve
 				blaint = bertini_main(12,args_noparse);
+#endif
+				
 #ifdef timingstep2
 				process_timer.add_time("bertini");
 #endif
 				
 				
-				
+#ifndef nosolve
 				SlaveCollectAndWriteData(numfiles,
 										 runningfile,
 										 linenumber,
@@ -448,8 +451,7 @@ void slave(ToSave *TheFiles,
 										 DataCollectedbase_dir,
 										 filesizes, newfilethreshold, myid,
 										 process_timer);
-
-				
+#endif
 				
 				++localcounter;
 				

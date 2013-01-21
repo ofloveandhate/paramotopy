@@ -16,6 +16,8 @@ TIMING := YES
 #print extra stuff to screen in step 2?  YES or NO (or anything other than YES really)
 VERBOSE := YES
 
+#turn off bertini and data collection calls?
+NOSOLVE := NO
 
 ##################################
 # Define machine specific stuff
@@ -109,7 +111,9 @@ ifeq (YES,${VERBOSE})
 	DEFS := $(DEFS) -Dverbosestep2
 endif
  
-
+ifeq (YES,${NOSOLVE})
+	DEFS := $(DEFS) -Dnosolve
+endif
 
 
 

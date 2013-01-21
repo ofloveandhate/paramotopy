@@ -10,6 +10,51 @@ extern "C" {
 }
 
 
+
+
+
+void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_stream,int & terminationint,std::vector< int > & KVector,runinfo & paramotopy_info,ProgSettings & paramotopy_settings)
+{
+	std::string mcfname = paramotopy_info.location;
+	mcfname.append("/mc");
+	if (!paramotopy_info.userdefined) {
+		KVector.push_back(1);
+		for (int i=1; i<paramotopy_info.numparam; ++i) {
+			KVector.push_back(KVector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
+		}
+		terminationint = KVector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
+		
+		
+		//open mc file for writing out to
+		mc_out_stream.open(mcfname.c_str());
+		
+		//end open mc file
+		if (!mc_out_stream.is_open()){
+			std::cerr << "failed to open the parameter value out file: " << mcfname << "\n";
+			exit(11);
+		
+		}
+	}
+	
+	else {
+		
+		terminationint = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
+		
+		
+		std::cout << terminationint << " lines in mc file" << std::endl;
+		
+		mc_in_stream.open(mcfname.c_str(), std::ios::in);
+		if (!mc_in_stream.is_open()){
+			std::cerr << "critical error: failed to open mc file to read parameter values.  filename: " << mcfname << std::endl;
+			exit(10);
+		}
+	}
+	
+	
+	return;
+}
+
+
 bool SlaveCollectAndWriteData(int & numfiles,
 							  std::vector<std::string> & runningfile,
 							  const int  linenumber,

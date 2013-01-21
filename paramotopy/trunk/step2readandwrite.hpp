@@ -22,6 +22,8 @@
 #ifndef __STEP2READANDWRITE_H__
 #define __STEP2READANDWRITE_H__
 
+void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_stream,int & terminationint,std::vector< int > & KVector,runinfo & paramotopy_info,ProgSettings & paramotopy_settings);
+
 bool SlaveCollectAndWriteData(int & numfiles,
 							  std::vector<std::string> & runningfile,
 							  const int  linenumber,
