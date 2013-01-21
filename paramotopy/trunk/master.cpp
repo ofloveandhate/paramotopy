@@ -63,54 +63,19 @@ void master(std::string filename,
 	
 	
 	std::vector< int > lastnumsent;
-	int smallestnumsent = 0;  //changed to 0, because recovery is broken right now.
-	//GetLastNumSent(paramotopy_info.location,  //reads from two files.
-	//lastnumsent, // assigns this vector here
-	//numprocs);
+	int smallestnumsent = 0;  
 
 	
 	
-	
-	std::string mcfname = paramotopy_info.location;
-	mcfname.append("/mc");
 	std::vector< int > KVector;// for the index making function
 	std::ofstream mc_out_stream;
 	std::ifstream mc_in_stream;
 	
 	
-	if (!paramotopy_info.userdefined) {
-		KVector.push_back(1);
-		for (int i=1; i<paramotopy_info.numparam; ++i) {
-			KVector.push_back(KVector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
-		}
-		terminationint = KVector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
+	getTermination_OpenMC(mc_in_stream,mc_out_stream,terminationint,KVector,paramotopy_info,paramotopy_settings);
+	
 		
-		
-		//open mc file for writing out to
-		if (smallestnumsent==0) {  // fresh run
-			mc_out_stream.open(mcfname.c_str(), std::ios::out | std::ios::app);
-		}
-		else {
-			mc_out_stream.open(mcfname.c_str());
-		}
-		//end open mc file
-		if (!mc_out_stream.is_open()){
-			std::cerr << "failed to open the parameter value out file: " << mcfname << "\n";
-			exit(11);
-		}
-	}
-	else {
-		
-		terminationint = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
-		
-		
-		
-		mc_in_stream.open(mcfname.c_str(), std::ios::in);
-		if (!mc_in_stream.is_open()){
-			std::cerr << "critical error: failed to open mc file to read parameter values.  filename: " << mcfname << std::endl;
-			exit(10);
-		}
-	}
+	
 	
 	
 	
@@ -145,7 +110,7 @@ void master(std::string filename,
 	
 	std::string inputstring;
 
-	// for the step 2.1 solve, we need random values
+	// for the step 2 memory setup for bertini, we need random values
 
 	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(rand()); 
 
@@ -219,52 +184,22 @@ void master(std::string filename,
 	
 
 	char *input_send = new char[vectorlengths[1]];
-	for (int i = 0; i < inputstring.size(); ++i){
-		input_send[i] = inputstring[i];
+	for (int ii = 0; ii < inputstring.size(); ++ii){
+		input_send[ii] = inputstring[ii];
 	}
 	input_send[inputstring.size()] = '\0';
 	
 #ifdef timingstep2
 	process_timer.press_start("send");
 #endif
-	for (int i = 1; i < numprocs; ++i){
-		MPI_Send(&input_send[0], vectorlengths[1], MPI_CHAR, i, 14, MPI_COMM_WORLD);
+	for (int ii = 1; ii < numprocs; ++ii){
+		MPI_Send(&input_send[0], vectorlengths[1], MPI_CHAR, ii, 14, MPI_COMM_WORLD);
 	}
 #ifdef timingstep2
 	process_timer.add_time("send",numprocs-1);  //one for each worker
 #endif
 	
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	std::vector< std::pair<double,double> > TmpValues;
-	TmpValues.resize(paramotopy_info.numparam);
-	
-	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
-	indexvector.resize(paramotopy_info.numparam);
-	
-	
-	double* ParamSends = new double[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into datacollected files
-	int I, J, index;
-	double a, b;//real and imaginary parts of the parameter values.
-	std::stringstream ssdeleteme;
-	int localcounter;//how many times through the loop
-	
-	
-	
-	
-	
-	
 	
 	
 	/////////////////////////
@@ -302,33 +237,36 @@ void master(std::string filename,
 	
 	
 
+	std::vector< std::pair<double,double> > TmpValues;
+	TmpValues.resize(paramotopy_info.numparam);
 	
-
+	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
+	indexvector.resize(paramotopy_info.numparam);
 	
 	
-	//////////////////////////////
+	double* ParamSends = new double[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into datacollected files
+	int I, J, index;
+	double a, b;//real and imaginary parts of the parameter values.
+	std::stringstream ssdeleteme;
+	int localcounter;//how many times through the loop
+	
+	
+	
+	
 	//
 	//        If userdefined, read the initial parameter values into memory...
 	//
-	////////////////////////////////
-	
+
 	
 	if (paramotopy_info.userdefined) {
 		paramotopy_info.Values.clear();
 		std::string temp;
 		
 		
-		if (smallestnumsent>0) {
-			for (int i=0; i < smallestnumsent ; ++i) {
-				getline(mc_in_stream,temp);         // burn the already processed lines
-			}
-		}
-		
-		
-		for (int j=0; (j < (numprocs-1)*numfilesatatime) && ( (j+smallestnumsent) < terminationint ) ; ++j) {
+		for (int jj=0; (jj < (numprocs-1)*numfilesatatime) && ( (jj+smallestnumsent) < terminationint ) ; ++jj) {
 			
 			getline(mc_in_stream,temp);
-			std::vector< std::pair<double, double> > CValue;
+			std::vector< std::pair<double, double> > CurrentValue;
 			std::stringstream ss;
 			ss << temp;
 			for (int i = 0; i < paramotopy_info.numparam;++i){
@@ -336,10 +274,10 @@ void master(std::string filename,
 				double cimaginary;
 				ss >> creal;
 				ss >> cimaginary;
-				CValue.push_back(std::pair<double,double>(creal,cimaginary));
+				CurrentValue.push_back(std::pair<double,double>(creal,cimaginary));
 			}
 			
-			paramotopy_info.Values.push_back(CValue);
+			paramotopy_info.Values.push_back(CurrentValue);
 		}
 	} // if userdefined
 	
@@ -355,10 +293,10 @@ void master(std::string filename,
 	//
 	/////////////////////////////
 	lastnumsent.clear();
-	for (int i=1; i<numprocs; ++i) {
-		lastnumsent.push_back(smallestnumsent + (i-1)*numfilesatatime);
+	for (int ii=1; ii<numprocs; ++ii) {
+		lastnumsent.push_back(smallestnumsent + (ii-1)*numfilesatatime);
 #ifdef verbosestep2
-		std::cout << "lastnumsent[" << i-1 << "] = " << lastnumsent[i-1] << std::endl;
+		std::cout << "lastnumsent[" << ii-1 << "] = " << lastnumsent[ii-1] << std::endl;
 #endif
 	}
 	
@@ -382,7 +320,7 @@ void master(std::string filename,
 		////////////////////////////
 		
 		
-		numtoprocess_first[proc_count-1] = std::min( numfilesatatime, std::max(terminationint-lastnumsent[proc_count-1],0) );
+		numtoprocess_first[proc_count-1] = std::min( numfilesatatime, std::max(terminationint-lastnumsent[proc_count-1],0) ); // this is a local number, used to determine how much to seed to this worker, for the first round.
 		for (int i = lastnumsent[proc_count-1]; (i < lastnumsent[proc_count-1]+numfilesatatime) && (i<terminationint  ); ++i){
 			
 			
@@ -390,30 +328,30 @@ void master(std::string filename,
 			if (paramotopy_info.userdefined){
 				//already made the values above
 				TmpValues = paramotopy_info.Values[loopcounter];  // dont worry, loopcounter is incremented...
-				for (int j=0; j<paramotopy_info.numparam; ++j) {
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*j] = TmpValues[j].first;//
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*j+1] = TmpValues[j].second;//
+				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+					ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*jj] = TmpValues[jj].first;//
+					ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*jj+1] = TmpValues[jj].second;//
 				}
 				ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*paramotopy_info.numparam] = i;//the line number in mc file
 			}
 			else {//not user defined
 				//form index for matrix of parameter values
 				index = i;
-				for (int j=paramotopy_info.numparam-1; j>-1; j--) {
-					I = (index)%KVector[j];
-					J = (index - I)/KVector[j];
-					indexvector[j] = J;
+				for (int jj=paramotopy_info.numparam-1; jj>-1; jj--) {
+					I = (index)%KVector[jj];
+					J = (index - I)/KVector[jj];
+					indexvector[jj] = J;
 					index = I;
 				}
 				
 				//get param values
-				for (int j=0; j<paramotopy_info.numparam; ++j) {
-					a = paramotopy_info.Values[j][ indexvector[j] ].first;
-					b = paramotopy_info.Values[j][ indexvector[j] ].second;
-					TmpValues[j].first = a;
-					TmpValues[j].second = b;
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*j] = a;//for sending to worker, to write to data file
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*j+1] = b;
+				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+					a = paramotopy_info.Values[jj][ indexvector[jj] ].first;
+					b = paramotopy_info.Values[jj][ indexvector[jj] ].second;
+					TmpValues[jj].first = a;
+					TmpValues[jj].second = b;
+					ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*jj] = a;//for sending to worker, to write to data file
+					ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*jj+1] = b;
 				}
 				ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*paramotopy_info.numparam] = i;//the line number in the mc file
 			}
@@ -424,20 +362,19 @@ void master(std::string filename,
 #endif
 			//write the mc line, but only if on an automated mesh
 			if (!paramotopy_info.userdefined) {
-				for (int j=0; j<paramotopy_info.numparam; ++j) {
-					mc_out_stream << TmpValues[j].first << " " << TmpValues[j].second << " ";
+				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+					mc_out_stream << TmpValues[jj].first << " " << TmpValues[jj].second << " ";
 				}
-				mc_out_stream << "\n";
+				mc_out_stream << std::endl;
 			}
-			
-			
+	
 #ifdef timingstep2
 			process_timer.add_time("write");
 #endif
 			
 			//increment
-			loopcounter++;//for keeping track of folder to write to
-		}		//re: for int i=lastnumsent[proc_count]
+			loopcounter++;    //for keeping track of folder to write to
+		}//re: for int i=lastnumsent[proc_count]
 		
 	}//re: for int proc_count=1:numprocs
 	
@@ -464,8 +401,8 @@ void master(std::string filename,
 		localcounter=0;
 		if (numtoprocess_first[rank-1]!=0) {
 			for (int i=lastnumsent[rank-1]; i<lastnumsent[rank-1] + numtoprocess_first[rank-1];++i){
-				for (int j=0; j<2*paramotopy_info.numparam+1; ++j) {
-					tempsends[localcounter*(2*paramotopy_info.numparam+1)+j] = ParamSends[i*(2*paramotopy_info.numparam+1)+j];
+				for (int jj=0; jj<2*paramotopy_info.numparam+1; ++jj) {
+					tempsends[localcounter*(2*paramotopy_info.numparam+1)+jj] = ParamSends[i*(2*paramotopy_info.numparam+1)+jj];
 				} // end for
 				localcounter++;
 			} // end for
@@ -478,8 +415,6 @@ void master(std::string filename,
 		else {
 			sendymcsendsend = numtoprocess_first[rank-1];
 		} // end else
-		
-		
 		
 		
 		
@@ -587,8 +522,8 @@ void master(std::string filename,
 				process_timer.press_start("write");
 #endif			//write the mc line if not userdefined
 
-				for (int j=0; j<paramotopy_info.numparam; ++j) {
-					mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
+				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+					mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj+1] << " ";
 				}
 				mc_out_stream << std::endl;
 #ifdef timingstep2
@@ -766,21 +701,21 @@ void FormNextValues(int numfilesatatime,
 	
 	//get subscripts (zero-based) for the index, countingup
 	index = countingup;
-	for (int j=numparam-1; j>-1; --j) {
-		I = (index)%KVector[j];
-		J = (index - I)/KVector[j];
-		indexvector[j] = J;
+	for (int jj=numparam-1; jj>-1; --jj) {
+		I = (index)%KVector[jj];
+		J = (index - I)/KVector[jj];
+		indexvector[jj] = J;
 		index = I;
 	}
 	
 	//assign the data
-	for (int j=0; j<numparam; ++j) {
-		tempsends[localcounter*(2*numparam+1)+2*j] = Values[j][ indexvector[j] ].first;//for sending to workers, to write into data files.
-		tempsends[localcounter*(2*numparam+1)+2*j+1] = Values[j][ indexvector[j] ].second;
-		//					a = Values[j][ indexvector[j] ].first;
-		//					b = Values[j][ indexvector[j] ].second;
-		//					tempsends[localcounter*(2*numparam+1)+2*j] = a;//for sending to workers, to write into data files.
-		//					tempsends[localcounter*(2*numparam+1)+2*j+1] = b;
+	for (int jj=0; jj<numparam; ++jj) {
+		tempsends[localcounter*(2*numparam+1)+2*jj] = Values[jj][ indexvector[jj] ].first;//for sending to workers, to write into data files.
+		tempsends[localcounter*(2*numparam+1)+2*jj+1] = Values[jj][ indexvector[jj] ].second;
+		//					a = Values[jj][ indexvector[jj] ].first;
+		//					b = Values[jj][ indexvector[jj] ].second;
+		//					tempsends[localcounter*(2*numparam+1)+2*jj] = a;//for sending to workers, to write into data files.
+		//					tempsends[localcounter*(2*numparam+1)+2*jj+1] = b;
 	}
 	tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
 	
@@ -811,9 +746,9 @@ void FormNextValues_mc(int numfilesatatime,   //how many points in parameter spa
 	}
 	
 	//set the values in the array
-	for (int j=0; j<numparam; ++j) {
-		tempsends[localcounter*(2*numparam+1)+2*j] = CValues[j].first;//
-		tempsends[localcounter*(2*numparam+1)+2*j+1] = CValues[j].second;//
+	for (int jj=0; jj<numparam; ++jj) {
+		tempsends[localcounter*(2*numparam+1)+2*jj] = CValues[jj].first;//
+		tempsends[localcounter*(2*numparam+1)+2*jj+1] = CValues[jj].second;//
 	}
 	tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
 	
