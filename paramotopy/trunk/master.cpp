@@ -518,17 +518,22 @@ void master(std::string filename,
 			}
 			else {
 				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,KVector,tempsends);
+
+
+				if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+
 #ifdef timingstep2
-				process_timer.press_start("write");
+					process_timer.press_start("write");
 #endif			//write the mc line if not userdefined
 
-				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
-					mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj+1] << " ";
-				}
-				mc_out_stream << std::endl;
+					for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+						mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj+1] << " ";
+					}
+					mc_out_stream << std::endl;
 #ifdef timingstep2
-				process_timer.press_start("write");
+					process_timer.add_time("write");
 #endif
+				}
 			}
 			
 
@@ -650,7 +655,10 @@ void master(std::string filename,
 	process_timer.press_start("write");
 #endif
 	
-	mc_out_stream.close();
+	if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+		mc_out_stream.close();
+	}
+		
 	mc_in_stream.close();
 	fout.open(finishedfile.c_str());
 	fout << 1;

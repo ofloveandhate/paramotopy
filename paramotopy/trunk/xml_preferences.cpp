@@ -437,7 +437,9 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 11:
 			ProgSettings::GetStartFileName();
 			break;
-
+		case 12:
+			ProgSettings::GetWriteMCFileUserDef();
+			break;
 		case 13:
 			ProgSettings::GetDeleteTmpFiles();
 			break;
@@ -469,6 +471,7 @@ bool ProgSettings::setRequiredValues(){
 	main_required_values["step2location"] = 9;
 	main_required_values["buffersize"] = 10;
 	main_required_values["startfilename"] = 11;
+	main_required_values["writemeshtomc"] = 12;
 	main_required_values["deletetmpfilesatend"] = 13;
 //adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
 	
@@ -734,12 +737,20 @@ void ProgSettings::GetStifle(){
 
 //
 void ProgSettings::GetStepTwoLocation(){
+//i think this is incorrect.
+	
+	
 	std::stringstream menustream;
 	
 	setValue("MainSettings","step2location",".");
-	return;	
+	return;
+	
 };
 
+void ProgSettings::GetWriteMCFileUserDef(){
+	setValue("MainSettings","writemeshtomc",get_int_choice("would you like to produce a mc file during step2, when using computer-generated mesh?",0,1));
+	return;
+}
 
 //the main function to save the preferences to a xml file.
 void ProgSettings::save(){
@@ -1034,11 +1045,12 @@ void ProgSettings::GeneralMenu(){
 		<< "4) Manually set location of step2 executable\n"
 		<< "5) Set the file to use for step2 start file\n"
 		<< "6) Deletion of tmp files\n"
+		<< "7) Generation of mc mesh file for non-user-def runs\n"
 		<< "*\n"
 		<< "0) go back\n"
 		<< "\n: ";
 	while (choice!=0) {
-		choice = get_int_choice(menu.str(),0,6);
+		choice = get_int_choice(menu.str(),0,7);
 		
 		switch (choice) {
 			case 0:
@@ -1067,6 +1079,10 @@ void ProgSettings::GeneralMenu(){
 				
 			case 6:
 				ProgSettings::GetDeleteTmpFiles();
+				break;
+				
+			case 7:
+				ProgSettings::GetWriteMCFileUserDef();
 				break;
 				
 			default:
