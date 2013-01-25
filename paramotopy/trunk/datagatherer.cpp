@@ -77,11 +77,6 @@ std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > 
 		
 	}
 	
-//	std::cout << "successful resolves this iteration:" << std::endl;
-//	for (int ii=0; ii<(successful_resolves.size()); ++ii) {
-//		std::cout << successful_resolves[ii].index << std::endl;
-//	}
-//	
 	
 	return successful_resolves;
 }
@@ -204,37 +199,8 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 	
 	
 	
-	//this is a first pass at the sort.  it should be improved for speed.
-	
-	
-	std::string source_folder;
-	
-	
-	
-	if ( int(folders_with_data.size())==1 ){
-		output_folder_name = run_to_analyze;
-		output_folder_name.append("/step2/DataCollected/c1");
-	}
-	else{
-		//if get here, then had more than one processor.
-		
-		
-		int numlevels = 0;
-		int n = folders_with_data.size();
-		
-		std::vector< int > num_iterations_at_each_level;
-		while (n!=1){
-			num_iterations_at_each_level.push_back( (n-(n%2))/2 );
-			
-			n = (n + (n%2))/2;
-			numlevels++;
-		}
-		std::cout << "will perform " << numlevels << "iterations this solve." << std::endl;
-		
 		std::vector< bool> current_folders_are_basic, next_folders_are_basic;
 
-		
-		
 		std::vector< std::string > next_folders = folders_with_data; // seed
 		std::vector< std::string > current_folders;
 		
@@ -243,7 +209,8 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 		}
 		
 		int current_num_folders;
-		for (int ii = 0; ii<numlevels; ++ii) {
+  int level = 0;
+		while (next_folders.size()>1){
 			
 			current_folders = next_folders;
 			current_num_folders = current_folders.size();
@@ -256,7 +223,7 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 			for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj=jj+2) {
 				datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
 				boost::filesystem::create_directory(output_folder_name);
-				std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << ii << " iteration " << jj/2+1 << std::endl;
+				std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
 				datagatherer::MergeFolders( file_to_gather, current_folders[jj], current_folders[jj+1], output_folder_name,parser_index);
 				
 				
@@ -276,19 +243,19 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 				
 			}
 			
-			if (  ( (current_num_folders%2) == 1) && (current_folders_are_basic[current_num_folders-1]==true)   ) { //if there is an odd man out.
+			if (  ( (current_num_folders%2) == 1)   ) { //if there is an odd man out.
 				next_folders.push_back(current_folders[current_num_folders-1]); // put the last folder on (-1) for zero indexing
-				next_folders_are_basic.push_back(true);
+        if (current_folders_are_basic[current_num_folders-1]==true) {
+          next_folders_are_basic.push_back(true);
+        }
 			}
-						
+      level++;
 		}
 		
+    std::string source_folder;
+		source_folder = next_folders[0]; // set this for finalizing.
 		
-		source_folder = output_folder_name; // set this for finalizing.
-		
-	}//re:  if - else for processor numbers (interpreted from number of folders
 	
-		
 	
 	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);   
 	
@@ -298,6 +265,9 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 	std::cout << "done removing" << std::endl;  // removeme
 	return;
 }
+
+
+
 
 std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 	
