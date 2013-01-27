@@ -3,8 +3,8 @@
 
 #i understand that including personal machine specifics is a bit selfish, but it's only until we start using a tool like configure
 #if you add a machine to this file, please add an option to this list.
-#machine can be:     sam - macbrake - cray - macniemerg
-MACHINE := macbrake
+#machine can be:     sam - MACBRAKE - cray - macniemerg
+#MACHINENAME is an environment var set by the user.
 
 
 #User-set options.  cannot use some options on the cray.  
@@ -23,7 +23,7 @@ NOSOLVE := NO
 # Define machine specific stuff
 ##################################
 STATICFLAG:= 
-ifeq (sam,${MACHINE})
+ifeq (sam,$(MACHINENAME))
 	#sam (hopefully user independent)
 	MCC := mpic++ 
 	CC  := g++
@@ -34,9 +34,8 @@ ifeq (sam,${MACHINE})
 	BERTINILIB := ./libbertinisam.a
 	MPFRLOC :=#already in path
 	STATICFLAG := -static
-endif
 
-ifeq (macbrake, ${MACHINE})
+else ifeq (MACBRAKE, $(MACHINENAME))
 	#dan brake's macintosh 
 	MCC := mpic++ -cxx=g++
 	CC  := g++
@@ -46,9 +45,8 @@ ifeq (macbrake, ${MACHINE})
 	BOOSTSUFFIX :=-mt#no spaces
 	BERTINILIB := ./libbertinimacdb.a
 	MPFRLOC :=#in path
-endif
 
-ifeq (cray,${MACHINE})
+else ifeq (cray,$(MACHINE))
 	#cray, dan brake
 	MCC := CC
 	CC := CC
@@ -59,9 +57,8 @@ ifeq (cray,${MACHINE})
 	BERTINILIB := ./libbertinicray.a
 	MPFRLOC := -L/opt/gcc/mpfr/2.4.2/lib
 	STATICFLAG := -static
-endif
 
-ifeq (macniemerg,${MACHINE})
+else ifeq (macniemerg,$(MACHINE))
 	#matt n's macintosh
 MCC:= mpic++ -mpe=mpicheck
 CC:= g++
@@ -72,6 +69,11 @@ BOOSTSUFFIX :=#nothing
 BERTINILIB := ./libbertinimacmn.a
 MPFRLOC:=#already in path
 STATICFLAG :=#nothing
+
+else
+  #i expect errors here, or down below, because some variables are not set.  this is deliberate.  
+  
+  #todo:  use gnu autoconf to prepare the system for building
 
 endif
 
