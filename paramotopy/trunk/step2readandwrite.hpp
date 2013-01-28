@@ -13,6 +13,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iomanip>
 #include <omp.h>
 #include "bertini_funcs.hpp"
 #include "step2_funcs.hpp"

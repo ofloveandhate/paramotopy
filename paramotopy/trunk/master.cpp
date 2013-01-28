@@ -62,7 +62,7 @@ void master(std::string filename,
 	
 	
 	
-	std::vector< int > lastnumsent;
+	std::vector< int > lastnumsent; //progress tracker
 	int smallestnumsent = 0;  
 
 	
@@ -73,7 +73,10 @@ void master(std::string filename,
 	
 	
 	getTermination_OpenMC(mc_in_stream,mc_out_stream,terminationint,KVector,paramotopy_info,paramotopy_settings);
-	
+  if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+    mc_out_stream.precision(16);
+  }
+	//opens the mc_in or mc_out file stream, and sets the value of terminationint.  also sets KVector if compgen mesh.
 		
 	
 	
@@ -362,6 +365,7 @@ void master(std::string filename,
 #endif
 			//write the mc line, but only if on an automated mesh
 			if (!paramotopy_info.userdefined) {
+        
 				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
 					mc_out_stream << TmpValues[jj].first << " " << TmpValues[jj].second << " ";
 				}
@@ -507,7 +511,7 @@ void master(std::string filename,
 		for (int i = (status.MPI_SOURCE-1)*numfilesatatime; i < (status.MPI_SOURCE-1)*numfilesatatime+numtodo; ++i){
 			
 			
-			if (paramotopy_info.userdefined) {
+			if (paramotopy_info.userdefined==1) {
 #ifdef timingstep2
 				process_timer.press_start("read");
 #endif
@@ -720,10 +724,6 @@ void FormNextValues(int numfilesatatime,
 	for (int jj=0; jj<numparam; ++jj) {
 		tempsends[localcounter*(2*numparam+1)+2*jj] = Values[jj][ indexvector[jj] ].first;//for sending to workers, to write into data files.
 		tempsends[localcounter*(2*numparam+1)+2*jj+1] = Values[jj][ indexvector[jj] ].second;
-		//					a = Values[jj][ indexvector[jj] ].first;
-		//					b = Values[jj][ indexvector[jj] ].second;
-		//					tempsends[localcounter*(2*numparam+1)+2*jj] = a;//for sending to workers, to write into data files.
-		//					tempsends[localcounter*(2*numparam+1)+2*jj+1] = b;
 	}
 	tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
 	
@@ -745,22 +745,18 @@ void FormNextValues_mc(int numfilesatatime,   //how many points in parameter spa
 	std::vector< std::pair<double, double> > CValues;
 	std::stringstream ss;
 	ss << temp;
-	for (int i = 0; i < numparam;++i){
-		double creal;
-		double cimaginary;
-		ss >> creal;
-		ss >> cimaginary;
-		CValues.push_back(std::pair<double, double>(creal,cimaginary));//really should eliminate CValues
+
+  for (int jj = 0; jj < numparam;++jj){
+		ss >> tempsends[localcounter*(2*numparam+1)+2*jj];
+		ss >> tempsends[localcounter*(2*numparam+1)+2*jj+1];
 	}
 	
-	//set the values in the array
-	for (int jj=0; jj<numparam; ++jj) {
-		tempsends[localcounter*(2*numparam+1)+2*jj] = CValues[jj].first;//
-		tempsends[localcounter*(2*numparam+1)+2*jj+1] = CValues[jj].second;//
-	}
+
+  
 	tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
 	
-	
+  
+
 	
 	return;
 	

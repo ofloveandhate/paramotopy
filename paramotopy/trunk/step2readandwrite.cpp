@@ -29,13 +29,14 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_s
 		if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
 			//open mc file for writing out to
 			mc_out_stream.open(mcfname.c_str());
-			
+
 			//end open mc file
 			if (!mc_out_stream.is_open()){
-				std::cerr << "failed to open the parameter value out file: " << mcfname << "\n";
+				std::cerr << "failed to open the parameter value out file: " << mcfname << std::endl;
 				exit(11);
 			
 			}
+      mc_out_stream << terminationint << std::endl;
 		}
 	}
 	
@@ -51,6 +52,10 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_s
 			std::cerr << "critical error: failed to open mc file to read parameter values.  filename: " << mcfname << std::endl;
 			exit(10);
 		}
+    
+    std::string burnme;
+    std::getline(mc_in_stream,burnme); // burn the line containing the number of lines in the file
+    
 	}
 	
 	
@@ -144,7 +149,7 @@ std::string AppendData(int runid,
 	
 	outstring << runid << "\n";
 	for (int i = 0; i < int(CValues.size());++i){
-		outstring << CValues[i].first << " " << CValues[i].second << " ";
+		outstring << std::setprecision(16) << CValues[i].first << " " << CValues[i].second << " ";
 	}
 	outstring << "\n";
 	while(getline(fin,cline)){
@@ -590,39 +595,24 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 int GetMcNumLines(std::string base_dir, int numparam){
 	std::string mcfname = base_dir;
 	mcfname.append("/mc");
-	int num_lines, num_words;
-	std::string command = "wc ";
-	command.append(mcfname);
-	command.append(" > wc.out");
-	
-	system(command.c_str());
-	
-	std::string wcname = "wc.out";
-
-	
-	std::string temp;
-	std::ifstream fin(wcname.c_str());
-	std::stringstream myss;
-	
-	getline(fin,temp);
-	fin.close();
-	system("rm wc.out");
-	
-	myss << temp;
-	myss >> num_lines;
-	myss >> num_words;
-	
-	int checking;
-	checking = num_words/(2*numparam);  //there is a pair of real/complex values for each parameter value.
-	
-	if (checking > num_lines) {
-		return checking;
-	}
-		else {
-			return num_lines;
-		}
-
-	
+  
+  std::ifstream fin(mcfname.c_str());
+  
+  if (!fin.is_open()){
+    std::cerr << "failed to open mc file to get line count" << std::endl;
+    exit(2132);
+  }
+  
+  std::string tmpstr;
+  std::getline(fin,tmpstr);
+  std::stringstream converter;
+  int terminationint;
+  converter << tmpstr;
+  converter >> terminationint;
+  fin.close();
+  
+  
+  return terminationint;
 	
 }
 

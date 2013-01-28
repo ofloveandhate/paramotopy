@@ -105,7 +105,6 @@ public:
 	static const char * const mandatory_savefiles[NUMMANDATORY_SAVEFILES];//set in the cpp file
 	
 	
-	std::string filename;  //the name of the preferences file
 	int version;
 
 	categorymap settings;  //a map of maps, holding settings in various categories.
@@ -116,22 +115,15 @@ public:
 	void save(std::string pFilename){
 		filename = pFilename;
 		save();};
+  void save(boost::filesystem::path speciallocation);
+  
 	void load(const char* pFilename);
 	void load() {load(filename.c_str());};
-	bool setRequiredValues();
-	
+
 	ProgSettings(std::string tempfilename) {filename = tempfilename;};
 	~ProgSettings() {};
 
-	bool haveSetting(std::string category_name, std::string setting_name){
-		return settings[category_name].find(setting_name) != settings[category_name].end();};
-	
-	int SaveCategoryToXml(std::string catname, settingmap curr_settings , TiXmlElement* root);
-	
-	int ReadCategoryFromXml(std::string catname, TiXmlHandle hroot);	
-	
-	void RequiredSettingsSwitcharoo( int settingcase );//integers indicating switch cases found in .cpp file
-	
+
 	void setValue(std::string categoryName, std::string settingName, std::string settingValue){
 		settings[categoryName][settingName] = setting(settingValue);}
 	
@@ -218,6 +210,19 @@ public:
 	
 	
 private:
+  std::string filename;  //the name of the preferences file
+	bool setRequiredValues();
+  bool haveSetting(std::string category_name, std::string setting_name){
+		return settings[category_name].find(setting_name) != settings[category_name].end();};
+	
+  
+	void RequiredSettingsSwitcharoo( int settingcase );//integers indicating switch cases found in .cpp file
+	
+  
+  
+  int SaveCategoryToXml(std::string catname, settingmap curr_settings , TiXmlElement* root);
+	
+	int ReadCategoryFromXml(std::string catname, TiXmlHandle hroot);
 	
 	
 protected:
