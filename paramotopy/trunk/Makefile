@@ -46,7 +46,7 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	BERTINILIB := ./libbertinimacdb.a
 	MPFRLOC :=#in path
 
-else ifeq (cray,$(MACHINE))
+else ifeq (cray,$(MACHINENAME))
 	#cray, dan brake
 	MCC := CC
 	CC := CC
@@ -58,7 +58,7 @@ else ifeq (cray,$(MACHINE))
 	MPFRLOC := -L/opt/gcc/mpfr/2.4.2/lib
 	STATICFLAG := -static
 
-else ifeq (macniemerg,$(MACHINE))
+else ifeq (macniemerg,$(MACHINENAME))
 	#matt n's macintosh
 MCC:= mpic++ -mpe=mpicheck
 CC:= g++

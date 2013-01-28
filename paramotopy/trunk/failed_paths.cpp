@@ -741,6 +741,7 @@ void failinfo::write_failed_paths(runinfo paramotopy_info, int iteration){
 	std::ofstream fout;
 	fout.open(ss.str().c_str());
 	fout.precision(16);
+	fout << initial_fails[current_iteration].size() << "\n";
 	for (int ii = 0; ii < initial_fails[current_iteration].size(); ++ii) {
 		for (int jj = 0;  jj < paramotopy_info.numparam; ++jj) {
 			fout << initial_fails[current_iteration][ii].parameter_values[jj].first << " " << initial_fails[current_iteration][ii].parameter_values[jj].second << " ";
