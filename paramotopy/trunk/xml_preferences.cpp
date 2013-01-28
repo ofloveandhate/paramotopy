@@ -772,16 +772,44 @@ void ProgSettings::save(){
 	doc->LinkEndChild( root ); 
 	
 	//save it
-	if(doc->SaveFile(filename.c_str())){  //filename is a data member of ProgSettings class
+	if(doc->SaveFile(this->filename.c_str())){  //filename is a data member of ProgSettings class
 //		std::cout << "preferences saved\n";
 	}
 	else{
 		//couldn't save for some reason.  this may be a problem on queued systems?
-		std::cout << "preferences *failed* to save to " << 	filename << "!\n";
+		std::cout << "preferences *failed* to save to " << 	this->filename << "!\n";
 	};  
 
 }
 
+void ProgSettings::save(boost::filesystem::path speciallocation){
+	
+	TiXmlDocument* doc = new TiXmlDocument;
+	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	
+	doc->LinkEndChild( decl );
+  
+	TiXmlElement * root = new TiXmlElement("paramotopy_preferences");
+	categorymap::iterator iter;
+	
+	//save each catergory
+	for (iter=settings.begin(); iter!= settings.end(); iter++) {
+		ProgSettings::SaveCategoryToXml( (*iter).first , (*iter).second ,root);
+	}
+  
+	//wrap it up
+	doc->LinkEndChild( root );
+	
+	//save it
+	if(doc->SaveFile(speciallocation.string().c_str())){  //filename is a data member of ProgSettings class
+    //		std::cout << "preferences saved\n";
+	}
+	else{
+		//couldn't save for some reason.  this may be a problem on queued systems?
+		std::cout << "preferences *failed* to save to " << 	speciallocation.string() << "!\n";
+	};  
+  
+}
 
 
 //saves one category of settings to the xml file.  returns to calling function save() for next category or finalization.
@@ -804,10 +832,7 @@ int ProgSettings::SaveCategoryToXml(std::string catname, settingmap curr_setting
 		const std::string & type=(*iter).second.typestr();
 		const std::string & value=(*iter).second.value();
 		
-//		std::cout << "writing setting " << key << ", " 
-//										<< value << ", " 
-//										<< type << "\n";
-		
+
 		
 		setting_name = new TiXmlText(key.c_str());
 		setting_value = new TiXmlText(value.c_str());
@@ -864,7 +889,6 @@ void ProgSettings::load(const char* pFilename){
 		ProgSettings::default_path_failure_settings();
 		ProgSettings::default_main_values();
 		ProgSettings::GetParallel();
-		//ProgSettings::SetSaveFiles(); no need.  do at end of function;
 		changesmade=true;
 	}
 	else {
@@ -907,7 +931,7 @@ void ProgSettings::load(const char* pFilename){
 	ProgSettings::FindProgram("step2","MainSettings","step2location");
 	ProgSettings::FindProgram("bertini","MainSettings","bertinilocation");
 	
-	if (changesmade) {
+	if (changesmade) {//only save settings if made a change.
 		ProgSettings::save();
 	}
 }
@@ -939,7 +963,6 @@ int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
 		if (nameText && valueText && typeText)
 		{ //setting is ok.  set the setting.
 			
-//			std::cout << "    " << catname << " setting " << nameText << " to value " << valueText << " with type " << typeText << "\n";
 
 			ss << typeText;
 			ss >> type;
@@ -1041,9 +1064,9 @@ void ProgSettings::GeneralMenu(){
 	menu << "\n\nGeneral Settings:\n\n"
 		<< "1) Load Data Folder method\n"
 		<< "2) Generation of random values at new folder (during program)\n"
-		<< "3) Manually set location of bertini executable\n"
-		<< "4) Manually set location of step2 executable\n"
-		<< "5) Set the file to use for step2 start file\n"
+		<< "3) Set location of bertini executable\n"
+		<< "4) Set location of step2 executable\n"
+		<< "5) File to use for step2 start file\n"
 		<< "6) Deletion of tmp files\n"
 		<< "7) Generation of mc mesh file for non-user-def runs\n"
 		<< "*\n"
@@ -1330,7 +1353,7 @@ void ProgSettings::ChangeSetting(std::string category_name){
 	
 	
 	
-//	int typeint = get_int_choice("what is the type of the setting? \n string: 0\n integer / 0-1 bool: 1\n float/double: 2\n\n:",0,2);
+
 	std::cout << "new value\n:";
 	std::string newvalue;
 	newvalue = getAlphaNumeric();  // do type-specific stuff in the switch below.
@@ -1541,8 +1564,6 @@ void ProgSettings::PathFailureMenu(){
 
 
 
-//setValue("PathFailure","",5);
-
 void ProgSettings::GetDataFolderMethod(){
 	int choice = -10;
 	std::stringstream menu;
@@ -1686,7 +1707,7 @@ void ProgSettings::GetTightenTolerancesPathFailure(){
 }
 
 void ProgSettings::GetNumIterations(){
-	int choice = get_int_choice("How many iterations to perform automatically?  0 performs none\n: ",0,99999);
+	int choice = get_int_choice("How many iterations to perform per re-run?\n: ",1,99999);
 	setValue("PathFailure","maxautoiterations",choice);
 	ProgSettings::save();
 	return;

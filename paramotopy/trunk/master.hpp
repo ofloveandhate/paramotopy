@@ -14,6 +14,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iomanip>
 #include <omp.h>
 #include "para_aux_funcs.hpp"
 #include "step2readandwrite.hpp"
