@@ -8,8 +8,7 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include "random.hpp"
-#include "mtrand.hpp"
+
 #include <stdexcept>
 #include <vector>
 #include <map>
@@ -18,7 +17,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include "paramotopy_enum.hpp"
+
 
 #define BOOST_FILESYSTEM_VERSION 3
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -33,6 +32,17 @@
 #ifndef __PARA_AUX_H__
 #define __PARA_AUX_H__
 
+#include "paramotopy_enum.hpp"
+#include "random.hpp"
+#include "mtrand.hpp"
+#include "xml_preferences.hpp"
+
+extern "C" {
+	int bertini_main(int argC, char *args[]);
+}
+
+
+void BertiniSplashScreen(ProgSettings paramotopy_settings);
 
 void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::string > & gather_savefiles, std::vector< int > & gather_parser_indices);
 

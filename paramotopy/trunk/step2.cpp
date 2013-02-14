@@ -13,15 +13,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
-#include "step2readandwrite.hpp"
-#include "master.hpp"
-#include "slave.hpp"
-#include "para_aux_funcs.hpp"
-#include "timing.hpp"
+
 
 
 #define BOOST_FILESYSTEM_VERSION 3
@@ -32,6 +24,18 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/progress.hpp>
 #include <boost/regex.hpp>
+
+
+#include "step1_funcs.hpp"
+#include "step2_funcs.hpp"
+#include "mtrand.hpp"
+#include "random.hpp"
+#include "step2readandwrite.hpp"
+#include "master.hpp"
+#include "slave.hpp"
+#include "para_aux_funcs.hpp"
+#include "timing.hpp"
+
 
 /*
  the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator

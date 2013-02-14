@@ -89,7 +89,7 @@ int main(int argC, char *args[]){
 	
 
 	
-	
+	BertiniSplashScreen(paramotopy_settings);
 	
 	
 	

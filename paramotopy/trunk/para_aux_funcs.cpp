@@ -1,6 +1,28 @@
 #include "para_aux_funcs.hpp"
 
 
+void BertiniSplashScreen(ProgSettings paramotopy_settings){
+
+char *args_splash[2];
+args_splash[0] = const_cast<char *>("bertini");
+args_splash[1] = const_cast<char *>("--version");
+
+	
+	std::cout << "\n\nlinked library bertini:\n\n";
+	bertini_main(2,args_splash);
+	std::cout << "\n\nstand-alone bertini:\n\n";
+	
+
+	std::stringstream command;
+	command << paramotopy_settings.settings["MainSettings"]["bertinilocation"].value() << "/bertini --version" ;
+		system(command.str().c_str());
+	std::cout << "\n\n";
+	
+	return;
+	
+}
+
+
 
 void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::string > & gather_savefiles, std::vector< int > & gather_parser_indices){
 	std::vector < std::string > possible_savefiles;

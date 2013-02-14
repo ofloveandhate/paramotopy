@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include "step1_funcs.hpp"
+
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,7 +13,7 @@
 #ifndef __STEPTWO_H__
 #define __STEPTWO_H__
 
-
+#include "step1_funcs.hpp"
 
 
 
