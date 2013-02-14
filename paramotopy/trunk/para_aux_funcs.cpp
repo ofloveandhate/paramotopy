@@ -264,7 +264,7 @@ std::string getAlphaNumeric(){
 bool parseInteger( std::string const& text, int& results )
 {
     std::istringstream parser( text );
-    return parser >> results >> std::ws && parser.peek() == EOF;
+	return parser >> results;// >> std::ws && parser.peek() == EOF;
 }
 
 int getInteger()
