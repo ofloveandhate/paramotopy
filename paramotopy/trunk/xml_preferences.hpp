@@ -9,7 +9,7 @@
 #include <sstream>
 #include <set>
 #include "tinyxml.h"
-#include "para_aux_funcs.hpp"
+
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -21,6 +21,7 @@
 
 #define minprefversion = 101; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
+#include "para_aux_funcs.hpp"
 
 class setting {
 	
