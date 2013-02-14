@@ -1,7 +1,7 @@
 #include "para_aux_funcs.hpp"
 
 
-void BertiniSplashScreen(ProgSettings paramotopy_settings){
+void BertiniSplashScreen(std::string bertinilocation){
 
 char *args_splash[2];
 args_splash[0] = const_cast<char *>("bertini");
@@ -14,7 +14,7 @@ args_splash[1] = const_cast<char *>("--version");
 	
 
 	std::stringstream command;
-	command << paramotopy_settings.settings["MainSettings"]["bertinilocation"].value() << "/bertini --version" ;
+	command << bertinilocation << "/bertini --version" ;
 		system(command.str().c_str());
 	std::cout << "\n\n";
 	

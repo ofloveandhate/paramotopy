@@ -21,6 +21,7 @@
 
 #define minprefversion = 101; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
+//#include "runinfo.hpp"
 #include "para_aux_funcs.hpp"
 
 class setting {

@@ -89,7 +89,7 @@ int main(int argC, char *args[]){
 	
 
 	
-	BertiniSplashScreen(paramotopy_settings);
+	BertiniSplashScreen(paramotopy_settings.settings["MainSettings"]["bertinilocation"].value());
 	
 	
 	
@@ -114,8 +114,6 @@ int main(int argC, char *args[]){
 	paramotopy_info.ParseData();
 	fin.close();
 	
-
-	
 	
 	paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);//sets the base_dir
 	
@@ -127,6 +125,8 @@ int main(int argC, char *args[]){
 	
 	paramotopy_info.CopyUserDefinedFile();
 	
+	// Make the appropriate Directory to place the input file in
+	paramotopy_info.mkdirstep1();
 	
 
 	
@@ -137,19 +137,18 @@ int main(int argC, char *args[]){
 	
 	if (paramotopy_info.test_if_finished()){
 		std::cout	<< "\t*** * * * * * * * * * * * * ***\n"
-					<< "\t***this run appears finished***\n"
+					<< "\t***this run's step2 appears finished***\n"
 					<< "\t*** * * * * * * * * * * * * ***\n";
 	}
 
 	int intChoice=-1;	
 	
-	// Make the appropriate Directory to place the input file in
-	paramotopy_info.mkdirstep1();
+
 
 
 	while(currentChoice!=Quit){
 		
-		intChoice = ParamotopyMainMenu();
+		intChoice = ParamotopyMainMenu();  // gets the choice from the user.
 		
 		switch (intChoice){
 			case 1 :
@@ -159,13 +158,14 @@ int main(int argC, char *args[]){
 				paramotopy_info.GetInputFileName();
 				paramotopy_info.ParseData();
 
-				paramotopy_info.mkdirstep1();
+
 				paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);
 
 				if (!paramotopy_info.GetPrevRandom()){
 					paramotopy_info.MakeRandomValues();
 					std::cout << "made new random values" << std::endl;
 				}
+				paramotopy_info.mkdirstep1();
 				paramotopy_info.CopyUserDefinedFile();
 				parsed=true;
 				break;
