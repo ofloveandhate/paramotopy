@@ -14,8 +14,6 @@
 #include <sys/stat.h>
 #include <sys/types.h> 
 
-#include "random.hpp"
-#include "para_aux_funcs.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -23,12 +21,17 @@
 #include <boost/regex.hpp>
 
 #include "tinyxml.h"
-#include "xml_preferences.hpp"
 
-#include "datagatherer.hpp"
 
 #ifndef __RUNINFO_H__
 #define __RUNINFO_H__
+
+
+#include "random.hpp"
+#include "para_aux_funcs.hpp"
+
+#include "xml_preferences.hpp"
+#include "datagatherer.hpp"
 
 
 

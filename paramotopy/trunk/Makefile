@@ -23,6 +23,8 @@ NOSOLVE := NO
 # Define machine specific stuff
 ##################################
 STATICFLAG:= 
+INSTALLDIR=UNSETLOCATION
+
 ifeq (sam,$(MACHINENAME))
 	#sam (hopefully user independent)
 	MCC := mpic++ 
@@ -34,7 +36,7 @@ ifeq (sam,$(MACHINENAME))
 	BERTINILIB := ./libbertinisam.a
 	MPFRLOC :=#already in path
 	STATICFLAG := -static
-
+	
 else ifeq (MACBRAKE, $(MACHINENAME))
 	#dan brake's macintosh 
 	MCC := mpic++ -cxx=g++
@@ -45,9 +47,10 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	BOOSTSUFFIX :=-mt#no spaces
 	BERTINILIB := ./libbertinimacdb.a
 	MPFRLOC :=#in path
-
+	INSTALLDIR:=~/bin
+	
 else ifeq (cray,$(MACHINENAME))
-	#cray, dan brake
+	#cray, as dan brake
 	MCC := CC
 	CC := CC
 	MANDATORYOPT := #do not use the -fopenmp flag on the cray with pgi compilers
@@ -57,19 +60,20 @@ else ifeq (cray,$(MACHINENAME))
 	BERTINILIB := ./libbertinicray.a
 	MPFRLOC := -L/opt/gcc/mpfr/2.4.2/lib
 	STATICFLAG := -static
-
+	
 else ifeq (macniemerg,$(MACHINENAME))
 	#matt n's macintosh
-MCC:= mpic++ -mpe=mpicheck
-CC:= g++
-BOOSTLOC := /usr/local/lib/
-INCLUDE := -I/usr/local/include
-MANDATORYOPT := -fopenmp
-BOOSTSUFFIX :=#nothing
-BERTINILIB := ./libbertinimacmn.a
-MPFRLOC:=#already in path
-STATICFLAG :=#nothing
-
+	MCC:= mpic++ -mpe=mpicheck
+	CC:= g++
+	BOOSTLOC := /usr/local/lib/
+	INCLUDE := -I/usr/local/include
+	MANDATORYOPT := -fopenmp
+	BOOSTSUFFIX :=#nothing
+	BERTINILIB := ./libbertinimacmn.a
+	MPFRLOC:=#already in path
+	STATICFLAG :=#nothing
+	INSTALLDIR=UNSETLOCATION
+	
 else
   #i expect errors here, or down below, because some variables are not set.  this is deliberate.  
   
@@ -137,7 +141,8 @@ paramotopy:	 paramotopy.o $(OBJScommon)
 step2:	step2.o $(OBJScommon) 
 	$(MCC) $(INCLUDE) $(DEFS) $(OPT) -o step2 step2.cpp $(OBJScommon)  $(LIBS) $(LIBSboost) $(STATICFLAG)
 
-
+install:	step2 paramotopy
+	cp step2 paramotopy $(INSTALLDIR)
 
 
 
