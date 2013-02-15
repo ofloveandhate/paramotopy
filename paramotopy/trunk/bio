@@ -1,11 +1,11 @@
 7 1 2 21
-Fa-k1*a*b+k2*c-k4*a*f+k5*f-Da*a
-Fb-k1*a*b+k2*c+k8*g-k9*b*f-Db*b
-Fc+k2*a*b-k2*c-k3*c-k6*c*e+k7*g-Dc*c
-Fd+k3*c-Dd*d
-Fe-k4*a*e+k5*f-k6*c*e+k7*g-De*e
-Ff+k4*a*e-k5*f+k8*g-k9*b*f-Df*f
-Fg+k6*c*e-k7*g-k8*g+k9*b*f-Dg*g
+Fa-Da*a-k4*a+k3*c*g+k2*f-k1*a*b
+Fb-Db*b-k6*b+k5*c*d+k2*f-k1*a*b
+Fc-Dc*c+k8*d-k7*c*e+k6*b-k5*c*d+k4*a-k3*c*g
+Fd-Dd*d-k8*d+k7*c*e+k6*b-k5*c*d
+Fe-De*e+k8*d-k7*c*e
+Ff-Df*f-k2*f+k1*a*b
+Fg-Dg*g+k4*a-k3*c*g
 a,b,c,d,e,f,g
 constant k3,k1,k5,k6,k7,k8,k9,Fa,Fb,Fc,Fd,Fe,Ff,Fg,Da,Db,Dc,Dd,De,Df,Dg;
 k3=.80349;
