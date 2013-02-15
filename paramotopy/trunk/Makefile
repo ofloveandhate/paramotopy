@@ -45,7 +45,7 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	BOOSTLOC := /usr/local/Cellar/boost/1.52.0/lib/
 	INCLUDE := -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
 	BOOSTSUFFIX :=-mt#no spaces
-	BERTINILIB := ./libbertinimacdb.a
+	BERTINILIB := $(HOME)/lib/libbertini.a
 	MPFRLOC :=#in path
 	INSTALLDIR:=~/bin
 	
