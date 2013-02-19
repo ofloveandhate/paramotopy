@@ -14,7 +14,7 @@ bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails, std::
 		return false;
 	}
 	
-
+	
 	
 	GetFilesToParse(this->run_to_analyze, this->gather_savefiles, this->gather_parser_indices);  //in para_aux_funcs
 	//sets the gather_savefiles and gather_parser_indices, based on the c1 folder
@@ -44,7 +44,7 @@ bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails, std::
 std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > terminal_fails, std::vector< point > current_data){
 	std::vector< point > successful_resolves;
 	
-
+	
 	
 	if (terminal_fails.size() == current_data.size()) {
 		std::cout << "no points successfully resolved" << std::endl;
@@ -84,8 +84,8 @@ std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > 
 
 ////gather the data from a completed, gathered, finalized step2, to memory.
 std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesystem::path folder_with_data){
-
-
+	
+	
 	std::map <std::string, std::vector< point > > temp_point_storage;
 	std::vector< point > master_point_storage;
 	
@@ -125,20 +125,20 @@ std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesyste
 	
 	
 	//now put them together, return.
-
+	
 	for (int ii=0; ii< int (temp_point_storage[gather_savefiles[0]].size()); ++ii) {
 		point tmppoint;
 		tmppoint.index = temp_point_storage[gather_savefiles[0]][ii].index;
 		
 		for (int jj=0; jj< int(gather_savefiles.size()); ++jj){
 			tmppoint.collected_data[gather_savefiles[jj]] = temp_point_storage[gather_savefiles[jj]][ii].collected_data[gather_savefiles[jj]];
-	    }
+		}
 		master_point_storage[ii] = tmppoint;
 	}
 	
 	std::sort(master_point_storage.begin(), master_point_storage.end());
-
-
+	
+	
 	return master_point_storage;
 }
 
@@ -199,69 +199,71 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 	
 	
 	
-		std::vector< bool> current_folders_are_basic, next_folders_are_basic;
-
-		std::vector< std::string > next_folders = folders_with_data; // seed
-		std::vector< std::string > current_folders;
-		
-		for (int ii=0; ii<folders_with_data.size(); ++ii) {
-			next_folders_are_basic.push_back(true);
-		}
-		
-		int current_num_folders;
+	std::vector< bool> current_folders_are_basic, next_folders_are_basic;
+	
+	std::vector< std::string > next_folders = folders_with_data; // seed
+	std::vector< std::string > current_folders;
+	
+	for (int ii=0; ii<folders_with_data.size(); ++ii) {
+		next_folders_are_basic.push_back(true);
+	}
+	
+	int current_num_folders;
   int level = 0;
-		while (next_folders.size()>1){
+	while (next_folders.size()>1){
+		
+		current_folders = next_folders;
+		current_num_folders = current_folders.size();
+		current_folders_are_basic = next_folders_are_basic;
+		
+		next_folders.clear();
+		next_folders_are_basic.clear();
+		
+		
+		for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj=jj+2) {
+			datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
+			boost::filesystem::create_directory(output_folder_name);
+			std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
+			datagatherer::MergeFolders( file_to_gather, current_folders[jj], current_folders[jj+1], output_folder_name,parser_index);
 			
-			current_folders = next_folders;
-			current_num_folders = current_folders.size();
-			current_folders_are_basic = next_folders_are_basic;
 			
-			next_folders.clear();
-			next_folders_are_basic.clear();
+			next_folders_are_basic.push_back(false);
+			next_folders.push_back(output_folder_name); //put on the list for next level of sorting
 			
-			
-			for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj=jj+2) {
-				datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
-				boost::filesystem::create_directory(output_folder_name);
-				std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
-				datagatherer::MergeFolders( file_to_gather, current_folders[jj], current_folders[jj+1], output_folder_name,parser_index);
-				
-				
-				next_folders_are_basic.push_back(false);
-				next_folders.push_back(output_folder_name); //put on the list for next level of sorting
-				
-				if ( current_folders_are_basic[jj]==false ) { //if not on the first level (that is, to leave the raw unsorted data intact), remove the data.
-					boost::filesystem::remove_all(current_folders[jj]);  //remove the previous step's files
-					// i reiterate how awesome the boost library is.
-				}
-				
-				if ( current_folders_are_basic[jj+1]==false ) { //if not on the first level (that is, to leave the raw unsorted data intact), remove the data.
-					boost::filesystem::remove_all(current_folders[jj+1]);  //remove the previous step's files
-					// i reiterate how awesome the boost library is.
-				}
-				
-				
+			if ( current_folders_are_basic[jj]==false ) { //if not on the first level (that is, to leave the raw unsorted data intact), remove the data.
+				boost::filesystem::remove_all(current_folders[jj]);  //remove the previous step's files
+				// i reiterate how awesome the boost library is.
 			}
 			
-			if (  ( (current_num_folders%2) == 1)   ) { //if there is an odd man out.
-				next_folders.push_back(current_folders[current_num_folders-1]); // put the last folder on (-1) for zero indexing
-        if (current_folders_are_basic[current_num_folders-1]==true) {
-          next_folders_are_basic.push_back(true);
-        }
+			if ( current_folders_are_basic[jj+1]==false ) { //if not on the first level (that is, to leave the raw unsorted data intact), remove the data.
+				boost::filesystem::remove_all(current_folders[jj+1]);  //remove the previous step's files
+				// i reiterate how awesome the boost library is.
 			}
-      level++;
+			
+			
 		}
 		
-    std::string source_folder;
-		source_folder = next_folders[0]; // set this for finalizing.
-		
+		if (  ( (current_num_folders%2) == 1)   ) { //if there is an odd man out.
+			next_folders.push_back(current_folders[current_num_folders-1]); // put the last folder on (-1) for zero indexing
+			if (current_folders_are_basic[current_num_folders-1]==true) {
+				next_folders_are_basic.push_back(true);
+			}
+		}
+		level++;
+	}
+	
+	std::string source_folder;
+	source_folder = next_folders[0]; // set this for finalizing.
+	bool source_folder_is_basic = next_folders_are_basic[0];
 	
 	
-	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);   
+	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);
 	
 	std::cout << "done finalizing" << std::endl;  // removeme
 	
-	boost::filesystem::remove_all(source_folder);  //remove the previous step's files
+	if (source_folder_is_basic==false) {
+		boost::filesystem::remove_all(source_folder);  //remove the previous step's files
+	}
 	std::cout << "done removing" << std::endl;  // removeme
 	return;
 }
@@ -283,12 +285,12 @@ std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 	}
 	
 	std::string resolved_file_name;
-
+	
 	std::ifstream sourcefile(filetoopen.string().c_str());
 	getline(sourcefile,resolved_file_name);
 	sourcefile.close();
 	
-
+	
 	filetoopen = resolved_file_name;
 	
 	std::cout << filetoopen.string() << " opening to read in successful resolves." << std::endl;
@@ -345,16 +347,16 @@ std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 				converter >> filename[jj];
 			}
 			
-
+			
 			for (int kk=0; kk<num_files_to_collect; ++kk) {
 				ReadPoint(sourcefile, tmppoint.collected_data[filename[kk]], parsermap[filename[kk]]);
 			}
 		}
-
+		
 		
 		successful_resolves[next_index] = tmppoint;
 		
-
+		
 	}
 	
 	sourcefile.close();
@@ -444,7 +446,7 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 		
 		while (! (datagatherer::ReadPoint(sourcefile, next_index, next_data, parser_index))  ) {
 			
-
+			
 			//check the integrity of the data
 			if (next_index!=(previous_index+1)){
 				std::cerr << "index mismatch, filename " << file_to_gather	<< ", with indices " << previous_index << " & " << next_index << std::endl;
@@ -486,7 +488,7 @@ void datagatherer::CheckForResolvedFailedPoint(std::string file_to_gather,int ne
 	
 	if (successful_resolves.find(next_index) ==successful_resolves.end()) {
 		
-
+		
 		return;
 	}
 	else{
@@ -605,7 +607,7 @@ void datagatherer::MergeFolders(std::string file_to_gather, std::string left_fol
 	
 	
 	bool keep_going_left, keep_going_right, next_read_left, next_read_right;
-
+	
 	
 	
 	if (datafile_left.eof()) {
@@ -617,7 +619,7 @@ void datagatherer::MergeFolders(std::string file_to_gather, std::string left_fol
 	}
 	
 	if (datafile_right.eof()) {
-		keep_going_right = false; 
+		keep_going_right = false;
 	}
 	else{
 		keep_going_right = true; // to seed the merge
@@ -668,7 +670,7 @@ void datagatherer::MergeFolders(std::string file_to_gather, std::string left_fol
 			
 			
 			if (!keep_going_right){
-							
+				
 				converter << next_index_left;
 				output_buffer.append(converter.str());
 				converter.clear();
@@ -857,7 +859,7 @@ bool datagatherer::ReadPoint(std::ifstream & fin, int & next_index, std::string 
 	
 	getline(fin, tmpstr);  //get the line number
 	
-
+	
 	
 	converter << tmpstr;
 	converter >> next_index;
@@ -960,7 +962,7 @@ std::string datagatherer::ParseSolutionsFile(std::ifstream & fin){ //std::vector
 	getline(fin,tmpstr); //burn one line
 	solutions_file << tmpstr << "\n";
 	
-
+	
 	for (int solution_counter = 0; solution_counter <  number_of_solutions; ++solution_counter) {
 		
 		for (int variable_counter = 0; variable_counter < this->numvariables; ++variable_counter) {
