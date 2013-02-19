@@ -170,7 +170,7 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 	setValue("Step1Settings","TRACKTOLDURINGEG",1e-6);
 	setValue("Step1Settings","FINALTOL",1e-11);
 	setValue("Step1Settings","PRINTPATHMODULUS",20);
-	setValue("Step1Settings","IMAGTHRESHOLD",1e-4);
+	setValue("Step1Settings","IMAGTHRESHOLD",1e-8);
 	setValue("Step1Settings","SECURITYLEVEL",0);
 	setValue("Step1Settings","USERHOMOTOPY", 0);
 	ProgSettings::save();
@@ -185,7 +185,7 @@ void ProgSettings::default_basic_bertini_values_steptwo(){
 	setValue("Step2Settings","TRACKTOLDURINGEG",1e-6);
 	setValue("Step2Settings","FINALTOL",1e-11);
 	setValue("Step2Settings","PRINTPATHMODULUS",20);
-	setValue("Step2Settings","IMAGTHRESHOLD",1e-4);
+	setValue("Step2Settings","IMAGTHRESHOLD",1e-8);
 	setValue("Step2Settings","SECURITYLEVEL",0);
 	ProgSettings::save();
 	return;
@@ -198,7 +198,7 @@ void ProgSettings::default_basic_bertini_values_pathfailure(){
 	setValue("PathFailureBertiniBase","TRACKTOLDURINGEG",1e-6);
 	setValue("PathFailureBertiniBase","FINALTOL",1e-11);
 	setValue("PathFailureBertiniBase","PRINTPATHMODULUS",20);
-	setValue("PathFailureBertiniBase","IMAGTHRESHOLD",1e-4);
+	setValue("PathFailureBertiniBase","IMAGTHRESHOLD",1e-8);
 	setValue("PathFailureBertiniBase","SECURITYLEVEL",0);
 	ProgSettings::save();
 	return;
