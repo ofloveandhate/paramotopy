@@ -1,0 +1,3 @@
+to generate the documentation for paramotopy, run
+
+doxygen paramotopy.doxy.config
