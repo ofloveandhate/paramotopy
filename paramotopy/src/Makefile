@@ -31,7 +31,7 @@ ifeq (sam,$(MACHINENAME))
 	CC  := g++
 	MANDATORYOPT := -fopenmp
 	BOOSTLOC := /usr/local/boost/lib/
-	INCLUDE := -I/usr/local/boost/include 
+	INCLUDE := -I../include -I/usr/local/boost/include 
 	BOOSTSUFFIX :=#no spaces
 	BERTINILIB := ./libbertinisam.a
 	MPFRLOC :=#already in path
@@ -43,7 +43,7 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	CC  := g++
 	MANDATORYOPT := -fopenmp
 	BOOSTLOC := /usr/local/Cellar/boost/1.52.0/lib/
-	INCLUDE := -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
+	INCLUDE := -I../include -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
 	BOOSTSUFFIX :=-mt#no spaces
 	BERTINILIB := $(HOME)/lib/libbertini.a
 	MPFRLOC :=#in path
@@ -55,7 +55,7 @@ else ifeq (cray,$(MACHINENAME))
 	CC := CC
 	MANDATORYOPT := #do not use the -fopenmp flag on the cray with pgi compilers
 	BOOSTLOC := /home/GRAD511/dbrake/lustrefs/realwork/boost_1_50_0/stage/lib/
-	INCLUDE := -I/home/GRAD511/dbrake/lustrefs/realwork/boost_1_50_0
+	INCLUDE := -I../include -I/home/GRAD511/dbrake/lustrefs/realwork/boost_1_50_0
 	BOOSTSUFFIX :=#no spaces
 	BERTINILIB := ./libbertinicray.a
 	MPFRLOC := -L/opt/gcc/mpfr/2.4.2/lib
@@ -66,7 +66,7 @@ else ifeq (macniemerg,$(MACHINENAME))
 	MCC:= mpic++ -mpe=mpicheck
 	CC:= g++
 	BOOSTLOC := /usr/local/lib/
-	INCLUDE := -I/usr/local/include
+	INCLUDE := -I../include -I/usr/local/include
 	MANDATORYOPT := -fopenmp
 	BOOSTSUFFIX :=#nothing
 	BERTINILIB := ./libbertinimacmn.a
@@ -147,9 +147,7 @@ install:	step2 paramotopy
 
 
 xml_preferences.o: tinyxml.o tinystr.o
-tinyxml.o: tinyxml.h tinystr.h 
-tinyxmlparser.o: tinyxml.h tinystr.h
-tinyxmlerror.o: tinyxml.h tinystr.h
+
 
 
 # Describe how to create the object file
