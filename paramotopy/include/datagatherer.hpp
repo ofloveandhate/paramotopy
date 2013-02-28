@@ -32,6 +32,12 @@
 
 
 
+/**
+ *  @class "data gatherer"
+ *  
+ *
+ **/
+
 
 class datagatherer {
 	
