@@ -8,57 +8,57 @@ args_splash[0] = const_cast<char *>("bertini");
 args_splash[1] = const_cast<char *>("--version");
 
 	
-	std::cout << "\n\nlinked library bertini:\n\n";
-	bertini_main(2,args_splash);
-	std::cout << "\n\nstand-alone bertini:\n\n";
-	
-
-	std::stringstream command;
-	command << bertinilocation << "/bertini --version" ;
-		system(command.str().c_str());
-	std::cout << "\n\n";
-	
-	return;
-	
+ std::cout << "\n\nlinked library bertini:\n\n";
+ bertini_main(2,args_splash);
+ std::cout << "\n\nstand-alone bertini:\n\n";
+ 
+ 
+ std::stringstream command;
+ command << bertinilocation << "/bertini --version" ;
+ system(command.str().c_str());
+ std::cout << "\n\n";
+ 
+ return;
+ 
 }
 
 
 
 void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::string > & gather_savefiles, std::vector< int > & gather_parser_indices){
-	std::vector < std::string > possible_savefiles;
-	possible_savefiles.push_back("real_solutions");
-	possible_savefiles.push_back("nonsingular_solutions");
-	possible_savefiles.push_back("singular_solutions");
-	possible_savefiles.push_back("raw_data");
-	possible_savefiles.push_back("raw_solutions");
-	possible_savefiles.push_back("main_data");
-	possible_savefiles.push_back("midpath_data");
-	possible_savefiles.push_back("failed_paths");
+  std::vector < std::string > possible_savefiles;
+  possible_savefiles.push_back("real_solutions");
+  possible_savefiles.push_back("nonsingular_solutions");
+  possible_savefiles.push_back("singular_solutions");
+  possible_savefiles.push_back("raw_data");
+  possible_savefiles.push_back("raw_solutions");
+  possible_savefiles.push_back("main_data");
+  possible_savefiles.push_back("midpath_data");
+  possible_savefiles.push_back("failed_paths");
+  
+  std::vector < int > possible_parser_indices;
+  possible_parser_indices.push_back(1);//real_
+  possible_parser_indices.push_back(1);//nonsingular
+  possible_parser_indices.push_back(1);//singular_
+  possible_parser_indices.push_back(-1);//raw_data
+  possible_parser_indices.push_back(-1);//raw_solutions
+  possible_parser_indices.push_back(-1);//main_data
+  possible_parser_indices.push_back(-1);//midpath_data
+  possible_parser_indices.push_back(2);//failed_paths
 
-	std::vector < int > possible_parser_indices;
-	possible_parser_indices.push_back(1);//real_
-	possible_parser_indices.push_back(1);//nonsingular
-	possible_parser_indices.push_back(1);//singular_
-	possible_parser_indices.push_back(-1);//raw_data
-	possible_parser_indices.push_back(-1);//raw_solutions
-	possible_parser_indices.push_back(-1);//main_data
-	possible_parser_indices.push_back(-1);//midpath_data
-	possible_parser_indices.push_back(2);//failed_paths
-
-
-	for (int ii = 0; ii < int(possible_savefiles.size()); ii++){
-		boost::filesystem::path temppath = run_to_analyze;
-		temppath /= "step2/DataCollected/c1";  // scan the c1 folder, because every run has a c1 folder, and it will always contain data.
-		std::string expression = "^";  //specify beginning of string
-		expression.append(possible_savefiles[ii]);
-		std::vector < std::string > filelist = FindFiles(temppath.string(), expression);  //this function is in para_aux_funcs
-		if (int(filelist.size())>0){
-			gather_savefiles.push_back(possible_savefiles[ii]);
-			gather_parser_indices.push_back(possible_parser_indices[ii]);
-		}
-	}
-	
-	return;
+  
+  for (int ii = 0; ii < int(possible_savefiles.size()); ii++){
+    boost::filesystem::path temppath = run_to_analyze;
+    temppath /= "step2/DataCollected/c1";  // scan the c1 folder, because every run has a c1 folder, and it will always contain data.
+    std::string expression = "^";  //specify beginning of string
+    expression.append(possible_savefiles[ii]);
+    std::vector < std::string > filelist = FindFiles(temppath.string(), expression);  //this function is in para_aux_funcs
+    if (int(filelist.size())>0){
+      gather_savefiles.push_back(possible_savefiles[ii]);
+      gather_parser_indices.push_back(possible_parser_indices[ii]);
+    }
+  }
+  
+  return;
 }
 
 
@@ -67,40 +67,40 @@ void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::s
 bool TestIfFinished(boost::filesystem::path & path_to_check){
 	
 	
-	boost::filesystem::path appended_path = path_to_check;
-	appended_path /= "step2finished";
-	
-	if (boost::filesystem::exists(appended_path)){
-		return true;
-	}
-	else{
-		return false;
-	}
+  boost::filesystem::path appended_path = path_to_check;
+  appended_path /= "step2finished";
+  
+  if (boost::filesystem::exists(appended_path)){
+    return true;
+  }
+  else{
+    return false;
+  }
 }
 
 
 ///the parser for the failed_paths file type, which is output from bertini.
 int ParseFailedPaths(std::ifstream & fin, int numvariables){
-	int tempfailnum = 0;
-	std::string tmpstr;
-	
-
-	while (1) {
-		
-		getline(fin,tmpstr);
-		//faily_myfailfail << tmpstr;
-		if (tmpstr.length()==0) { // if do not have a solution
-			break;
-		}
-		else { //have a soln
-			for (int i=0; i<3+numvariables; ++i) {
-				getline(fin,tmpstr);
-				//faily_myfailfail << tmpstr;
-			}
-			tempfailnum++;
-		}
-	}
-	return tempfailnum;
+  int tempfailnum = 0;
+  std::string tmpstr;
+  
+  
+  while (1) {
+    
+    getline(fin,tmpstr);
+    //faily_myfailfail << tmpstr;
+    if (tmpstr.length()==0) { // if do not have a solution
+      break;
+    }
+    else { //have a soln
+      for (int i=0; i<3+numvariables; ++i) {
+	getline(fin,tmpstr);
+	//faily_myfailfail << tmpstr;
+      }
+      tempfailnum++;
+    }
+  }
+  return tempfailnum;
 }
 
 
@@ -108,96 +108,96 @@ int ParseFailedPaths(std::ifstream & fin, int numvariables){
 
 std::string replace_tilde_with_home(std::string workwithme){
 	
-	size_t found;
-	
-	found=workwithme.find('~');
-	if ( (int(found)==0) ) {
-		std::string replaced_string = getenv("HOME");
-		replaced_string.append( workwithme.substr(found+1,workwithme.length()-1));
-		return replaced_string;
-	}
-	else{
-		return workwithme;
-	}
+  size_t found;
+  
+  found=workwithme.find('~');
+  if ( (int(found)==0) ) {
+    std::string replaced_string = getenv("HOME");
+    replaced_string.append( workwithme.substr(found+1,workwithme.length()-1));
+    return replaced_string;
+  }
+  else{
+    return workwithme;
+  }
 }
 
 //searches a directory for all files fitting a regular expression.
 std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression){
-	boost::filesystem::path p(dir);
-	boost::regex e(expression);
-	std::vector<boost::filesystem::path> found_folders;
-	
-	if (boost::filesystem::exists(p)) {
-		boost::filesystem::directory_iterator dir_end;
-		std::string filename;
-		for(boost::filesystem::directory_iterator dir_iter(p); dir_iter != dir_end; ++dir_iter) {
-			filename = dir_iter->path().filename().string();
-			if (boost::regex_search(filename,e)) {
-				if (is_directory(dir_iter->path())){
-					found_folders.push_back(dir_iter->path());
-				}
-			}
-		}
+  boost::filesystem::path p(dir);
+  boost::regex e(expression);
+  std::vector<boost::filesystem::path> found_folders;
+  
+  if (boost::filesystem::exists(p)) {
+    boost::filesystem::directory_iterator dir_end;
+    std::string filename;
+    for(boost::filesystem::directory_iterator dir_iter(p); dir_iter != dir_end; ++dir_iter) {
+      filename = dir_iter->path().filename().string();
+      if (boost::regex_search(filename,e)) {
+	if (is_directory(dir_iter->path())){
+	  found_folders.push_back(dir_iter->path());
 	}
-	else {
-		std::cerr << "directory " << dir << " does not exist!\n";
-	}
-	std::sort(found_folders.begin(), found_folders.end());
-	return found_folders;
-	
-	
+      }
+    }
+  }
+  else {
+    std::cerr << "directory " << dir << " does not exist!\n";
+  }
+  std::sort(found_folders.begin(), found_folders.end());
+  return found_folders;
+  
+  
 }
 
 //searches a directory for all *directories* fitting a regular expression.
 std::vector<std::string> FindFiles(std::string dir, std::string expression){
-	
-	boost::filesystem::path p(dir);
-	boost::regex e(expression);
-	std::vector<std::string> found_files;
-	
-	
-	if (boost::filesystem::exists(p)) {
-		boost::filesystem::directory_iterator dir_end;
-		std::string filename;
-		for(boost::filesystem::directory_iterator dir_iter(p); dir_iter != dir_end; ++dir_iter) {
-			filename = dir_iter->path().filename().string();
-			if (boost::regex_search(filename,e)) {
-				if (is_regular_file(dir_iter->path())){
-					found_files.push_back(dir_iter->path().string());
-				}
-			}
-		}
+  
+  boost::filesystem::path p(dir);
+  boost::regex e(expression);
+  std::vector<std::string> found_files;
+  
+  
+  if (boost::filesystem::exists(p)) {
+    boost::filesystem::directory_iterator dir_end;
+    std::string filename;
+    for(boost::filesystem::directory_iterator dir_iter(p); dir_iter != dir_end; ++dir_iter) {
+      filename = dir_iter->path().filename().string();
+      if (boost::regex_search(filename,e)) {
+	if (is_regular_file(dir_iter->path())){
+	  found_files.push_back(dir_iter->path().string());
 	}
-	else {
-		std::cerr << "directory " << dir << " does not exist!\n";
-	}
-	
-	
-	std::sort(found_files.begin(), found_files.end());
-	return found_files;
-	
+      }
+    }
+  }
+  else {
+    std::cerr << "directory " << dir << " does not exist!\n";
+  }
+  
+  
+  std::sort(found_files.begin(), found_files.end());
+  return found_files;
+  
 }
 
 
 
 
 std::string make_base_dir_name(std::string filename){  //intended to be called from step2
-	std::string dir = "";
-	
-	std::string remainder = filename;
-	size_t found;
-	found = remainder.find('/');
-	while (found!=std::string::npos) {  //if found the delimiter '/'
-		
-		dir.append(remainder.substr(0,found+1));  //
-		std::cout << dir << "\n";
-		remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
-		found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
-	}// re:while
-	dir.append("bfiles_");
-	dir.append(remainder);
-	
-	return dir;
+  std::string dir = "";
+  
+  std::string remainder = filename;
+  size_t found;
+  found = remainder.find('/');
+  while (found!=std::string::npos) {  //if found the delimiter '/'
+    
+    dir.append(remainder.substr(0,found+1));  //
+    std::cout << dir << "\n";
+    remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
+    found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
+  }// re:while
+  dir.append("bfiles_");
+  dir.append(remainder);
+  
+  return dir;
 }
 
 
@@ -207,10 +207,10 @@ std::string make_base_dir_name(std::string filename){  //intended to be called f
 //makes a system call to make directory, and all parent directories.  
 void mkdirunix(std::string mydir){
 	
-	std::string tmp = "mkdir -p ";
-	tmp.append(mydir);
-	system(tmp.c_str());
-	
+  std::string tmp = "mkdir -p ";
+  tmp.append(mydir);
+  system(tmp.c_str());
+  
 }
 
 
@@ -226,42 +226,44 @@ double getDouble()
 {
 	
 	
+  std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
+  std::cin.clear() ; // to be safe, clear error flags which may be set
+  
+  double results;
+  std::string line;
+  while (1){
+    while ( ! std::getline( std::cin, line )  )
+      {
+	
 	std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
 	std::cin.clear() ; // to be safe, clear error flags which may be set
 	
-    double results;
-    std::string line;
-	while (1){
-		while ( ! std::getline( std::cin, line )  )
-		{
-			
-			std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
-			std::cin.clear() ; // to be safe, clear error flags which may be set
-			
-		}
-		
-		if (! parseDouble( line, results )) {
-			std::cout << "Only 'numeric' value(s) allowed:" << std::endl;
-		}
-		else{
-			break;
-		}
-		
-	}
-    return results;
+      }
+    
+    if (! parseDouble( line, results )) {
+      std::cout << "Only 'numeric' value(s) allowed:" << std::endl;
+    }
+    else{
+      break;
+    }
+    
+  }
+  return results;
 }
 
+
+
 std::string getAlphaNumeric_WithSpaces(){
-	std::string tmpstr;
-	
-	while (!std::getline(std::cin,tmpstr)) {
-		std::cin.clear();
-	}
-	
-	std::cin.clear();
-	
-	return tmpstr;
-	
+  std::string tmpstr;
+  
+  while (!std::getline(std::cin,tmpstr)) {
+    std::cin.clear();
+  }
+  
+  std::cin.clear();
+  
+  return tmpstr;
+  
 };
 
 
@@ -292,29 +294,29 @@ bool parseInteger( std::string const& text, int& results )
 int getInteger()
 {
 	
+  std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
+  std::cin.clear() ; // to be safe, clear error flags which may be set
+  
+  int results;
+  std::string line;
+  while (1){
+    while ( ! std::getline( std::cin, line )  )
+      {
+	
 	std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
 	std::cin.clear() ; // to be safe, clear error flags which may be set
 	
-    int results;
-    std::string line;
-	while (1){
-		while ( ! std::getline( std::cin, line )  )
-		{
-			
-			std::cin.ignore( std::numeric_limits<std::streampos>::max(), '\n' ) ;
-			std::cin.clear() ; // to be safe, clear error flags which may be set
-
-		}
-		
-		if (! parseInteger( line, results )) {
-			std::cout << "Only 'numeric' value(s) allowed:" << std::endl;
-		}
-		else{
-			break;
-		}
-		
-	}
-    return results;
+      }
+    
+    if (! parseInteger( line, results )) {
+      std::cout << "Only 'numeric' value(s) allowed:" << std::endl;
+    }
+    else{
+      break;
+    }
+    
+  }
+  return results;
 }
 
 
@@ -361,26 +363,26 @@ int get_int_choice(std::string display_string,int min_value,int max_value){
 //the main choice function for paramotopy.
 int ParamotopyMainMenu(){
 	
-	std::stringstream menu;
+  std::stringstream menu;
 	
-	menu << "\n\nYour choices : \n\n"
-	<< "1) Parse an appropriate input file. \n"
-	<< "2) Data Management. \n"
-	<< "3)   -unprogrammed- \n"
-	<< "4) Manage start point (load/save/new). \n"
-	<< "5) Write Step 1.\n"
-	<< "6) Run Step 1.\n"
-	<< "7) Run Step 2.\n"
-    << "8) Failed Path Analysis.\n"
-	<< "\n"
-	<< "9) Preferences.\n"
-	<< "*\n"
-	<< "0) Quit the program.\n\n"
-	<< "Enter the integer value of your choice : ";
-	
-	int intChoice = get_int_choice(menu.str(), 0, 9);//= -1;
-	
-	return intChoice;
+  menu << "\n\nYour choices : \n\n"
+       << "1) Parse an appropriate input file. \n"
+       << "2) Data Management. \n"
+       << "3)   -unprogrammed- \n"
+       << "4) Manage start point (load/save/new). \n"
+       << "5) Write Step 1.\n"
+       << "6) Run Step 1.\n"
+       << "7) Run Step 2.\n"
+       << "8) Failed Path Analysis.\n"
+       << "\n"
+       << "9) Preferences.\n"
+       << "*\n"
+       << "0) Quit the program.\n\n"
+       << "Enter the integer value of your choice : ";
+  
+  int intChoice = get_int_choice(menu.str(), 0, 9);//= -1;
+  
+  return intChoice;
 }  //   re: getuserchoice
 
 
