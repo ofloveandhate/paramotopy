@@ -26,7 +26,8 @@
 
 /**
  * Class for holding a parameter point.
- *
+ * \class point
+ * \brief Class containing parameter values, index, and collected data.
  */
 class point {
 	

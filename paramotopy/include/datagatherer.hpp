@@ -33,11 +33,11 @@
 
 
 /**
- *  @class "data gatherer"
+ *  @class "datagatherer"
  *  
  * contains methods for gathering data from the bfiles_filename/run0/step2/DataCollected/c0 folders (or in another respective location).  
  * 
- *
+ * \brief Class for gathering data, from failed path analysis, and from completed runs.
  **/
 
 

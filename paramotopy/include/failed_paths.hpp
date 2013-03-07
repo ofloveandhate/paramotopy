@@ -9,6 +9,12 @@
 #include <stdio.h>
 #include <iomanip>
 #include <math.h>
+
+
+
+#ifndef __FAILED_PATHS_H__
+#define __FAILED_PATHS_H__
+
 #include "random.hpp"
 #include "mtrand.hpp"
 #include "step1_funcs.hpp"
@@ -18,18 +24,13 @@
 #include "runinfo.hpp"
 #include "menu_cases.hpp"
 #include "step2readandwrite.hpp"
-
-
 #include "point.hpp"
-
 #include "datagatherer.hpp"
 
 
-#ifndef __FAILED_PATHS_H__
-#define __FAILED_PATHS_H__
-
-
-//the case to be called from paramotopy
+/** the case to be called from paramotopy menu
+ *
+ */
 int failedpaths_case(runinfo & paramotopy_info, 
 		     ProgSettings & paramotopy_settings,
 		     int & iteration);
@@ -37,7 +38,10 @@ int failedpaths_case(runinfo & paramotopy_info,
 
 
 
-/** A class for the failed path analysis. */
+/** A class for the failed path analysis.  Instantiated in failedpath_case() called from the main menu.
+ * \brief The class for performing failed path analysis.
+ * \class failinfo
+ */
 class failinfo {
 public:
 
