@@ -1,19 +1,17 @@
 #include "step2readandwrite.hpp"
 
 
-/*
- the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
- and denominator of the number.  I pass the input by casting via (char *) blabla
- */
-extern "C" {
-	void computeNumDenom(char **numer, char **denom, char *s);
-}
 
 
 
 
-
-void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_stream,int & terminationint,std::vector< int > & KVector,runinfo & paramotopy_info,ProgSettings & paramotopy_settings)
+//opens the streams, sets terminationint, and initializes KVector
+void getTermination_OpenMC(std::ifstream & mc_in_stream,
+													 std::ofstream & mc_out_stream,
+													 int & terminationint,
+													 std::vector< int > & KVector,
+													 runinfo & paramotopy_info,
+													 ProgSettings & paramotopy_settings)
 {
 	std::string mcfname = paramotopy_info.location;
 	mcfname.append("/mc");
@@ -69,7 +67,7 @@ bool SlaveCollectAndWriteData(int & numfiles,
 							  ToSave * TheFiles,
 							  const std::vector<std::string> ParamNames,
 							  const std::vector<std::pair<double,double> > AllParams,
-							  int & buffersize,
+							  int buffersize,
 							  const std::string DataCollectedbase_dir,
 							  std::vector< int > & filesizes,
 							  const int newfilethreshold,
@@ -130,8 +128,8 @@ bool SlaveCollectAndWriteData(int & numfiles,
 
 
 
-std::string AppendData(int runid,
-					   std::string orig_file,
+std::string AppendData(int point_index,
+					   std::string orig_filename,
 					   std::vector<std::string> ParamStrings,
 					   std::vector<std::pair<double, double> > CValues){
 	
@@ -139,15 +137,15 @@ std::string AppendData(int runid,
 	
 	std::string cline = "";
 	std::stringstream outstring;
-	std::ifstream fin(orig_file.c_str());	
+	std::ifstream fin(orig_filename.c_str());
 	
 	if (!fin.is_open()) {
-		std::cerr << "failed to open file '" << orig_file << "' to read data" << std::endl;
+		std::cerr << "failed to open file '" << orig_filename << "' to read data" << std::endl;
 		exit(-42);
 	}
 	
 	
-	outstring << runid << "\n";
+	outstring << point_index << "\n";
 	for (int i = 0; i < int(CValues.size());++i){
 		outstring << std::setprecision(16) << CValues[i].first << " " << CValues[i].second << " ";
 	}

@@ -1,17 +1,5 @@
-#include <string>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <sstream>
-#include "step1_funcs.hpp"
 #include "step2_funcs.hpp"
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <cmath>
-#include <sys/types.h> 
+
 
 
 

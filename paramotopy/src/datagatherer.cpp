@@ -41,7 +41,8 @@ bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails, std::
 }
 
 
-std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > terminal_fails, std::vector< point > current_data){
+std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > terminal_fails, std::vector< point > current_data)
+{
 	std::vector< point > successful_resolves;
 	
 	
@@ -55,7 +56,7 @@ std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > 
 		
 		for (int ii=0; ii<current_data.size(); ++ii) {
 			flag_if_success[ii]=1;
-		}
+		} // seed the vector
 		
 		
 		successful_resolves.resize(current_data.size()-terminal_fails.size());
@@ -486,17 +487,21 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 
 void datagatherer::CheckForResolvedFailedPoint(std::string file_to_gather,int next_index,std::string & next_data,std::map< int, point> successful_resolves){
 	
+	// attempt to find point with the same index.
 	if (successful_resolves.find(next_index) ==successful_resolves.end()) {
-		
-		
+		//did not find
 		return;
 	}
 	else{
+		//did find!
+		
+		//check for data
 		if (successful_resolves[next_index].collected_data.find(file_to_gather)!=successful_resolves[next_index].collected_data.end() ){
 			next_data = successful_resolves[next_index].collected_data[file_to_gather];
 			std::cout <<  next_index << " replaced with resolved data." << std::endl;
 		}
 		else{
+			//found point, but no data.  must have been a persistent fail.  simply return.
 			return;
 		}
 	}

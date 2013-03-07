@@ -24,21 +24,31 @@
 #define __POINT_H__
 
 
-
+/**
+ * Class for holding a parameter point.
+ *
+ */
 class point {
+	
+	/** default constructor */
+	point (){};
 	
 public:
 	
-	//variables
+	//data members
+	
+	/**  line-number of the point */
 	long long index;
+	/** actual parameter coordinates */
 	std::vector< std::pair<double,double> > parameter_values;
+	/** map, indexed by filename (e.g. nonsingular_solutions), containing the collected data in string form. */
 	std::map< std::string, std::string > collected_data;
 	
 	
 	//functions
-	point (){};// constructor
-	
-	bool operator<(const point & p2 ) const { return this->index < p2.index; }  //define the comparison for sorting.
+
+	/** define the comparison for sorting order. */
+	bool operator<(const point & p2 ) const { return this->index < p2.index; }  
 	
 	
 private:

@@ -699,7 +699,7 @@ void master(std::string filename,
 // FormNextValues generates parameter points from a mesh-style set
 void FormNextValues(int numfilesatatime,
 					int numparam,
-					int localcounter,
+					int pointcounter,
 					std::vector< std::vector< std::pair<double,double> > > Values,
 					int countingup,
 					std::vector< int > KVector,
@@ -722,10 +722,10 @@ void FormNextValues(int numfilesatatime,
 	
 	//assign the data
 	for (int jj=0; jj<numparam; ++jj) {
-		tempsends[localcounter*(2*numparam+1)+2*jj] = Values[jj][ indexvector[jj] ].first;//for sending to workers, to write into data files.
-		tempsends[localcounter*(2*numparam+1)+2*jj+1] = Values[jj][ indexvector[jj] ].second;
+		tempsends[pointcounter*(2*numparam+1)+2*jj] = Values[jj][ indexvector[jj] ].first;//for sending to workers, to write into data files.
+		tempsends[pointcounter*(2*numparam+1)+2*jj+1] = Values[jj][ indexvector[jj] ].second;
 	}
-	tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
 	
 	return;
 }
@@ -734,8 +734,8 @@ void FormNextValues(int numfilesatatime,
 //FormNextValues_mc generates points to send, from a user-defined set
 void FormNextValues_mc(int numfilesatatime,   //how many points in parameter space to set up
 					   int numparam,  //the number of parameters in the run
-					   int localcounter,	//another integer counter
-					   int countingup,  //an integer counter
+					   int pointcounter,	//another integer counter
+					   int mc_line_number,  //an integer counter
 					   std::ifstream & mc_in_stream, //the input file stream we will read from
 					   double tempsends[]){ //tempsends holds the values to send
 	
@@ -747,13 +747,13 @@ void FormNextValues_mc(int numfilesatatime,   //how many points in parameter spa
 	ss << temp;
 
   for (int jj = 0; jj < numparam;++jj){
-		ss >> tempsends[localcounter*(2*numparam+1)+2*jj];
-		ss >> tempsends[localcounter*(2*numparam+1)+2*jj+1];
+		ss >> tempsends[pointcounter*(2*numparam+1)+2*jj];
+		ss >> tempsends[pointcounter*(2*numparam+1)+2*jj+1];
 	}
 	
 
   
-	tempsends[localcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = mc_line_number;//the line number in mc file
 	
   
 

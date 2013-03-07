@@ -5,7 +5,7 @@
 void CallBertiniStep1(ProgSettings paramotopy_settings, 
 					  runinfo paramotopy_info){
 	
-	std::string startingfolder = stackoverflow_getcwd();  //move to the running folder
+	std::string startingfolder = stackoverflow_getcwd();  //get the current directory
 	std::stringstream command;
 	std::stringstream runfolder;
 	runfolder << paramotopy_info.location << "/step1";
@@ -103,22 +103,18 @@ void MakeConfig(std::ifstream & fin, std::stringstream & fout){
 void WriteMeshToMonteCarlo(int level, 
 			   std::vector<std::vector<std::pair<double, double> > > Values, 
 			   std::string dirfilename, 
-			   std::string cline){
+			   std::string runningline){
   
   if (level==int(Values.size())-1){
     // at the last end of the parameters ....
-    //    std::string cline2 = cline;
     for (int i = 0; i < int(Values[level].size());++i){
-      // cline = cline2;
       std::stringstream ss;
-      ss << cline;
+      ss << runningline;
       ss << " ";
       ss << Values[level][i].first;
       ss << " ";
       ss << Values[level][i].second;
       ss << "\n";
-      // cline.append(ss.str());
-      // std::cout << "dirfilename = " << dirfilename << "\n";
       std::ofstream fout(dirfilename.c_str(),std::ios::app);
       fout << ss.str();
       fout.close();
@@ -127,17 +123,13 @@ void WriteMeshToMonteCarlo(int level,
   else{
     for (int i= 0; i < int(Values[level].size());++i){
       std::stringstream ss;
-      ss << cline;
+      ss << runningline;
       ss << " ";
       ss << Values[level][i].first;
       ss << " ";
       ss << Values[level][i].second;
       ss << " ";
-      // cline.append(Values[level][i].first);
-      // cline.append(" ");
-      // cline.append(Values[level][i].second);
-      // cline.append(" ");
-      // cline=ss.str();
+
       WriteMeshToMonteCarlo(level+1,Values,dirfilename,ss.str());
     }
   } 
