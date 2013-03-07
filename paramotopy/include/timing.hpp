@@ -32,12 +32,15 @@
 /** the timer_data class is for use in conjunction with the timer class below, via a map.  it holds elapsed time, a start time, and a number of times it has been incremented.  the methods for adjusting these are all set in the timer class.  this merely holds the data */
 class timer_data{
 	
+
+public:
+	
 	/** default constructor */
 	timer_data(){
 		num_calls_timed = 0;
 		elapsed_time = 0;
 	}
-public:
+	
 	
 	/** start time.  set by pushing start. */
 	double t1;
