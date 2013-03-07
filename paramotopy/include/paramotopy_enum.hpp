@@ -21,6 +21,10 @@ enum OPTIONS {Start, Input, SetRandom, SaveRandom, LoadRandom, WriteStepOne, Run
 //	std::string step2location;
 //};
 
+/**
+ * Struct containing names of files to be collected.
+ * \brief Struct for indicating the names of the files to be collected.
+ */
 struct ToSave{
 	
 	std::string filename;

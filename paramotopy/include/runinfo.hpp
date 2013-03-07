@@ -34,7 +34,10 @@
 #include "datagatherer.hpp"
 
 
-/** The input file parser. */
+/** The input file parser. 
+ * \class runinfo
+ * \brief A class for the input file parser.
+ */
 
 class runinfo {
 	

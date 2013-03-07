@@ -29,7 +29,10 @@
 
 
 
-/** the timer_data class is for use in conjunction with the timer class below, via a map.  it holds elapsed time, a start time, and a number of times it has been incremented.  the methods for adjusting these are all set in the timer class.  this merely holds the data */
+/** the timer_data class is for use in conjunction with the timer class below, via a map.  it holds elapsed time, a start time, and a number of times it has been incremented.  the methods for adjusting these are all set in the timer class.  this merely holds the data 
+ \class timer_data 
+ \brief Small class, with no methods, for holding timing data.
+ */
 class timer_data{
 	
 
@@ -57,7 +60,9 @@ public:
 
 
 /**
-* this class defines that which keeps track of timing data.  it uses a map to hold actual time elapsed, and the number of times the timer has been incremented;
+* \class timer
+ this class defines that which keeps track of timing data.  it uses a map to hold actual time elapsed, and the number of times the timer has been incremented;
+ \brief Capable of timing arbitrary categories of processes, using a map of timer_data's.
  */
 class timer{
 	
