@@ -30,10 +30,12 @@
  */
 class point {
 	
+
+	
+public:
 	/** default constructor */
 	point (){};
 	
-public:
 	
 	//data members
 	

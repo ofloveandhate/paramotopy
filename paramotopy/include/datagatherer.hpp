@@ -42,6 +42,11 @@
 
 
 class datagatherer {
+
+	
+public:
+	
+	
 	
 	/** default constructor */
 	datagatherer(){
@@ -66,7 +71,7 @@ class datagatherer {
 	};
 	
 	
-public:
+	
 	
 		//data members
 	
