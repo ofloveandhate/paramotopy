@@ -10,6 +10,15 @@
 #include <unistd.h>
 #include <stdexcept>
 
+
+
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <cmath>
+
+
+
 #ifndef __STEPTWO_H__
 #define __STEPTWO_H__
 
@@ -18,16 +27,35 @@
 
 
 
-
+/**
+ * sets up the various data folders for the run.  also sets up the text file which has the list of folders containing data
+ * \param base_dir the directory in which to do the setup
+ * \param numprocs the number of processors being used
+ * \param numfilesatatime the number of parameter points to hand out at each distribution
+ * \param templocation the location of the temporary files, in which each worker will produce the data by running bertini
+ */
 void SetUpFolders(std::string base_dir,
 				  int numprocs,
 				  int numfilesatatime,
 				  std::string templocation);
 
+/** 
+ * creates the bertini input file for step2, and writes it to a string.
+ * \param CValues current parameter values.
+ * \param paramotopy_settings the bertini and paramotopy settings
+ * \param paramotopy_info the parsed input file.
+ */
 std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
 					   ProgSettings paramotopy_settings,
 					   runinfo paramotopy_info);
 
+
+/**
+ * creates the bertini input file for step2 IN FAILURE ANALYSIS MODE, and writes it to a string.
+ * \param CValues current parameter values.
+ * \param paramotopy_settings the bertini and paramotopy settings
+ * \param paramotopy_info the parsed input file.
+ */
 std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
 						   ProgSettings paramotopy_settings,
 						   runinfo paramotopy_info);
@@ -35,10 +63,16 @@ std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
 
 
 
-void CallBertiniStep2(std::string param_dir);
+//void CallBertiniStep2(std::string param_dir);
 
 
-
+/** 
+ * makes the appropriate output file name
+ * \param base_dir the string of style bfiles_filename/run0/
+ * \param TheFiles struct containing the names of the data files to be saved.
+ * \param index the number of the filename to make
+ * \return concatenated file name.
+ */
 std::string MakeTargetFilename(std::string base_dir,
 							   ToSave *TheFiles,
 							   int index);
@@ -49,7 +83,11 @@ std::string MakeTargetFilename(std::string base_dir,
 
 
 
-
+/**
+ * makes the appropriate output file name
+ * \param paramotopy_settings the bertini and paramotopy settings
+ * \param DataCollectedBaseDir the name of the bfiles_filename/run0/step2/DataCollected location
+ */
 void SetFileCount(ProgSettings & paramotopy_settings,
 				  std::string DataCollectedBaseDir);
 
