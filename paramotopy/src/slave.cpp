@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -57,10 +58,16 @@ void slave(ToSave *TheFiles,
 		   int buffersize,
 		   ProgSettings & paramotopy_settings,
 		   runinfo & paramotopy_info,
-		   timer & process_timer)
+	   timer & process_timer)
 {
-	
-    
+  int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
+  bool standardstep2;
+  if (sstep2 == 0){
+    standardstep2 = false;
+  }
+  else{
+    standardstep2 = true;
+  }
 	std::stringstream myss;
 	std::string currentSeedstring;
 	int blaint, currentSeed = 0;
@@ -133,7 +140,9 @@ void slave(ToSave *TheFiles,
 	std::vector<std::string> namesoutvector;
 	std::vector<std::string> configvector;
 	std::vector<std::string> funcinputvector;
-	
+	std::vector<std::string> preproc_datavector;
+
+
 	std::vector<std::string> runningfile; //for storing the data between writes.
 	runningfile.resize(numfiles);
 	for (int i=0; i<numfiles; ++i) {
@@ -310,12 +319,22 @@ void slave(ToSave *TheFiles,
 #ifdef timingstep2
 	process_timer.press_start("read");
 #endif
+
+
 	ReadDotOut(Numoutvector,
-			   arroutvector,
-			   degoutvector,
-			   namesoutvector,
-			   configvector,
-			   funcinputvector);
+		   arroutvector,
+		   degoutvector,
+		   namesoutvector,
+		   configvector,
+		   funcinputvector,
+		   preproc_datavector);
+
+	  
+	  //  std::cout << "cpid = " << cpid << "\n";
+	  // std::stringstream killss;
+	  // killss << "kill " << cpid;
+	  // system(killss.str().c_str());
+
 #ifdef timingstep2
 	process_timer.add_time("read",6);
 #endif
@@ -401,81 +420,90 @@ void slave(ToSave *TheFiles,
 				process_timer.press_start("write");
 #endif
 				if (loopcounter==0){    //<numfilesatatime) {
-					fout.open("start");
-					fout << start_char;
-					fout.close();
-					WriteDotOut(arroutvector,
-								degoutvector,
-								namesoutvector,
-								configvector,
-								funcinputvector);
+				  fout.open("start");
+				  fout << start_char;
+				  fout.close();
+				  
+				  WriteDotOut(arroutvector,
+					      degoutvector,
+					      namesoutvector,
+					      configvector,
+					      funcinputvector,				  
+					      preproc_datavector);
+				
 #ifdef timingstep2
-					process_timer.add_time("write",5);
+				process_timer.add_time("write",5);
 #endif	
-					loopcounter = 1;
-				}
+				loopcounter = 1;
+			}
 #ifdef timingstep2
-				process_timer.press_start("write");
+			process_timer.press_start("write");
 #endif
-				WriteNumDotOut(Numoutvector,
-							   AllParams,
-							   numparam);
+			
+			/** this guy needs to be changed for dealing with
+			    nonstandard parameter runs.
+			*/
+			
+			WriteNumDotOut(Numoutvector,
+				       AllParams,
+				       numparam,
+				       standardstep2);
 #ifdef timingstep2
-				process_timer.add_time("write");
+			process_timer.add_time("write");
 #endif
-				
-				
-				
-				// Call Bertini
+			
+			
+			
+			// Call Bertini
 #ifdef timingstep2
-				process_timer.press_start("bertini");
+			process_timer.press_start("bertini");
 #endif
-				
+			
 #ifndef nosolve
-				blaint = bertini_main(12,args_noparse);
+			blaint = bertini_main(12,args_noparse);
 #endif
-				
+			
 #ifdef timingstep2
-				process_timer.add_time("bertini");
+			process_timer.add_time("bertini");
 #endif
-				
-				
+			
+			
 #ifndef nosolve
-				SlaveCollectAndWriteData(numfiles,
-										 runningfile,
-										 linenumber,
-										 TheFiles,
-										 ParamNames,
-										 AllParams,
-										 buffersize,
-										 DataCollectedbase_dir,
-										 filesizes, newfilethreshold, myid,
-										 process_timer);
+			SlaveCollectAndWriteData(numfiles,
+						 runningfile,
+						 linenumber,
+						 TheFiles,
+						 ParamNames,
+						 AllParams,
+						 buffersize,
+						 DataCollectedbase_dir,
+						 filesizes, newfilethreshold, myid,
+						 process_timer);
 #endif
-				
-				++localcounter;
-				
-				
-				
-			}//re: for (int k = 0; k < int(status.MPI_TAG);++k)
-		}
-		
-		
-		
+			
+			++localcounter;
+			
+			
+			
+		}//re: for (int k = 0; k < int(status.MPI_TAG);++k)
+	}
+	
+	
+	
 #ifdef timingstep2
-		process_timer.press_start("send");
+	process_timer.press_start("send");
 #endif
 #ifdef verbosestep2
-		std::cout << "sending done with line " << linenumber << " on worker " << myid << std::endl;
+	std::cout << "sending done with line " << linenumber << " on worker " << myid << std::endl;
 #endif
-		MPI_Send(&linenumber, 1, MPI_INT, 0, int(status.MPI_TAG), MPI_COMM_WORLD);
+	MPI_Send(&linenumber, 1, MPI_INT, 0, int(status.MPI_TAG), MPI_COMM_WORLD);
 #ifdef timingstep2
-		process_timer.add_time("send");
+	process_timer.add_time("send");
 #endif
-		
-	}//re: while (1)
 	
-	blaint = chdir(called_dir.c_str()); //used to move back to the starting directory to write the timing files.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
+}//re: while (1)
+
+blaint = chdir(called_dir.c_str()); //used to move back to the starting directory to write the timing files.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
 	//todo: make this chdir test for success.
 	
 	

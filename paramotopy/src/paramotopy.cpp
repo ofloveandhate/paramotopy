@@ -64,6 +64,14 @@ int main(int argC, char *args[]){
 	
 	std::string dirfilename;   
 
+	// to allow for the choice from the user
+	// to determine if 
+	// a parameter continuation run should be done
+	// versus a standard bertini run
+	//	bool standardstep2 = true; // should be a choice that changes
+	                           // only on the particular run
+                                   // and should be a user-choice
+                                   // as runs will be dependent on system
 	
 	
 	
@@ -144,8 +152,8 @@ int main(int argC, char *args[]){
 	int intChoice=-1;	
 	
 
-
-
+	int choicestandardstep2;
+	std::stringstream ssstandardstep2;
 	while(currentChoice!=Quit){
 		
 		intChoice = ParamotopyMainMenu();  // gets the choice from the user.
@@ -247,17 +255,37 @@ int main(int argC, char *args[]){
 				
 				
 			case 7:  //run step 2
-				
-				currentChoice = Step2;
-				paramotopy_info.location = paramotopy_info.base_dir;
-				paramotopy_info.steptwomode = 2;
-				
-				steptwo_case(paramotopy_settings,
-							 paramotopy_info);
-				
-				paramotopy_info.UpdateAndSave();
-				break;
-				
+
+			  std::cout << "\n\n***Step2***\n\n";
+			  ssstandardstep2.str("");
+			  ssstandardstep2.clear();
+			  //	  ssstandardstep2 << "Choose an option:\n"
+			  //		  << "0) Standard parameter continuation run.\n"
+			  //		  << "1) Do a default bertini run multiple times "
+			  //		  << "for each parameter points of interest.\n"
+			  //		  << "Enter choice: ";
+			  /* choicestandardstep2 = get_int_choice(ssstandardstep2.str(),0,1);
+			  if (!choicestandardstep2){
+			    standardstep2 = true;
+			  }
+			  else{
+			    standardstep2 = false;
+			  }
+			  */
+
+			  currentChoice = Step2;
+			  paramotopy_info.location = paramotopy_info.base_dir;
+			  paramotopy_info.steptwomode = 2;
+			  
+			  
+			  steptwo_case(paramotopy_settings,
+				       paramotopy_info);
+			  
+			  
+			  
+			  paramotopy_info.UpdateAndSave();
+			  break;
+			  
 				
 			case 8: //do failed path whatnot.
 				currentChoice = FailedPaths;

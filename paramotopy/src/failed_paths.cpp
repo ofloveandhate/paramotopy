@@ -370,6 +370,14 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     
     
     paramotopy_settings.save();
+
+    // the true boolean is to assume all failed paths are being done
+    // with a standard parameter continuation resolve
+    // and not any other option (i.e. solve at particular parameter
+    // point at finer settings because it doesn't match the 
+    // NID at a random point. -- work needs to be done
+    // on failed path analysis stuff after this other implementation goes through
+
     steptwo_case(paramotopy_settings, paramotopy_info); // in menu_cases.cpp
     
     
@@ -661,7 +669,7 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
   //now need to write to file in location.
   std::string inputstring = WriteFailStep2(new_random_values,
 					   paramotopy_settings,
-					   paramotopy_info);
+					   paramotopy_info); // bool set to true for standardstep2
   
   paramotopy_info.RandomValues = new_random_values;
   

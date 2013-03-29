@@ -14,7 +14,8 @@ void master(std::string filename,
 			int steptwomode,
 			ProgSettings & paramotopy_settings,
 			runinfo & paramotopy_info,
-			timer & process_timer)
+	    timer & process_timer)
+
 {
 	
 	
@@ -120,16 +121,16 @@ void master(std::string filename,
 	
 	switch (paramotopy_info.steptwomode) {
 		case 2:
-			inputstring = WriteStep2(tmprandomvalues,
-									 paramotopy_settings,
-									 paramotopy_info); // found in the step2_funcs.* files
-			
+		  inputstring = WriteStep2(tmprandomvalues,
+					   paramotopy_settings,
+					   paramotopy_info); // found in the step2_funcs.* files
+					    
 			break;
 		case 3:
 			inputstring = WriteFailStep2(tmprandomvalues,
-										 paramotopy_settings,
-										 paramotopy_info); // found in the step2_funcs.* files
-			
+						     paramotopy_settings,
+						     paramotopy_info); // found in the step2_funcs.* files
+				
 			break;
 		default:
 			std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
