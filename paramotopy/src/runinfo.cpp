@@ -63,6 +63,7 @@ void runinfo::GetOriginalParamotopy(){
 }
 
 
+
 //writes the original paramotopy input file, in its entirety, to the current run folder.
 //
 //assumes that you are in the original directory
@@ -202,7 +203,8 @@ std::string runinfo::WriteInputStepOne(ProgSettings paramotopy_settings){
 }
 
 
-std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues){
+std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues,
+				       bool standardstep2){
   
   // Write the input portion of the step 2 bertini input file.
   std::stringstream inputfilestream;
@@ -210,50 +212,93 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
 	
   inputfilestream << "\nINPUT\n\n";
   // Variable Group portion
-  inputfilestream << "variable ";
+  inputfilestream << "variable";
+  if (!standardstep2){
+    inputfilestream << "_group ";
+  }
+  else{
+    inputfilestream << " ";
+  }
   for (int i = 0; i < int(VarGroups.size());++i){
     inputfilestream << VarGroups[i]
 		    << ( i != numvargroup-1? ",":";\n\n" );
     
     
   }
+  
+  
   // constant portion for here and rand in the parameter homotopy
-  inputfilestream << "constant ";
-  for (int i = 0; i < numparam;++i){
-    inputfilestream << "rand" << ParameterNames[i]
-		    << (i!= numparam-1?",":";\n");
+  if (standardstep2){ // normal parameter run
+
+
+    inputfilestream << "constant ";
+    for (int i = 0; i < numparam;++i){
+      inputfilestream << "rand" << ParameterNames[i]
+		      << (i!= numparam-1?",":";\n");
+    }
+    inputfilestream << "constant ";
+    for (int i = 0; i < numparam;++i){
+      inputfilestream << "here" << ParameterNames[i]
+		      << (i!= numparam -1?",":";\n");
+    }
+    
+    
+    // user given constants
+    if (Constants.size()!=0){
+      inputfilestream << Constants[0] << "\n";
+    }
+    
+    // Define Path Variable and the parameter homotopies
+    
+    inputfilestream << "pathvariable t;\n"
+		    << "parameter ";
+    for (int i =0;i < numparam;++i){
+      inputfilestream << ParameterNames[i] << (i!= numparam-1?",":";\n");
+    }
+    
+    // Declare Functions
+    runinfo::MakeDeclareFunctions(inputfilestream);
+    runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, standardstep2);
+  
+    //print the user-supplied custom stuffs.
+    runinfo::MakeCustomLines(inputfilestream);
+    
+    //print the actual function definitions
+    runinfo::MakeFunctions(inputfilestream);
+    inputfilestream << "END;\n";
   }
-  inputfilestream << "constant ";
-  for (int i = 0; i < numparam;++i){
-    inputfilestream << "here" << ParameterNames[i]
-		    << (i!= numparam -1?",":";\n");
+  else{ // just leave all the parameters as constants, and update the num.out file accordingly
+    
+    inputfilestream << "constant ";
+    for (int i = 0; i < numparam;++i){
+      inputfilestream << ParameterNames[i]
+                      << (i!= numparam-1?",":";\n");
+    }
+
+    // user given constants                                                                            
+    if (Constants.size()!=0){
+      inputfilestream << Constants[0] << "\n";
+    }
+
+
+    // Declare Functions                                                                               
+    runinfo::MakeDeclareFunctions(inputfilestream);
+
+
+    runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, standardstep2);
+
+    //print the user-supplied custom stuffs.                                                           
+    runinfo::MakeCustomLines(inputfilestream);
+
+    //print the actual function definitions                    
+
+
+    runinfo::MakeFunctions(inputfilestream);
+    inputfilestream << "END;\n";
+
+
+
   }
-  
-  
-  // user given constants
-  if (Constants.size()!=0){
-    inputfilestream << Constants[0] << "\n";
-  }
-  
-  // Define Path Variable and the parameter homotopies
-  
-  inputfilestream << "pathvariable t;\n"
-		  << "parameter ";
-  for (int i =0;i < numparam;++i){
-    inputfilestream << ParameterNames[i] << (i!= numparam-1?",":";\n");
-  }
-  
-  // Declare Functions
-  runinfo::MakeDeclareFunctions(inputfilestream);
-  runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream);
-  
-  //print the user-supplied custom stuffs.
-  runinfo::MakeCustomLines(inputfilestream);
-  
-  //print the actual function definitions
-  runinfo::MakeFunctions(inputfilestream);
-  inputfilestream << "END;\n";
-  
   return inputfilestream.str();
 }
 
@@ -545,7 +590,9 @@ void runinfo::CopyUserDefinedFile(){
     
     boost::filesystem::path mcfile(this->mcfname);
     if (!boost::filesystem::exists(mcfile)) {
-      std::cerr << "mcfile specified by the input file does not exist..." << std::endl;
+      std::cerr << "mcfile specified by the input file does not exist..." 
+		<< std::endl;
+      std::cerr << "mcfile: " << mcfile << "\n";
       return;
     }
     
@@ -639,6 +686,7 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
     blabla << prefix;
     blabla << "/" << paramfilename;
     mcfname = paramfilename;
+
   }
   else{
     runinfo::ReadParameters(fin);
@@ -923,35 +971,54 @@ void runinfo::MakeCustomLines(std::stringstream & inputfilestream){
 }
 
 
-void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream){
+void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream, bool standardstep2){
 	
-  for (int i = 0; i < int(this->ParameterNames.size()); ++i){
-    inputfilestream << "rand"
-		    << this->ParameterNames[i]
+
+  if (standardstep2){
+    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+      inputfilestream << "rand"
+		      << this->ParameterNames[i]
+		      << " = "
+		      << this->RandomValues[i].first << " + " << this->RandomValues[i].second
+		      << "*I;\n";
+    }
+    
+    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+      inputfilestream << "here"
+		      << this->ParameterNames[i]
+		      << " = "
+		      << CurrentValues[i].first << " + " << CurrentValues[i].second
+		      << "*I;\n";
+    }
+    
+    for (int i = 0; i < int(this->ConstantNames.size());++i){
+      inputfilestream << this->ConstantNames[i]
+		      << "\n";
+    }
+    
+    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+      inputfilestream << this->ParameterNames[i]
+		      << "= t*rand"
+		      << this->ParameterNames[i]
+		      << " + (1-t)*here"
+		      << this->ParameterNames[i]
+		      << ";\n";
+    }
+    
+  }
+  else{
+    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+    inputfilestream << this->ParameterNames[i]
 		    << " = "
 		    << this->RandomValues[i].first << " + " << this->RandomValues[i].second
 		    << "*I;\n";
-  }
-  
-  for (int i = 0; i < int(this->ParameterNames.size()); ++i){
-    inputfilestream << "here"
-		    << this->ParameterNames[i]
-		    << " = "
-		    << CurrentValues[i].first << " + " << CurrentValues[i].second
-		    << "*I;\n";
-  }
-  for (int i = 0; i < int(this->ConstantNames.size());++i){
-    inputfilestream << this->ConstantNames[i]
-		    << "\n";
-  }
-  
-  for (int i = 0; i < int(this->ParameterNames.size()); ++i){
-    inputfilestream << this->ParameterNames[i]
-		    << "= t*rand"
-		    << this->ParameterNames[i]
-		    << " + (1-t)*here"
-		    << this->ParameterNames[i]
-		    << ";\n";
+    }
+    for (int i = 0; i < int(this->ConstantNames.size());++i){
+      inputfilestream << this->ConstantNames[i]
+                      << "\n";
+    }
+
+
   }
   return;
 }
