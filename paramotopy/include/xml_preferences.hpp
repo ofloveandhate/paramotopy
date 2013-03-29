@@ -289,6 +289,10 @@ public:
   /** Set whether or not to automatically tighten the tolerances on the path failure settings. */
   void tightentolerances();
   
+  /**
+     Ask the user to enter the standard step2 option.
+   */
+  void SetStandardStep2();
 	
 private:
   /** The name of the preferences file */

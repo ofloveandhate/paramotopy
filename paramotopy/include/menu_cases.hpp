@@ -38,7 +38,7 @@ extern "C" {
 
 // for running the step2 program from paramotopy
 void steptwo_case(ProgSettings paramotopy_settings,
-				   runinfo paramotopy_info);
+		  runinfo paramotopy_info);
 
 
 void parallel_case( ProgSettings paramotopy_settings, runinfo paramotopy_info);

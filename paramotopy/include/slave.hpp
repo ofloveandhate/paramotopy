@@ -49,18 +49,18 @@
  *
  */
 void slave(ToSave *TheFiles,
-		   int numfiles,
-		   std::vector<std::string> ParamNames, 
-		   std::string filename,
-		   int numfilesatatime,
-		   std::string called_dir,
-		   std::string tmpfolder,
-		   int newfilethreshold,
-		   std::string location,
-		   int buffersize,
-		   ProgSettings & paramotopy_settings,
-		   runinfo & paramotopy_info,
-		   timer & process_timer);
+	   int numfiles,
+	   std::vector<std::string> ParamNames, 
+	   std::string filename,
+	   int numfilesatatime,
+	   std::string called_dir,
+	   std::string tmpfolder,
+	   int newfilethreshold,
+	   std::string location,
+	   int buffersize,
+	   ProgSettings & paramotopy_settings,
+	   runinfo & paramotopy_info,
+	   timer & process_timer);
 
 
 #endif
