@@ -131,7 +131,8 @@ public:
   /** Write the bertini step 2 input file.
       \param tmprandomvalues - The starting (?) random values of the input file. 
    */
-  std::string WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues);
+  std::string WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues,
+				bool standardstep2);
   
   /** Get the original paramotopy input file. */
   void GetOriginalParamotopy();
@@ -378,7 +379,7 @@ private:
       \param CurrentValues - The values that are the constants. 
       \param inputfilestream - The stringstream used to place everything into the bertini step 2 input file. 
   */
-  void MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream);
+  void MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream, bool standardstep2);
   /** Make custom lines to add to the stringstream. 
       \param inputstringstream - The stringstream used to place everything into the bertini input file.
   */

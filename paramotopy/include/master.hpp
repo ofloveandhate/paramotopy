@@ -39,16 +39,18 @@
  * \param paramotopy_settings the object of containing the bertini and paramotopy settings used during the run.
  * \param paramotopy_info the runinfo object containing the parsed input file.
  * \param process_timer timing data.  only used ifdef verbose
+ * \param standardstep2 - used to determine if a standard parameter run is done
+ *                        or the default bertini with the parameters as constants
  *
  */
 void master(std::string filename,
-			int numfilesatatime,
-			int saveprogresseverysomany,
-			std::string called_dir,
-			int step2mode,
-			ProgSettings & paramotopy_settings,
-			runinfo & paramotopy_info,
-			timer & process_timer);
+	    int numfilesatatime,
+	    int saveprogresseverysomany,
+	    std::string called_dir,
+	    int step2mode,
+	    ProgSettings & paramotopy_settings,
+	    runinfo & paramotopy_info,
+	    timer & process_timer);
 
 /** 
  * the function for determining the parameter values to send next.
@@ -78,10 +80,10 @@ void FormNextValues(int numfilesatatime,
  * \param tempsends the variable in which the parameter points get set, for distribution to the workers via MPI.
  */
 void FormNextValues_mc(int numfilesatatime,
-					   int numparam,
-					   int pointcounter,	
-					   int mc_line_number,
-					   std::ifstream & mc_in_stream,
-					   double tempsends[]);
+		       int numparam,
+		       int pointcounter,	
+		       int mc_line_number,
+		       std::ifstream & mc_in_stream,
+		       double tempsends[]);
 
 #endif

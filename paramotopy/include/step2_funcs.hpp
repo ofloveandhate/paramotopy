@@ -46,9 +46,8 @@ void SetUpFolders(std::string base_dir,
  * \param paramotopy_info the parsed input file.
  */
 std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
-					   ProgSettings paramotopy_settings,
-					   runinfo paramotopy_info);
-
+		       ProgSettings paramotopy_settings,
+		       runinfo paramotopy_info);
 
 /**
  * creates the bertini input file for step2 IN FAILURE ANALYSIS MODE, and writes it to a string.
@@ -57,8 +56,8 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
  * \param paramotopy_info the parsed input file.
  */
 std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
-						   ProgSettings paramotopy_settings,
-						   runinfo paramotopy_info);
+			   ProgSettings paramotopy_settings,
+			   runinfo paramotopy_info);
 
 
 
@@ -74,8 +73,8 @@ std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
  * \return concatenated file name.
  */
 std::string MakeTargetFilename(std::string base_dir,
-							   ToSave *TheFiles,
-							   int index);
+			       ToSave *TheFiles,
+			       int index);
 
 
 //void TouchFilesToSave(ProgSettings paramotopy_settings,
