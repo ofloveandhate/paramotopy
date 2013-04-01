@@ -103,6 +103,15 @@ std::string ProgSettings::WriteConfigStepOne(){
 //this is based entirely off data stored in the preferences, eliminating the need for the user to have to 
 //carry around their own config files.
 std::string ProgSettings::WriteConfigStepTwo(){
+
+  bool standardstep2;
+  int sstep2 = this->settings["MainSettings"]["standardstep2"].intvalue;
+  if (sstep2 == 0){
+    standardstep2 = false;
+  }
+  else{
+    standardstep2 = true;
+  }
 	
 	
   std::stringstream config;
@@ -116,9 +125,11 @@ std::string ProgSettings::WriteConfigStepTwo(){
     config << setting_name << ": "
 	   << settings["Step2Settings"][setting_name].value() << ";\n";
   }
-  
-  config << "USERHOMOTOPY: 1;\n"
-	 << "END;\n\n";
+  if (standardstep2){ // if not a standard step2, doing regular bertini runs on multiple
+                      // parameter points
+    config << "USERHOMOTOPY: 1;\n";
+    }
+  config << "END;\n\n";
   
   return config.str();
 }
@@ -128,7 +139,15 @@ std::string ProgSettings::WriteConfigStepTwo(){
 //this is based entirely off data stored in the preferences, eliminating the need for the user to have to 
 //carry around their own config files.
 std::string ProgSettings::WriteConfigFail(){
-	
+  bool standardstep2;
+  int sstep2 = this->settings["MainSettings"]["standardstep2"].intvalue;
+  if (sstep2 == 0){
+    standardstep2 = false;
+  }
+  else{
+    standardstep2 = true;
+  }
+
   
   std::stringstream config;
   //note that bertini parses right over white space.  input files can also be commented with percent signs.
@@ -141,9 +160,11 @@ std::string ProgSettings::WriteConfigFail(){
     config << setting_name << ": "
 	   << settings["PathFailureBertiniCurrent"][setting_name].value() << ";\n";
   }
-  
-  config << "USERHOMOTOPY: 1;\n"
-	 << "END;\n\n";
+  if (standardstep2){ // if not a standard step2, doing regular bertini runs on multiple
+                      // parameter points
+    config << "USERHOMOTOPY: 1;\n";
+    }
+  config << "END;\n\n";
   
   return config.str();
 }
@@ -157,7 +178,7 @@ void ProgSettings::default_main_values(){
   setValue("MainSettings","previousdatamethod",1);
   setValue("MainSettings","startfilename","nonsingular_solutions");
   setValue("MainSettings","deletetmpfilesatend",1);
-  
+  setValue("MainSettings","standardstep2",1);
   return;
 }
 
@@ -1069,11 +1090,12 @@ void ProgSettings::GeneralMenu(){
        << "5) File to use for step2 start file\n"
        << "6) Deletion of tmp files\n"
        << "7) Generation of mc mesh file for non-user-def runs\n"
+       << "8) Standard step2 run.\n"
        << "*\n"
        << "0) go back\n"
        << "\n: ";
   while (choice!=0) {
-    choice = get_int_choice(menu.str(),0,7);
+    choice = get_int_choice(menu.str(),0,8);
     
     switch (choice) {
     case 0:
@@ -1107,7 +1129,8 @@ void ProgSettings::GeneralMenu(){
     case 7:
       ProgSettings::GetWriteMCFileUserDef();
       break;
-      
+    case 8:
+      ProgSettings::SetStandardStep2();
     default:
       //seriously, how did you get here?
       break;
@@ -1116,6 +1139,8 @@ void ProgSettings::GeneralMenu(){
   }
   return;
 }
+
+
 
 
 //submenu for settings.  this one for settings related to parallel
@@ -1561,7 +1586,17 @@ void ProgSettings::PathFailureMenu(){
 }
 
 
-
+void ProgSettings::SetStandardStep2(){
+  int choice = -10;
+  std::stringstream menu;
+  menu << "\n\n"
+       << "0) Total Degree Step 2\n"
+       << "1) Standard Step 2\n"
+       << ": ";
+  choice = get_int_choice(menu.str(),0,1);
+  setValue("MainSettings", "standardstep2", choice);
+  ProgSettings::save();
+}
 
 
 void ProgSettings::GetDataFolderMethod(){

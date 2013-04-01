@@ -33,7 +33,7 @@ ifeq (sam,$(MACHINENAME))
 	BOOSTLOC := /usr/local/boost/lib/
 	INCLUDE := -I../include -I/usr/local/boost/include 
 	BOOSTSUFFIX :=#no spaces
-	BERTINILIB := ./libbertinisam.a
+	BERTINILIB := ../lib/libbertinisam.a
 	MPFRLOC :=#already in path
 	STATICFLAG := -static
 	
@@ -69,7 +69,7 @@ else ifeq (macniemerg,$(MACHINENAME))
 	INCLUDE := -I../include -I/usr/local/include
 	MANDATORYOPT := -fopenmp
 	BOOSTSUFFIX :=#nothing
-	BERTINILIB := ./libbertinimacmn.a
+	BERTINILIB := ../lib/libbertinimacmn.a
 	MPFRLOC:=#already in path
 	STATICFLAG :=#nothing
 	INSTALLDIR=UNSETLOCATION
