@@ -34,9 +34,9 @@ void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::s
   possible_savefiles.push_back("main_data");
   possible_savefiles.push_back("midpath_data");
   possible_savefiles.push_back("failed_paths");
-  
+  possible_savefiles.push_back("real_finite_solutions");
   std::vector < int > possible_parser_indices;
-  possible_parser_indices.push_back(1);//real_
+  possible_parser_indices.push_back(1);//real_solutions
   possible_parser_indices.push_back(1);//nonsingular
   possible_parser_indices.push_back(1);//singular_
   possible_parser_indices.push_back(-1);//raw_data
@@ -44,7 +44,7 @@ void GetFilesToParse(boost::filesystem::path run_to_analyze, std::vector< std::s
   possible_parser_indices.push_back(-1);//main_data
   possible_parser_indices.push_back(-1);//midpath_data
   possible_parser_indices.push_back(2);//failed_paths
-
+  possible_parser_indices.push_back(1); // real_finite_solutions
   
   for (int ii = 0; ii < int(possible_savefiles.size()); ii++){
     boost::filesystem::path temppath = run_to_analyze;
