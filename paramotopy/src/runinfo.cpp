@@ -1327,7 +1327,10 @@ void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs
     
     base_dir = found_runs[choice].string();
     std::cout << "loading old directory " << base_dir << "\n";
-    runinfo::load(base_dir);//gets the run number, initiation date, and last time updated.
+    
+    std::string fname = base_dir;
+    fname.append("/info.xml");
+    runinfo::load(fname);//gets the run number, initiation date, and last time updated.
     made_new_folder = false;
   }
   else{
