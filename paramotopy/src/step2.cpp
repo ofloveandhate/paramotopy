@@ -169,7 +169,7 @@ int main(int argc, char* argv[]){
 
 	  if (!standardstep2){
 	    for (int i = 0; i < numfiles; ++i){
-	      if (TheFiles[i].filename.compare("real_solutions")){
+	      if (TheFiles[i].filename.compare("real_solutions") == 0){
 		TheFiles[i].filename = "real_finite_solutions";
 	      } 
 	    }
