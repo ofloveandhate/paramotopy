@@ -170,7 +170,7 @@ int main(int argc, char* argv[]){
 	  if (!standardstep2){
 	    for (int i = 0; i < numfiles; ++i){
 	      if (TheFiles[i].filename.compare("real_solutions") == 0){
-		TheFiles[i].filename = "real_finite_solutions";
+					TheFiles[i].filename = "real_finite_solutions";
 	      } 
 	    }
 	  }
@@ -213,12 +213,17 @@ int main(int argc, char* argv[]){
 	}
 	
 	if (myid==headnode) {
+		
+		std::cout << "headnode setting up folders\n";
+		
 	  SetUpFolders(location,
 		       numprocs,
 		       numfilesatatime,
 		       templocation);
+		std::cout << "headnode done setting up folders\n";
 	}
 	
+	std::string homedir = getenv("HOME");
 	
 	
 	std::stringstream tmpfolder;
@@ -226,27 +231,9 @@ int main(int argc, char* argv[]){
 		  << filename << "/tmpstep2"  ;
 	
 	
-	std::string homedir = getenv("HOME");
-	std::string settingsfilename = homedir;
-	settingsfilename.append("/.paramotopy/paramotopyprefs.xml");
+
 	
-	if (!boost::filesystem::exists(settingsfilename)) {
-	  std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! id:" << myid << std::endl;
-	  exit(-219);
-	}
-	
-	
-	
-	
-	ProgSettings paramotopy_settings(settingsfilename);
-#ifdef timingstep2
-	process_timer.press_start("read");
-#endif
-	paramotopy_settings.load();
-#ifdef timingstep2
-	process_timer.add_time("read");
-#endif
-	
+
 	
 	runinfo paramotopy_info;  //holds all the info for the run
 	
@@ -260,6 +247,27 @@ int main(int argc, char* argv[]){
 #endif
 	paramotopy_info.location = location;
 	paramotopy_info.steptwomode = steptwomode;
+	
+	
+	
+	
+	//instantiate the settings, set the filename
+	std::string settingsfilename = location;//not homedir; anymore
+	settingsfilename.append("/prefs.xml");
+	if (!boost::filesystem::exists(settingsfilename)) {
+	  std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! id:" << myid << std::endl;
+	  exit(-219);
+	}
+	ProgSettings paramotopy_settings(settingsfilename);
+#ifdef timingstep2
+	process_timer.press_start("read");
+#endif
+	paramotopy_settings.load();  // parse the settings xml file
+#ifdef timingstep2
+	process_timer.add_time("read");
+#endif
+	
+	
 	
 	
 	//get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.

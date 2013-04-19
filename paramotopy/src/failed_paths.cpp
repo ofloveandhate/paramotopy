@@ -50,14 +50,13 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
       break;
       
     case 1:
-      paramotopy_settings.save();
       failinfo::PerformAnalysis(paramotopy_settings, paramotopy_info);
       break;
       
     case 2:
       //delete path failure analysis files, start over
       if (get_int_choice("are you sure? 0 no, 1 yes\n: ",0,1)==1) {
-	failinfo::StartOver(paramotopy_info);
+				failinfo::StartOver(paramotopy_info);
       }
       paramotopy_settings.set_path_failure_settings();
       break;
@@ -323,14 +322,9 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     
     if (paramotopy_settings.settings["PathFailure"]["newrandommethod"].intvalue==1) {
       std::cout << "doing new step one\n";
-      failinfo::new_step_one(paramotopy_settings, paramotopy_info);
-      
-      
-      
-      
+      failinfo::new_step_one(paramotopy_settings, paramotopy_info);      
     }
     else{
-      
       failinfo::copy_step_one(paramotopy_info.base_dir, paramotopy_info.location, mm, paramotopy_settings.settings["MainSettings"]["startfilename"].value());
     }
     
@@ -369,7 +363,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     
     
     
-    paramotopy_settings.save();
+
 
     // the true boolean is to assume all failed paths are being done
     // with a standard parameter continuation resolve
@@ -384,12 +378,10 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     //recall the old values for a couple of settings
     if (paramotopy_settings.settings["PathFailure"]["newrandommethod"].intvalue==1) {
       paramotopy_settings.setValue("MainSettings","startfilename",previous_start_file);
-      paramotopy_settings.save();
     }
     
     paramotopy_settings.setValue("MainSettings","numprocs",previous_num_procs);
     paramotopy_settings.setValue("MainSettings","numfilesatatime",previous_numfilesatatime);
-    paramotopy_settings.save();
 		
     //need to check integrity of completed run -- sometimes will fail / be cancelled, and need to be able to recover from these halts.
     
@@ -702,7 +694,6 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
   if (num_paths_to_track < previous_num_procs) {
     paramotopy_settings.setValue("MainSettings","numprocs",num_paths_to_track);
   }
-  paramotopy_settings.save();
   
   
   //call bertini, in parallel if possible
@@ -713,7 +704,6 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
   //restore the previous value for the numprocs setting
   if (num_paths_to_track < previous_num_procs) {
     paramotopy_settings.setValue("MainSettings","numprocs",previous_num_procs);
-    paramotopy_settings.save();
   }
   
   

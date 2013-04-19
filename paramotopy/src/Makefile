@@ -8,7 +8,7 @@
 
 
 #User-set options.  cannot use some options on the cray.  
-OPT  := -Wall  -g  #-O3 -funroll-loops -fexpensive-optimizations # -g 
+OPT  := -Wall  -O3  -funroll-loops -fexpensive-optimizations  #-g 
 
 #use timing info for step 2?  YES, or NO (or anything other than YES really)
 TIMING := YES
@@ -45,7 +45,7 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	BOOSTLOC := /usr/local/Cellar/boost/1.52.0/lib/
 	INCLUDE := -I../include -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
 	BOOSTSUFFIX :=-mt#no spaces
-	BERTINILIB := $(HOME)/lib/libbertini.a
+	BERTINILIB := $(HOME)/lib/libbertini_opt_nog.a
 	MPFRLOC :=#in path
 	INSTALLDIR:=~/bin
 	

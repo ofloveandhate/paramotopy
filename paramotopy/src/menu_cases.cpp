@@ -755,6 +755,9 @@ void steptwo_case(ProgSettings paramotopy_settings,
   }
 
 
+	std::string settings_filename = paramotopy_info.base_dir;
+	settings_filename.append("/prefs.xml");
+	paramotopy_settings.save(settings_filename);
   
   //check if folder exists already.  if it does, prompt user
   boost::filesystem::path step2path(paramotopy_info.location);
@@ -766,7 +769,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
       
       step2path += "finished";   // remove the step2finished file if it exists.
       if (boost::filesystem::exists(step2path)) {
-	boost::filesystem::remove( step2path );
+				boost::filesystem::remove( step2path );
       }
     }
     else{

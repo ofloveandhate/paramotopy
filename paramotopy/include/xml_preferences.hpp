@@ -19,7 +19,7 @@
 #ifndef __XMLPREFS__
 #define __XMLPREFS__
 
-#define minprefversion = 101; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+#define minprefversion = 102; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 //#include "runinfo.hpp"
 #include "para_aux_funcs.hpp"
@@ -125,22 +125,56 @@ public:
   
   
   /** Save the xml file to the hard disk. */
-  void save();           //save the xml file
+  void save(){
+			save(this->filename);
+	};           //save the xml file
   /** Save the xml file to the hard disk.
       \param pFilename - The file to where the xml file is to be saved. */
-  void save(std::string pFilename){
-    filename = pFilename;
-    save();};
+	
+  void save(std::string save_filename);
   /** Save the xml file to the hard disk.  This function uses the boost library directory and path structures.
       \param speciallocation - The file to where the xml file is to be saved. 
   */
   void save(boost::filesystem::path speciallocation);
+	
+	
+	/** find existing preferences file, based on input
+   \param pFilename - The preference file name. 
+	 \return int found_a_file whether found a file to load or not.  0 if no file, even default.  1 if found desired file.  2 if found defaults.
+	 \return bool load_filename the string which is the name of the file. */
+	
+	int check_for_existing_prefs_auto(std::string & load_filename, const char* pFilename);
+	
+	/** get the name of the default paramotopy settings xml file
+		
+	 */
+	std::string default_name();
+	
+	/**
+	 gets ~/.paramotopy/prefsfilename.xml
+	 */
+	std::string make_settings_name(std::string basename);
+	
+	/**
+	 sets the .filename field to whatever you put in
+	 */
+	void set_name(std::string newfilename){
+		this->filename = newfilename;
+	};
+	
+	/**
+	 an interactive way to choose a set of settings to load.
+	 */
+	void load_interactive();
+	
   /** Load the xml preference file.
    \param pFilename - The preference file name. */
   void load(const char* pFilename);
   /** Load the xml preference file with the current saved filename. */
-  void load() {load(filename.c_str());};
+  void load() {load(this->filename.c_str());};
   
+	
+	ProgSettings() {};
   /** \param tempfilename - Set the filename data member to tempfilename. */ 
   ProgSettings(std::string tempfilename) {filename = tempfilename;};
   /** Default Deconstructor. */
@@ -246,7 +280,8 @@ public:
   void GeneralMenu();
   /** Display the path failure options for bertini menu. */
   void ManagePathFailureBertini();
-  
+  /**  perform meta-settings actions */
+	void MetaSettingsMenu();
   //set defaults
   /** Set the default values of the program. */
   void default_main_values();
