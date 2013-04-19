@@ -178,7 +178,7 @@ void ProgSettings::default_main_values(){
   setValue("MainSettings","previousdatamethod",1);
   setValue("MainSettings","startfilename","nonsingular_solutions");
   setValue("MainSettings","deletetmpfilesatend",1);
-  setValue("MainSettings","standardstep2",0);
+  setValue("MainSettings","standardstep2",1);
   return;
 }
 
@@ -1739,8 +1739,8 @@ void ProgSettings::SetStandardStep2(){
   int choice = -10;
   std::stringstream menu;
   menu << "\n\n"
-       << "0) Standard Stage 2\n"
-       << "1) Total Degree Stage 2\n"
+       << "1) Standard Stage 2\n"
+       << "0) Total Degree Stage 2\n"
        << ": ";
   choice = get_int_choice(menu.str(),0,1);
   setValue("MainSettings", "standardstep2", choice);
