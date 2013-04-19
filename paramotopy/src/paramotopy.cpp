@@ -47,7 +47,7 @@ int main(int argC, char *args[]){
 	OPTIONS currentChoice = Start;
 	std::string path_to_inputfile;
 	bool parsed = false;
-	std::ifstream fin, finconfig;
+	std::ifstream finconfig;
 
 	
 	runinfo paramotopy_info;  //holds all the info for the run 
@@ -74,32 +74,7 @@ int main(int argC, char *args[]){
                                    // as runs will be dependent on system
 	
 	
-	
-	std::stringstream myssmc;
-	myssmc << " ";
-	
-	
 
-	std::cout << "\n*******************************\n Welcome to Paramotopy.\n\n";
-	
-	
-	
-	std::string prefdir = homedir;
-	prefdir.append("/.paramotopy");
-	mkdirunix(prefdir);
-	
-	
-	std::string settingsfilename = homedir;
-	settingsfilename.append("/.paramotopy/paramotopyprefs.xml");
-	ProgSettings paramotopy_settings(settingsfilename);
-	paramotopy_settings.load();
-
-	
-
-	
-	BertiniSplashScreen(paramotopy_settings.settings["MainSettings"]["bertinilocation"].value());
-	
-	
 	
 
 	std::string suppliedfilename;
@@ -116,11 +91,25 @@ int main(int argC, char *args[]){
 		commandss >> suppliedfilename;
 		paramotopy_info.GetInputFileName(suppliedfilename);
 	}
-	
-	
-	
 	paramotopy_info.ParseData();
-	fin.close();
+
+	
+	
+	
+	std::string prefdir = homedir;
+	prefdir.append("/.paramotopy");
+	mkdirunix(prefdir);
+	
+
+	ProgSettings paramotopy_settings;
+	paramotopy_settings.set_name(paramotopy_settings.make_settings_name(paramotopy_info.inputfilename));
+	paramotopy_settings.load();
+	
+	//splash the bertini intro's for the library and the executable.
+	BertiniSplashScreen(paramotopy_settings.settings["MainSettings"]["bertinilocation"].value());
+	
+	
+	
 	
 	
 	paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);//sets the base_dir
@@ -142,6 +131,8 @@ int main(int argC, char *args[]){
 	
 	parsed=true;
 	
+	ParamotopySplashScreen();
+	
 	
 	if (paramotopy_info.test_if_finished()){
 		std::cout	<< "\t*** * * * * * * * * * * * * ***\n"
@@ -152,8 +143,7 @@ int main(int argC, char *args[]){
 	int intChoice=-1;	
 	
 
-	int choicestandardstep2;
-	std::stringstream ssstandardstep2;
+
 	while(currentChoice!=Quit){
 		
 		intChoice = ParamotopyMainMenu();  // gets the choice from the user.
@@ -176,6 +166,12 @@ int main(int argC, char *args[]){
 				paramotopy_info.mkdirstep1();
 				paramotopy_info.CopyUserDefinedFile();
 				parsed=true;
+				
+				
+				paramotopy_settings.set_name(paramotopy_settings.make_settings_name(paramotopy_info.inputfilename));
+				paramotopy_settings.load();
+				
+				
 				break;
 				
 				
@@ -257,21 +253,6 @@ int main(int argC, char *args[]){
 			case 7:  //run step 2
 
 			  std::cout << "\n\n***Step2***\n\n";
-			  ssstandardstep2.str("");
-			  ssstandardstep2.clear();
-			  //	  ssstandardstep2 << "Choose an option:\n"
-			  //		  << "0) Standard parameter continuation run.\n"
-			  //		  << "1) Do a default bertini run multiple times "
-			  //		  << "for each parameter points of interest.\n"
-			  //		  << "Enter choice: ";
-			  /* choicestandardstep2 = get_int_choice(ssstandardstep2.str(),0,1);
-			  if (!choicestandardstep2){
-			    standardstep2 = true;
-			  }
-			  else{
-			    standardstep2 = false;
-			  }
-			  */
 
 			  currentChoice = Step2;
 			  paramotopy_info.location = paramotopy_info.base_dir;
@@ -296,7 +277,7 @@ int main(int argC, char *args[]){
 				
 				
 				
-			case 9:  //change preferences
+			case 99:  //change preferences
 				currentChoice=DetPrefs;
 				paramotopy_settings.MainMenu();
 				break;

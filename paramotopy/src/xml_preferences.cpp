@@ -178,7 +178,7 @@ void ProgSettings::default_main_values(){
   setValue("MainSettings","previousdatamethod",1);
   setValue("MainSettings","startfilename","nonsingular_solutions");
   setValue("MainSettings","deletetmpfilesatend",1);
-  setValue("MainSettings","standardstep2",1);
+  setValue("MainSettings","standardstep2",0);
   return;
 }
 
@@ -274,7 +274,6 @@ void ProgSettings::GetProgramLocationManual(std::string program_name, std::strin
 void ProgSettings::FindProgram(std::string program_name, std::string category_name, std::string setting_name){
 	
   bool found_program = false;
-  struct stat filestatus;
   
   
   if (haveSetting(category_name,setting_name)) {
@@ -425,46 +424,51 @@ void ProgSettings::GetIndividualFileSave(std::string datafilename){
 void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 
   switch (settingcase) {
-  case 1:
-    ProgSettings::GetArchitecture();
-    break;
-  case 2:
-    ProgSettings::GetParallel();
-    break;
-  case 3:
-    ProgSettings::GetDataFolderMethod();
-    break;
-  case 4:
-    ProgSettings::GetNewRandomAtNewFolder();
-    break;
-  case 5:
-    ProgSettings::GetSaveProgress();
-    break;
-  case 6:
-    ProgSettings::GetNewFileThresh();
-    break;
-  case 7:
-    ProgSettings::GetTemporaryFileLocation();
-    break;
-  case 8:
-    ProgSettings::GetStifle();
-    break;
-  case 9:
-    ProgSettings::GetStepTwoLocation();
-    break;
-  case 10:
-    ProgSettings::GetBufferSize();
-    break;
-  case 11:
-    ProgSettings::GetStartFileName();
-    break;
-  case 12:
-    ProgSettings::GetWriteMCFileUserDef();
-    break;
-  case 13:
-    ProgSettings::GetDeleteTmpFiles();
-    break;
-  default:
+		case 1:
+			ProgSettings::GetArchitecture();
+			break;
+		case 2:
+			ProgSettings::GetParallel();
+			break;
+		case 3:
+			ProgSettings::GetDataFolderMethod();
+			break;
+		case 4:
+			ProgSettings::GetNewRandomAtNewFolder();
+			break;
+		case 5:
+			ProgSettings::GetSaveProgress();
+			break;
+		case 6:
+			ProgSettings::GetNewFileThresh();
+			break;
+		case 7:
+			ProgSettings::GetTemporaryFileLocation();
+			break;
+		case 8:
+			ProgSettings::GetStifle();
+			break;
+		case 9:
+			ProgSettings::GetStepTwoLocation();
+			break;
+		case 10:
+			ProgSettings::GetBufferSize();
+			break;
+		case 11:
+			ProgSettings::GetStartFileName();
+			break;
+		case 12:
+			ProgSettings::GetWriteMCFileUserDef();
+			break;
+		case 13:
+			ProgSettings::GetDeleteTmpFiles();
+			break;
+		case 14:
+			ProgSettings::SetStandardStep2();
+			break;
+		
+		default:
+
     std::cout << "GetPref code not yet written for case " << settingcase << "\n"; 
     break;
   }
@@ -494,6 +498,7 @@ bool ProgSettings::setRequiredValues(){
   main_required_values["startfilename"] = 11;
   main_required_values["writemeshtomc"] = 12;
   main_required_values["deletetmpfilesatend"] = 13;
+	main_required_values["standardstep2"] = 14;
   //adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
   
   
@@ -774,7 +779,7 @@ void ProgSettings::GetWriteMCFileUserDef(){
 }
 
 //the main function to save the preferences to a xml file.
-void ProgSettings::save(){
+void ProgSettings::save(std::string save_filename){
   
   TiXmlDocument* doc = new TiXmlDocument;  
   TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );  
@@ -793,43 +798,18 @@ void ProgSettings::save(){
   doc->LinkEndChild( root ); 
   
   //save it
-  if(doc->SaveFile(this->filename.c_str())){  //filename is a data member of ProgSettings class
+  if(doc->SaveFile(save_filename)){  //filename is a data member of ProgSettings class
     //		std::cout << "preferences saved\n";
   }
   else{
     //couldn't save for some reason.  this may be a problem on queued systems?
-    std::cout << "preferences *failed* to save to " << 	this->filename << "!\n";
+    std::cout << "preferences *failed* to save to " << 	save_filename << "!\n";
   };  
   
 }
 
 void ProgSettings::save(boost::filesystem::path speciallocation){
-  
-  TiXmlDocument* doc = new TiXmlDocument;
-  TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
-  
-  doc->LinkEndChild( decl );
-  
-  TiXmlElement * root = new TiXmlElement("paramotopy_preferences");
-  categorymap::iterator iter;
-  
-  //save each catergory
-  for (iter=settings.begin(); iter!= settings.end(); iter++) {
-    ProgSettings::SaveCategoryToXml( (*iter).first , (*iter).second ,root);
-  }
-  
-  //wrap it up
-  doc->LinkEndChild( root );
-  
-  //save it
-  if(doc->SaveFile(speciallocation.string().c_str())){  //filename is a data member of ProgSettings class
-    //		std::cout << "preferences saved\n";
-  }
-  else{
-    //couldn't save for some reason.  this may be a problem on queued systems?
-    std::cout << "preferences *failed* to save to " << 	speciallocation.string() << "!\n";
-  };  
-  
+  ProgSettings::save(speciallocation.string());
 }
 
 
@@ -881,66 +861,185 @@ int ProgSettings::SaveCategoryToXml(std::string catname, settingmap curr_setting
   return 0;
 }
 
-		
-		
 
+
+int ProgSettings::check_for_existing_prefs_auto(std::string & load_filename, const char* pFilename){
+	
+
+	int found_a_file;
+	if (boost::filesystem::exists(pFilename)) {
+		load_filename = pFilename;
+		found_a_file = 1;
+	}
+	else{
+		std::cout << "failed to find the desired settings file" << pFilename << std::endl;
+		load_filename = ProgSettings::default_name();
+		if (boost::filesystem::exists(load_filename)) {
+			found_a_file = 2;
+		}
+		else
+		{
+			found_a_file = 0;
+		}
+	}
+	
+	
+	return found_a_file;
+	
+}
+
+	
+		
+std::string ProgSettings::default_name(){
+	boost::filesystem::path defaultsettings(getenv("HOME"));
+	defaultsettings /= ".paramotopy/defaultprefs.xml";
+	return defaultsettings.string();
+}
+
+
+std::string ProgSettings::make_settings_name(std::string newfilename){
+	
+	std::string settingsfilename = getenv("HOME");
+	settingsfilename.append("/.paramotopy/");
+	settingsfilename.append(newfilename);
+	settingsfilename.append("prefs.xml");
+	return settingsfilename;
+}
+
+
+void ProgSettings::load_interactive(){
+		
+	std::string load_filename;
+	
+	boost::filesystem::path source_folder = getenv("HOME");
+	source_folder /= ".paramotopy";
+	
+	std::string expression = "prefs.xml\\z";  //specify beginning of string
+	expression.append("");
+	std::vector < std::string > filelist = FindFiles(source_folder.string(), expression);  //this function is in para_aux_funcs
+
+	
+	std::stringstream menu;
+  int choice = -1;
+	
+	menu << "found these preferences file:\n-----------------\n0) current (no change)\n";
+	for (int ii=0; ii<int(filelist.size()); ii++) {
+		boost::filesystem::path temppath(filelist[ii]);
+		
+		menu << ii+1 << ") " << temppath.filename() << std::endl;
+	}
+	menu << "--------\nwhich to load?";
+  
+	choice = get_int_choice(menu.str(),0,filelist.size());
+	switch (choice) {
+		case 0:
+			//do nothing, not loading.
+			break;
+			
+
+		default:
+			// load the user's choice.
+			ProgSettings::load(filelist[choice-1].c_str());
+			break;
+	}
+	
+	
+	
+
+	
+	
+
+	
+}
 
 //attempts to open the pFilename.  if cannot, checks for required values.  also goes through reset if xml file is broken.
 void ProgSettings::load(const char* pFilename){
 
-  bool changesmade=false;
+//	this->filename = pFilename;
+  bool changesmade=false, load_defaults = false, doc_loaded = false;
   
-  filename = pFilename;  //changes this data member of the ProgSettings variable
-  std::cout << "loading preferences from " << filename << "\n";
-  TiXmlDocument* doc = new TiXmlDocument(pFilename);
-  
+  //clear the old settings from memory.
   settings["MainSettings"].clear();
   settings["Step1Settings"].clear();
   settings["Step2Settings"].clear();
   settings["PathFailure"].clear();
   settings["SaveFiles"].clear();
   
-	
-  bool doc_loaded = doc->LoadFile();
-  if (!doc_loaded){
-    std::cout << "no prefs file: " << pFilename << " found.  setting preferences to defaults.\n";
-    ProgSettings::default_basic_bertini_values_stepone();
-    ProgSettings::default_basic_bertini_values_steptwo();
-    ProgSettings::default_basic_bertini_values_pathfailure();
-    ProgSettings::default_path_failure_settings();
-    ProgSettings::default_main_values();
-    ProgSettings::GetParallel();
-    changesmade=true;
-  }
-  else {
-    TiXmlHandle hDoc(doc);
-    TiXmlElement* pElem;
-    TiXmlHandle hRoot(0);
-    
 
-    pElem=hDoc.FirstChildElement().Element();
-    // should always have a valid root but handle gracefully if it doesn't
-    
-    if (!pElem) {
-      std::cerr << "bad xml file for prefs.  :( todo: check for backup\n";
-      changesmade=true;
-    }
-    else{
-      std::string main_name =pElem->Value();  //unused?
-      
-      hRoot=TiXmlHandle(pElem);  // the handle for the data we will be reading
-      
-      TiXmlElement* catElem=hRoot.FirstChild().Element();
-      for (catElem; catElem; catElem=catElem->NextSiblingElement()) {
-	ProgSettings::ReadCategoryFromXml(catElem->Value(),hRoot);
-      }
-    }
+	
+	std::string load_filename;
+	int found_a_file = check_for_existing_prefs_auto(load_filename, pFilename);//set the value of load_filename
+	//returns 0 if neither desired nor default file is found.
+	// 1 if the desired file is found
+	// 2 if only default is found, instead of desired.
+	if (this->filename.size()==0) {
+		std::cout << "changing filename" << std::endl;
+		this->filename = load_filename;
+	}
+	
+	if (found_a_file==0 || found_a_file==2) {
+		changesmade=true;
+	}
+	
+	if (found_a_file>0){
+		std::cout << "loading preferences from " << load_filename << "\n";
+		TiXmlDocument* doc = new TiXmlDocument(load_filename.c_str());
+		doc_loaded = doc->LoadFile();
+
+		
+		if (!doc_loaded) {
+			changesmade = true;
+			load_defaults = true;
+		}
+		else {
+			
+			TiXmlHandle hDoc(doc);
+			TiXmlElement* pElem;
+			TiXmlHandle hRoot(0);
+			
+
+			pElem=hDoc.FirstChildElement().Element();
+			// should always have a valid root but handle gracefully if it doesn't
+			
+			if (!pElem) {
+				std::cerr << "bad xml file for prefs.  :( todo: check for backup\n";
+				load_defaults = true;
+				changesmade=true;
+			}
+			else{
+				std::string main_name =pElem->Value();  //unused?
+				
+				hRoot=TiXmlHandle(pElem);  // the handle for the data we will be reading
+				
+				TiXmlElement* catElem=hRoot.FirstChild().Element();
+				for (catElem; catElem; catElem=catElem->NextSiblingElement()) {
+					ProgSettings::ReadCategoryFromXml(catElem->Value(),hRoot);
+				}
+			}
+		}
   }
+  else{
+		load_defaults=true;
+	}
+	
+	
+	
+	
+	if (load_defaults) {
+		
+		std::cout << "setting preferences to defaults.\n";
+		ProgSettings::default_basic_bertini_values_stepone();
+		ProgSettings::default_basic_bertini_values_steptwo();
+		ProgSettings::default_basic_bertini_values_pathfailure();
+		ProgSettings::default_path_failure_settings();
+		ProgSettings::default_main_values();
+		ProgSettings::GetParallel();
+		changesmade=true;
+	}
+	
+  bool made_changes_required_values = ProgSettings::setRequiredValues();  //check for required settings, and set them if not found already.
   
-  
-  bool made_changes_here = ProgSettings::setRequiredValues();  //check for required settings, and set them if not found already.
-  
-  if (made_changes_here) {
+  if (made_changes_required_values) {
     changesmade = true;
   }
   
@@ -952,9 +1051,19 @@ void ProgSettings::load(const char* pFilename){
   ProgSettings::FindProgram("step2","MainSettings","step2location");
   ProgSettings::FindProgram("bertini","MainSettings","bertinilocation");
   
+	
+	
+	
   if (changesmade) {//only save settings if made a change.
     ProgSettings::save();
   }
+	
+	if (load_defaults || (!boost::filesystem::exists(ProgSettings::default_name()))) {
+		ProgSettings::save(ProgSettings::default_name());
+	}
+	
+	
+	
 }
 
 //for reading individual settings categories from the xml file.
@@ -1033,11 +1142,12 @@ void ProgSettings::MainMenu(){
        << "4) Parallelism\n"
        << "5) Set files to save\n"
        << "6) General Settings\n"
+			 << "7) Manage Settings\n"
        << "*\n0) return to paramotopy\n"
        << "\n: ";
   
   while (choice!=0) {
-    choice = get_int_choice(menu.str(),0,6);
+    choice = get_int_choice(menu.str(),0,7);
     
     switch (choice) {
     case 0:
@@ -1068,11 +1178,15 @@ void ProgSettings::MainMenu(){
       ProgSettings::GeneralMenu();
       break;
       
+		case 7:
+			ProgSettings::MetaSettingsMenu();
+			break;
+				
     default:
       std::cout << "somehow an unacceptable entry submitted :(\n";
       break;
     }
-    ProgSettings::save();
+//    ProgSettings::save();
   }
   return;
 }
@@ -1129,13 +1243,16 @@ void ProgSettings::GeneralMenu(){
     case 7:
       ProgSettings::GetWriteMCFileUserDef();
       break;
+				
     case 8:
       ProgSettings::SetStandardStep2();
+			break;
+				
     default:
       //seriously, how did you get here?
       break;
 		}
-    ProgSettings::save();
+//    ProgSettings::save();
   }
   return;
 }
@@ -1212,7 +1329,7 @@ void ProgSettings::ParallelismMenu(){
       std::cout << "somehow an unacceptable entry submitted :(\n";
       break;
     }
-    ProgSettings::save();
+//    ProgSettings::save();
   }
   return;
 }
@@ -1260,7 +1377,7 @@ void ProgSettings::StepOneMenu(){
 	    std::cout << "somehow an unacceptable entry submitted :(\n";
 	    break;
 	  }
-	  ProgSettings::save();
+//	  ProgSettings::save();
 	}
 	
 	
@@ -1312,7 +1429,7 @@ void ProgSettings::StepTwoMenu(){
       std::cout << "somehow an unacceptable entry submitted :(\n";
       break;
     }
-    ProgSettings::save();
+//    ProgSettings::save();
   }
   return;	
 }
@@ -1347,13 +1464,45 @@ void ProgSettings::SaveFilesMenu(){
   }
   
 
-  ProgSettings::save();
+//  ProgSettings::save();
   return;
 }
 
 
+void ProgSettings::MetaSettingsMenu(){
+	
+	
+	std::stringstream menu;
+  menu << "\n\nMeta Settings:\n\n"
+	<< "1) Load a set of settings\n"
+	<< "2) Save current settings as default\n"
+	<< "*\n"
+	<< "0) Go Back\n"
+	<< "\n: ";
+  int choice = -1001;
+  while (choice!=0) {
+    choice = get_int_choice(menu.str(),0,2);
+    switch (choice) {
+			case 0:
+				break;
+				
+			case 1:
+				ProgSettings::load_interactive();
+				break;
+				
+			case 2:
+					ProgSettings::save(ProgSettings::default_name());
+				break;
+			
 		
-		
+			default:
+				break;
+    }
+  }
+	return;
+	
+}
+
 void ProgSettings::ChangeSetting(std::string category_name){
   //first, get setting name
   std::string setting_name = "neverusethisname";
@@ -1590,8 +1739,8 @@ void ProgSettings::SetStandardStep2(){
   int choice = -10;
   std::stringstream menu;
   menu << "\n\n"
-       << "0) Total Degree Step 2\n"
-       << "1) Standard Step 2\n"
+       << "0) Standard Stage 2\n"
+       << "1) Total Degree Stage 2\n"
        << ": ";
   choice = get_int_choice(menu.str(),0,1);
   setValue("MainSettings", "standardstep2", choice);
@@ -1620,7 +1769,7 @@ void ProgSettings::GetStartFileName(){
   int choice = -10;
   std::stringstream menu;
   menu << "\n\n"
-       << "Which file to use for the start for step2?\n\n"
+       << "Which file to use for the start for stage2?\n\n"
        << "1) nonsingular_solutions\n"
        << "2) finite_solutions\n"
        << "\n: ";

@@ -43,6 +43,13 @@ extern "C" {
 	int bertini_main(int argC, char *args[]);
 }
 
+
+/**
+ Display the Paramotopy splash screen.
+ */
+void ParamotopySplashScreen();
+
+
 /** 
     Display the bertini version information.
 */

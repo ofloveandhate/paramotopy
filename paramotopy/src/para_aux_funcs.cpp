@@ -1,6 +1,21 @@
 #include "para_aux_funcs.hpp"
 
 
+
+void ParamotopySplashScreen(){
+	
+	std::cout << "\n*******************************\n Welcome to Paramotopy.\n"
+		<< "     parametrized system analysis software by"
+		<< "\n"
+		<< "     daniel brake and matthew niemerg, with dan bates.\n\n"
+		<< "     www.paramotopy.com     danielthebrake@gmail.com\n"
+		<< "**************************" << std::endl;
+	
+	
+	
+	return;
+}
+
 void BertiniSplashScreen(std::string bertinilocation){
 
 char *args_splash[2];
@@ -375,13 +390,20 @@ int ParamotopyMainMenu(){
        << "7) Run Step 2.\n"
        << "8) Failed Path Analysis.\n"
        << "\n"
-       << "9) Preferences.\n"
+       << "99) Preferences.\n"
        << "*\n"
        << "0) Quit the program.\n\n"
        << "Enter the integer value of your choice : ";
   
-  int intChoice = get_int_choice(menu.str(), 0, 9);//= -1;
+	std::cout << menu.str();
+	
+  int intChoice = -1;
+	while (  (intChoice>=9 && intChoice<=98) || (intChoice >=100 || intChoice < 0) ) {
+		intChoice = get_int_choice("", 0, 99);
+	}
   
+	
+	
   return intChoice;
 }  //   re: getuserchoice
 

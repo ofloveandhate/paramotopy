@@ -313,12 +313,19 @@ void runinfo::GetInputFileName(){
   
   while (!finfound) {
     
-    std::cout << "Enter the input file's name.\n: ";
+    std::cout << "Enter the input file's name.       (% cancels when applicable)\n: ";
     filename = getAlphaNumeric();
     
-    struct stat filestatus;
-    
-    if (stat(filename.c_str(), &filestatus) ==0 ){
+		size_t found=filename.find('%');
+    if (found!=std::string::npos) {
+      if ( (int(found) == 0) && boost::filesystem::exists(this->inputfilename)) { // if already have a good one, and user wants to bail out.
+				std::cout << "canceling load.\n" << std::endl;
+				filename = this->inputfilename;
+				break;
+      }
+		}
+		
+    if (boost::filesystem::exists(filename)){
       finfound = true;
     }
     else {
@@ -335,7 +342,7 @@ void runinfo::GetInputFileName(){
 
 void runinfo::GetInputFileName(std::string suppliedfilename){
   struct stat filestatus;
-  if (stat( suppliedfilename.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
+  if (boost::filesystem::exists(suppliedfilename)){  // if it can see the 'finished' file
     inputfilename = suppliedfilename;
   }
   else{
