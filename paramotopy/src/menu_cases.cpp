@@ -1,4 +1,4 @@
- #include "menu_cases.hpp"
+#include "menu_cases.hpp"
 
 
 
@@ -28,32 +28,10 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   
   std::vector< int > lastnumsent;
   lastnumsent.resize(1);
-  int myid = 1;
-  char *args_parse[11];
-  args_parse[0] = "bertini";
-  args_parse[1] = "input";
-  args_parse[2] = "start";
-  args_parse[3] = "0";
-  args_parse[4] = "0";
-  args_parse[5] = "0";
-  args_parse[6] = "0";
-  args_parse[7] = "0";
-  args_parse[8] = "0";
-  args_parse[9] = "0";
-  args_parse[10] = "2";
-  
-  char *args_noparse[12];
-  args_noparse[0] = "bertini";
-  args_noparse[1] = "input";
-  args_noparse[2] = "start";
-  args_noparse[3] = "0";
-  args_noparse[4] = "0";
-  args_noparse[5] = "0";
-  args_noparse[6] = "0";
-  args_noparse[7] = "0";
-  args_noparse[8] = "0";
-  args_noparse[9] = "0";
-  args_noparse[10] = "3";
+  int myid = 1; // not 0, 0 would be the master, and this is, for all intents and purposes, a worker.
+	
+	unsigned int currentSeed;
+	int MPType;
   
   std::vector<std::string> Numoutvector;
   std::vector<std::string> arroutvector;
@@ -63,7 +41,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   std::vector<std::string> funcinputvector;
   
   std::vector<std::string> preproc_datavector;
-
+	
   int terminationint,smallestnumsent =0;
   
   int numfilestosave=0;
@@ -91,8 +69,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     commandss >> TheFiles[i].filecount;
     if (!standardstep2){ // ?
       if (TheFiles[i].filename.compare("real_solutions")){
-	TheFiles[i].filename = "real_finite_solutions";
-	std::cout << "Changed TheFiles[" << i << "]\n";
+				TheFiles[i].filename = "real_finite_solutions";
+				//				std::cout << "Changed TheFiles[" << i << "]\n";
       }
     }
   }
@@ -120,9 +98,9 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   }
   
   SetUpFolders(paramotopy_info.location,
-	       2,
-	       paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
-	       templocation);
+							 2,
+							 paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
+							 templocation);
   
   
   //make data file location
@@ -139,13 +117,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   std::string finishedfile = paramotopy_info.location;
   finishedfile.append("/step2finished");
   
-  
-  std::string initrunfolder;
-  myss << templocation << "/" << paramotopy_info.base_dir <<  "/tmpstep2/init" << myid;
-  myss >> initrunfolder;
-  myss.clear();
-  myss.str("");
-  mkdirunix(initrunfolder.c_str());
+	
   
   std::string workingfolder;
   myss << templocation << "/" << paramotopy_info.base_dir <<  "/tmpstep2/work" << myid;
@@ -169,22 +141,22 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 	
   //get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.
   GetRandomValues(paramotopy_info.location,
-		  paramotopy_info.RandomValues);
+									paramotopy_info.RandomValues);
   
   
   std::string mcfname = paramotopy_info.location;
   mcfname.append("/mc");
-  std::vector< int > KVector;// for the index making function
+  std::vector< int > index_conversion_vector;// for the index making function
   std::ofstream mc_out_stream;
   std::ifstream mc_in_stream;
   
 	
   if (!paramotopy_info.userdefined) {
-    KVector.push_back(1);
+    index_conversion_vector.push_back(1);
     for (int i=1; i<paramotopy_info.numparam; ++i) {
-      KVector.push_back(KVector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
+      index_conversion_vector.push_back(index_conversion_vector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
     }
-    terminationint = KVector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
+    terminationint = index_conversion_vector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
     
 		
     //open mc file for writing out to
@@ -203,15 +175,12 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     
     int num_lines_mcfile = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
     
-    
-    
     terminationint = num_lines_mcfile;
-    
     mc_in_stream.open(mcfname.c_str(), std::ios::in);
     
   }
 	
-
+	
 	
 	
   ///////////////////
@@ -229,8 +198,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   
   //	// read in the start file
   GetStart(paramotopy_info.location,
-	   start,
-	   paramotopy_settings.settings["MainSettings"]["startfilename"].value());
+					 start,
+					 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
   
   
   // for the step 2.1 solve, we need random values
@@ -238,22 +207,22 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   std::string inputstring;
   
   switch (paramotopy_info.steptwomode) {
-  case 2:
-    inputstring = WriteStep2(tmprandomvalues,
-			     paramotopy_settings,
-			     paramotopy_info); // found in the step2_funcs.* files
-    
-    break;
-  case 3:
-    inputstring = WriteFailStep2(tmprandomvalues,
-				 paramotopy_settings,
-				 paramotopy_info); // found in the step2_funcs.* files
-    
-    break;
-  default:
-    std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
-    //exit(-202);
-    break;
+		case 2:
+			inputstring = WriteStep2(tmprandomvalues,
+															 paramotopy_settings,
+															 paramotopy_info); // found in the step2_funcs.* files
+			
+			break;
+		case 3:
+			inputstring = WriteFailStep2(tmprandomvalues,
+																	 paramotopy_settings,
+																	 paramotopy_info); // found in the step2_funcs.* files
+			
+			break;
+		default:
+			std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
+			//exit(-202);
+			break;
   }
   
   
@@ -263,30 +232,29 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
   indexvector.resize(paramotopy_info.numparam);
   
+	
+	int blaint = chdir(workingfolder.c_str()); // change directories into the working folder
+	
   
   //input
   std::ofstream fout;
-  std::string initruninput = initrunfolder;
-  initruninput.append("/input");
-  fout.open(initruninput.c_str());
+  fout.open("input");
   fout << inputstring;
-  fout.close();
+  fout.close(); fout.clear();
   
   
   //start
-  std::string initrunstart = initrunfolder;
-  initrunstart.append("/start");
-  fout.open(initrunstart.c_str());
+  fout.open("start");
   fout << start;
-  fout.close();
+  fout.close(); fout.clear();
   
   
   
-  int blaint = chdir(initrunfolder.c_str());
+	
 #ifdef timingstep2
   t1 = omp_get_wtime();
 #endif
-  int currentSeed = bertini_main(11,args_parse);
+	parse_input_file_bertini(currentSeed, MPType);
 #ifdef timingstep2
   t_bertini += omp_get_wtime() - t1;
   bertinicounter++;
@@ -295,15 +263,15 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 #ifdef timingstep2
   t1 = omp_get_wtime();
 #endif
-
+	
   
   ReadDotOut(Numoutvector,
-	     arroutvector,
-	     degoutvector,
-	     namesoutvector,
-	     configvector,
-	     funcinputvector,
-	     preproc_datavector);
+						 arroutvector,
+						 degoutvector,
+						 namesoutvector,
+						 configvector,
+						 funcinputvector,
+						 preproc_datavector);
   
   
 #ifdef timingstep2
@@ -311,21 +279,12 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   readcounter++; //increment the counter
 #endif
   
-  std::string currentSeedstring;
-  myss << currentSeed;
-  myss >> currentSeedstring;
-  args_noparse[11] = const_cast<char *>(currentSeedstring.c_str());
-  myss.clear();
-  myss.str("");
+	
   
   
   long loopcounter = 0;  //is for counting how many solves this worker has performed, for data collection file incrementing
-  blaint = chdir(workingfolder.c_str());  //formerly, used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
   
   
-  //NO double ParamSends[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into datacollected files
-  //int I, J, index;
-  //double a, b;//real and imaginary parts of the parameter values.
   std::stringstream ssdeleteme;
   
   int lastoutcounter=0;//for writing the lastnumsent file.  every so many, we write the file.
@@ -343,35 +302,31 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     
     /* Check the tag of the received message. */
     if (countingup == terminationint) {
-      
-      
       for (int j = 0; j < numfilestosave;++j){
-	
-
-	target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);
-	
-			
+				target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);
+				
+				
 #ifdef verbosestep2
-	std::cout << "final writing data to " << target_file << " from worker " << myid << "\n";
+				std::cout << "final writing data to " << target_file << " from worker " << myid << "\n";
 #endif
-	
+				
 #ifdef timingstep2
-	t1= omp_get_wtime();
+				t1= omp_get_wtime();
 #endif
-	WriteData(runningfile[j],
-		  target_file,
-		  paramotopy_info.ParameterNames);
-	runningfile[j].clear();
+				WriteData(runningfile[j],
+									target_file,
+									paramotopy_info.ParameterNames);
+				runningfile[j].clear();
 #ifdef timingstep2
-	t_write += omp_get_wtime() - t1;
-	writecounter++;
+				t_write += omp_get_wtime() - t1;
+				writecounter++;
 #endif
       }
       break; //exits the while loop
     }
     
-	
-	
+		
+		
     // make tempsends in the step2 loop
     double data[paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue*(2*paramotopy_info.numparam+1)];
     memset(data, 0, paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue*(2*paramotopy_info.numparam+1)*sizeof(double) );
@@ -379,31 +334,31 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     int localcounter=0;
     for (int i = 0; i < numtodo; ++i){
       if (paramotopy_info.userdefined) {
-	FormNextValues_mc(paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
-			  paramotopy_info.numparam,
-			  localcounter,
-			  countingup,
-			  mc_in_stream,data);
+				FormNextValues_mc(paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
+													paramotopy_info.numparam,
+													localcounter,
+													countingup,
+													mc_in_stream,data);
       }
       else {
-	FormNextValues(paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
-		       paramotopy_info.numparam,
-		       localcounter,
-		       paramotopy_info.Values,
-		       countingup,
-		       KVector,
-		       data);
+				FormNextValues(paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
+											 paramotopy_info.numparam,
+											 localcounter,
+											 paramotopy_info.Values,
+											 countingup,
+											 index_conversion_vector,
+											 data);
       }
       
 #ifdef timingstep2
       t1 = omp_get_wtime();
 #endif			//write the mc line if not userdefined
       if (!paramotopy_info.userdefined) {
-	for (int j=0; j<paramotopy_info.numparam; ++j) {
-	  mc_out_stream << data[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " "
-			<< data[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
-	}
-	mc_out_stream << "\n";
+				for (int j=0; j<paramotopy_info.numparam; ++j) {
+					mc_out_stream << data[localcounter*(2*paramotopy_info.numparam+1)+2*j] << " "
+					<< data[localcounter*(2*paramotopy_info.numparam+1)+2*j+1] << " ";
+				}
+				mc_out_stream << "\n";
       }
 #ifdef timingstep2
       t_write+= omp_get_wtime()-t1;
@@ -413,7 +368,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
       localcounter++;
       countingup++;
     } //re: make tempsends in the step2 loop
-	
+		
     //done getting next data points
     
     
@@ -424,8 +379,8 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
       
       // unpack some data for passing around; perhaps should rewrite stuff to make this unnecessary
       for (int mm=0; mm<paramotopy_info.numparam; ++mm) {
-	AllParams[mm].first = data[localcounter*(2*paramotopy_info.numparam+1)+2*mm];
-	AllParams[mm].second = data[localcounter*(2*paramotopy_info.numparam+1)+2*mm+1];
+				AllParams[mm].first = data[localcounter*(2*paramotopy_info.numparam+1)+2*mm];
+				AllParams[mm].second = data[localcounter*(2*paramotopy_info.numparam+1)+2*mm+1];
       }
       int linenumber = int(data[localcounter*(2*paramotopy_info.numparam+1)+2*paramotopy_info.numparam]);
       
@@ -435,112 +390,102 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
       t1= omp_get_wtime();
 #endif
       if (loopcounter==0){
-	fout.open("start");
-	fout << start;
-	fout.close();
-
-	WriteDotOut(arroutvector,
-		    degoutvector,
-		    namesoutvector,
-		    configvector,
-		    funcinputvector,
-		    preproc_datavector);
-	
+				fout.open("start");
+				fout << start;
+				fout.close();
+				
+				WriteDotOut(arroutvector,
+										degoutvector,
+										namesoutvector,
+										configvector,
+										funcinputvector,
+										preproc_datavector);
       }
       WriteNumDotOut(Numoutvector,
-		     AllParams,
-		     paramotopy_info.numparam,
-		     standardstep2);
+										 AllParams,
+										 paramotopy_info.numparam,
+										 standardstep2);
 #ifdef timingstep2
       t_write += omp_get_wtime() - t1;
       writecounter++; //increment the counter
 #endif
-		
-		
-		
-		
+			
+			
+			
+			
 #ifdef timingstep2
       t1 = omp_get_wtime();
 #endif
 #ifdef verbosestep2
       std::cout << linenumber << " ";
       for (int ii=0; ii < paramotopy_info.numparam; ++ii) {
-	std::cout << AllParams[ii].first << " " << AllParams[ii].second << " ";
+				std::cout << AllParams[ii].first << " " << AllParams[ii].second << " ";
       }
       std::cout << std::endl;
 #endif
-      blaint = bertini_main(12,args_noparse);
+			run_zero_dim_main(MPType, currentSeed);
+			//      blaint = bertini_main(12,args_noparse);
 #ifdef timingstep2
       t_bertini += omp_get_wtime() - t1;
       bertinicounter++;
 #endif
-		
-		
-		
-		
+			
+			
+			
+			
       // Collect the Data
       for (int j = 0; j < numfilestosave;++j){
-	
-	
-	//get data from file
+				
+				
+				//get data from file
 #ifdef timingstep2
-	t1= omp_get_wtime();
+				t1= omp_get_wtime();
 #endif
-	
-	runningfile[j].append(AppendData(linenumber,
-					 TheFiles[j].filename,
-					 paramotopy_info.ParameterNames,
-					 AllParams));
-	//std::cout << "read in from file " << TheFiles[j].filename << std::endl;
+				
+				runningfile[j].append(AppendData(linenumber,
+																				 TheFiles[j].filename,
+																				 paramotopy_info.ParameterNames,
+																				 AllParams));
+				//std::cout << "read in from file " << TheFiles[j].filename << std::endl;
 #ifdef timingstep2
-	t_read += omp_get_wtime() - t1;
-	readcounter++; //increment the counter
+				t_read += omp_get_wtime() - t1;
+				readcounter++; //increment the counter
 #endif
-	
-	
-	//if big enough
-	if (int(runningfile[j].size()) > 65536){
-	  std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);
-	  filesizes[j] += int(runningfile[j].size());
+				
+				
+				//if big enough
+				if (int(runningfile[j].size()) > 65536){
+					std::string target_file = MakeTargetFilename(DataCollectedbase_dir,TheFiles,j);
+					filesizes[j] += int(runningfile[j].size());
 #ifdef verbosestep2
-	  std::cout << "writing data to " << target_file << " from worker " << myid << " with folder" << k << std::endl;
+					std::cout << "writing data to " << target_file << " from worker " << myid << " with folder" << k << std::endl;
 #endif
 #ifdef timingstep2
-	  t1= omp_get_wtime();
+					t1= omp_get_wtime();
 #endif
-	  
-	  WriteData(runningfile[j],
-		    target_file,
-		    paramotopy_info.ParameterNames);
-	  
+					
+					WriteData(runningfile[j],
+										target_file,
+										paramotopy_info.ParameterNames);
+					
 #ifdef timingstep2
-	  t_write += omp_get_wtime() - t1;
-	  writecounter++; //increment the counter
+					t_write += omp_get_wtime() - t1;
+					writecounter++; //increment the counter
 #endif
-	  runningfile[j].clear();//reset the string
-	  if (filesizes[j] >  paramotopy_settings.settings["MainSettings"]["newfilethreshold"].intvalue) { //update the file count
-	    TheFiles[j].filecount+=1;
-	    filesizes[j] = 0;
-	  }
-	}
-	
-	
-      }
-      
-      
-		
+					runningfile[j].clear();//reset the string
+					if (filesizes[j] >  paramotopy_settings.settings["MainSettings"]["newfilethreshold"].intvalue) { //update the file count
+						TheFiles[j].filecount+=1;
+						filesizes[j] = 0;
+					}
+				}
+
+      } // re: for j
+
       ++localcounter;
-      ++loopcounter;
-      
+      ++loopcounter;      
+    }//re: for (int k = 0; --- ;++k)
+    
 		
-      
-    }//re: for (int k = 0; k < int(status.MPI_TAG);++k)
-    
-	
-    
-    
-    
-	
     lastnumsent[0] = smallestnumsent;//
     
     if ((lastoutcounter%paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].intvalue)==0) {
@@ -549,15 +494,15 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 #endif
       std::ofstream lastout;
       if (lastoutcounter%(2*paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].intvalue)==0) {
-	lastout.open(lastoutfilename1.c_str());
+				lastout.open(lastoutfilename1.c_str());
       }
       else {
-	lastout.open(lastoutfilename0.c_str());
+				lastout.open(lastoutfilename0.c_str());
       }
       
       std::stringstream tempss;
       for (int i=1; i<2; ++i) {
-	tempss << lastnumsent[i] << "\n";
+				tempss << lastnumsent[i] << "\n";
       }
       lastout << tempss.str();
       tempss.clear();
@@ -571,7 +516,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     }
     
     
-    lastoutcounter++;//essentially counts this loop.  
+    lastoutcounter++;//essentially counts this loop.
   }//re: while loop
   
 	
@@ -592,7 +537,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   mc_out_stream.close();
   mc_in_stream.close();
   
-  blaint = chdir(called_dir.c_str()); //used to move back to the starting directory to write the timing files.  now stay down 
+  blaint = chdir(called_dir.c_str());// move back to the directory we started in.
   
   fout.open(finishedfile.c_str());
   fout << 1;
@@ -611,11 +556,11 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     std::cerr << "serial timing out file " << timingname << "failed to open" << std::endl;
   }
   timingout <<  "initialize: " << t_initial << "\n"
-	    << "bertini: " << t_bertini << " " << bertinicounter << "\n"
-	    << "write: " << t_write+t_read << " " << writecounter+readcounter << "\n"
-	    << "send: " << t_send << "\n"
-	    << "receive: " << t_receive << "\n"
-	    << "total: " << omp_get_wtime() - t_start << "\n";
+	<< "bertini: " << t_bertini << " " << bertinicounter << "\n"
+	<< "write: " << t_write+t_read << " " << writecounter+readcounter << "\n"
+	<< "send: " << t_send << "\n"
+	<< "receive: " << t_receive << "\n"
+	<< "total: " << omp_get_wtime() - t_start << "\n";
   timingout.close();
 #endif
   
@@ -627,15 +572,15 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   
   return;
 }//re: serial_case()
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
 /////////////////////////////////
 //
 //   PARALLEL STEP 2 CASE
@@ -654,10 +599,10 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
   else{
     standardstep2 = true;
   }
-
-
+	
+	
   std::stringstream mpicommand;
-
+	
   mpicommand << paramotopy_settings.settings["MainSettings"]["architecture"].value() << " -n ";
   mpicommand << paramotopy_settings.settings["MainSettings"]["numprocs"].value() << " ";
   mpicommand << paramotopy_settings.settings["MainSettings"]["step2location"].value() << "/step2 ";
@@ -677,10 +622,10 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
       std::cout << (*iter).first << "\n";
       std::string mine = "real_solutions";
       if (mine.compare((*iter).first) == 0){
-	commandss << (standardstep2 ? "real_solutions" : "real_finite_solutions") << " " << (*iter).second.filenumber << " ";// << filename incrementedfilenumber ;  incrementedfilenumber set in touchfiletosave()
+				commandss << (standardstep2 ? "real_solutions" : "real_finite_solutions") << " " << (*iter).second.filenumber << " ";// << filename incrementedfilenumber ;  incrementedfilenumber set in touchfiletosave()
       }
       else{
-	commandss << (*iter).first << " " << (*iter).second.filenumber << " ";// << filename incrementedfilenumber ;  incrementedfilenumber set in touchfiletosave()
+				commandss << (*iter).first << " " << (*iter).second.filenumber << " ";// << filename incrementedfilenumber ;  incrementedfilenumber set in touchfiletosave()
       }
     }
   }
@@ -692,7 +637,7 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
   mpicommand << paramotopy_info.ParameterNames.size() << " ";
   
   for (int i = 0; i < int(paramotopy_info.ParameterNames.size());++i){
-
+		
     mpicommand << paramotopy_info.ParameterNames[i] << " ";
   }
   
@@ -704,7 +649,7 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
     mpicommand << " " << paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value() << " ";
   }
   mpicommand << paramotopy_info.steptwomode << " ";
-
+	
   mpicommand << paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue << " ";
   if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
     mpicommand << " > /dev/null ";
@@ -717,16 +662,6 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
   system(mpicommand.str().c_str());  //make the system call to bertini
   
 }//re: parallel_case()
-	
-	
-
-/*
-void parallel_case_nonstandard(ProgSettings paramotopy_settings,
-			       runinfo paramotopy_info){
-  
-
-}
-*/
 
 
 
@@ -743,7 +678,7 @@ void parallel_case_nonstandard(ProgSettings paramotopy_settings,
 
 
 void steptwo_case(ProgSettings paramotopy_settings,
-		  runinfo paramotopy_info){
+									runinfo paramotopy_info){
 	
   bool standardstep2;
   int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
@@ -753,8 +688,8 @@ void steptwo_case(ProgSettings paramotopy_settings,
   else{
     standardstep2 = true;
   }
-
-
+	
+	
 	std::string settings_filename = paramotopy_info.base_dir;
 	settings_filename.append("/prefs.xml");
 	paramotopy_settings.save(settings_filename);
@@ -777,11 +712,6 @@ void steptwo_case(ProgSettings paramotopy_settings,
       return;
     }
   }
-  
-	
-  // does this even do anything ? this returns a string and the info isn't saved anywhere
-  // this should do nothing 
-  paramotopy_settings.WriteConfigStepTwo();
   
   
   // open the bfiles_filename/mc file that contains the monte carlo points
@@ -808,7 +738,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
     CurDataCollectedBaseDir <<  DataCollectedBaseDir << "c" << 1 << "/";
     mkdirunix(CurDataCollectedBaseDir.str().c_str());
     SetFileCount(paramotopy_settings,DataCollectedBaseDir);
-    //no need to touch any files.   
+    //no need to touch any files.
   }
   else{
     for (int i = 1; i < paramotopy_settings.settings["MainSettings"]["numprocs"].intvalue ;++i){
@@ -830,7 +760,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
   fout.precision(16);
   for (int i = 0; i < paramotopy_info.numparam; ++i){
     fout << paramotopy_info.RandomValues[i].first << " "
-	 << paramotopy_info.RandomValues[i].second << "\n";
+		<< paramotopy_info.RandomValues[i].second << "\n";
     
   }
   fout.close();
@@ -838,20 +768,17 @@ void steptwo_case(ProgSettings paramotopy_settings,
   
   
 	
-  //actually run that shit
- 
-    if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue == 0) {//this section needs a lot of work
-      
-      serial_case(paramotopy_settings, paramotopy_info);
-      
-    }// end not parallel
-    
-    else{//parallel case...
-      parallel_case(paramotopy_settings, paramotopy_info);
-      
-    } // end parallel case
-    
- 
+  //actually run the case
+	
+	if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue == 0) {		
+		serial_case(paramotopy_settings, paramotopy_info);
+	}// end not parallel
+	
+	else{//parallel case...
+		parallel_case(paramotopy_settings, paramotopy_info);
+	} // end parallel case
+	
+	
   
 }//re: step2case()
 

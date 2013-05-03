@@ -2,6 +2,20 @@
 
 
 
+void parse_input_file_bertini(unsigned int & currentSeed, int & MPType){
+	
+	
+	int trackType, genType, userHom, sharpenOnly, needToDiff, remove_temp, useParallelDiff;
+	parse_input("input", &trackType, &MPType, &genType, &userHom, &currentSeed, &sharpenOnly, &needToDiff, &remove_temp, useParallelDiff, 0, 1, 0);
+}
+
+
+
+void run_zero_dim_main(int MPType, unsigned int currentSeed){
+	zero_dim_main(MPType, (double) 0, currentSeed, "start", 0,1,0);
+}
+
+
 
 
 void SetUpFolders(std::string base_dir,

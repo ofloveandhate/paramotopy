@@ -23,10 +23,14 @@
 #include "mtrand.hpp"
 #include "random.hpp"
 #include "step2readandwrite.hpp"
-#include "bertini_funcs.hpp"
 #include "timing.hpp"
 
+// you must include gmp pour include polysolve.
+#include <gmp.h>
 
+extern "C" {
+#include "polysolve.h"
+}
 
 
 
@@ -61,6 +65,7 @@ void slave(ToSave *TheFiles,
 	   ProgSettings & paramotopy_settings,
 	   runinfo & paramotopy_info,
 	   timer & process_timer);
+
 
 
 #endif

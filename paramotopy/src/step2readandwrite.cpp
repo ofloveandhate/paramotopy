@@ -5,22 +5,22 @@
 
 
 
-//opens the streams, sets terminationint, and initializes KVector
+//opens the streams, sets terminationint, and initializes index_conversion_vector
 void getTermination_OpenMC(std::ifstream & mc_in_stream,
 													 std::ofstream & mc_out_stream,
 													 int & terminationint,
-													 std::vector< int > & KVector,
+													 std::vector< int > & index_conversion_vector,
 													 runinfo & paramotopy_info,
 													 ProgSettings & paramotopy_settings)
 {
 	std::string mcfname = paramotopy_info.location;
 	mcfname.append("/mc");
 	if (!paramotopy_info.userdefined) {
-		KVector.push_back(1);
+		index_conversion_vector.push_back(1);
 		for (int i=1; i<paramotopy_info.numparam; ++i) {
-			KVector.push_back(KVector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
+			index_conversion_vector.push_back(index_conversion_vector[i-1]*paramotopy_info.NumMeshPoints[i-1]);
 		}
-		terminationint = KVector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
+		terminationint = index_conversion_vector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
 		
 		boost::filesystem::remove(mcfname);
 		

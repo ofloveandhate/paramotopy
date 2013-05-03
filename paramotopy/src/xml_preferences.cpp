@@ -178,19 +178,18 @@ void ProgSettings::default_main_values(){
   setValue("MainSettings","previousdatamethod",1);
   setValue("MainSettings","startfilename","nonsingular_solutions");
   setValue("MainSettings","deletetmpfilesatend",1);
-  setValue("MainSettings","standardstep2",1);
+  setValue("MainSettings","standardstep2",1); // do a parameter homotopy from a start file by default
   return;
 }
 
 
 void ProgSettings::default_basic_bertini_values_stepone(){
 	
-	
+	// these should all be the same as default bertini settings.
   settings["Step1Settings"].clear();
   setValue("Step1Settings","TRACKTOLBEFOREEG",1e-5);
   setValue("Step1Settings","TRACKTOLDURINGEG",1e-6);
   setValue("Step1Settings","FINALTOL",1e-11);
-  setValue("Step1Settings","PRINTPATHMODULUS",20);
   setValue("Step1Settings","IMAGTHRESHOLD",1e-8);
   setValue("Step1Settings","SECURITYLEVEL",0);
   setValue("Step1Settings","USERHOMOTOPY", 0);
@@ -201,11 +200,11 @@ void ProgSettings::default_basic_bertini_values_stepone(){
 
 void ProgSettings::default_basic_bertini_values_steptwo(){
   
+	// these should all be the same as default bertini settings.
   settings["Step2Settings"].clear();
   setValue("Step2Settings","TRACKTOLBEFOREEG",1e-5);
   setValue("Step2Settings","TRACKTOLDURINGEG",1e-6);
   setValue("Step2Settings","FINALTOL",1e-11);
-  setValue("Step2Settings","PRINTPATHMODULUS",20);
   setValue("Step2Settings","IMAGTHRESHOLD",1e-8);
   setValue("Step2Settings","SECURITYLEVEL",0);
   ProgSettings::save();
@@ -701,7 +700,7 @@ void ProgSettings::GetTemporaryFileLocation(){
     setValue("MainSettings","useramdisk",1);
     for (int ii=0; ii<int(standard_places_to_look.size()); ++ii) {
       if (boost::filesystem::exists(standard_places_to_look[ii])){
-	tmpfile_location_possibilities.push_back(standard_places_to_look[ii]);
+				tmpfile_location_possibilities.push_back(standard_places_to_look[ii]);
       }
     }
     
@@ -709,16 +708,16 @@ void ProgSettings::GetTemporaryFileLocation(){
       std::cout << "Found these possibilities:\n\n";
       
       for (int ii = 0; ii< int(tmpfile_location_possibilities.size()); ++ii) {
-	std::cout << ii << ": " << tmpfile_location_possibilities[ii].string() << std::endl;
+				std::cout << ii << ": " << tmpfile_location_possibilities[ii].string() << std::endl;
       }
       std::cout << "-or-\n" << tmpfile_location_possibilities.size() << ": specify your own location. (will not check it exists or even works) todo: perform these checks\n\n";
       
       int choice=get_int_choice(": ",0,tmpfile_location_possibilities.size());
-      if (choice==tmpfile_location_possibilities.size()) {
-	std::string tmplocation;
-	std::cout << "where should the root directory for temp files be?\n: " << std::endl;
-	tmplocation = getAlphaNumeric();
-	setValue("MainSettings","tempfilelocation",tmplocation);
+      if (choice==int(tmpfile_location_possibilities.size())) {
+				std::string tmplocation;
+				std::cout << "where should the root directory for temp files be?\n: " << std::endl;
+				tmplocation = getAlphaNumeric();
+				setValue("MainSettings","tempfilelocation",tmplocation);
 			}
       else{
 				setValue("MainSettings","tempfilelocation",standard_places_to_look[choice].string());
@@ -731,11 +730,11 @@ void ProgSettings::GetTemporaryFileLocation(){
       tmplocation = getAlphaNumeric();
       found=tmplocation.find('%');
       if ( (int(found)==0) ) {
-	setValue("MainSettings","useramdisk",0);
-	setValue("MainSettings","tempfilelocation",".");
+				setValue("MainSettings","useramdisk",0);
+				setValue("MainSettings","tempfilelocation",".");
       }
       else{
-	setValue("MainSettings","tempfilelocation",tmplocation);
+				setValue("MainSettings","tempfilelocation",tmplocation);
       }
     }
     
@@ -1738,9 +1737,9 @@ void ProgSettings::PathFailureMenu(){
 void ProgSettings::SetStandardStep2(){
   int choice = -10;
   std::stringstream menu;
-  menu << "\n\n"
+  menu << "Which method for the Stage 2 run?\n\n"
+			 << "0) Total Degree Stage 2\n"
        << "1) Standard Stage 2\n"
-       << "0) Total Degree Stage 2\n"
        << ": ";
   choice = get_int_choice(menu.str(),0,1);
   setValue("MainSettings", "standardstep2", choice);

@@ -14,7 +14,7 @@ OPT  := -Wall  -O3  -funroll-loops -fexpensive-optimizations  #-g
 TIMING := YES
 
 #print extra stuff to screen in step 2?  YES or NO (or anything other than YES really)
-VERBOSE := YES
+VERBOSE := NO
 
 #turn off bertini and data collection calls?
 NOSOLVE := NO
@@ -43,12 +43,11 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	CC  := g++
 	MANDATORYOPT := -fopenmp
 	BOOSTLOC := /usr/local/Cellar/boost/1.52.0/lib/
-	INCLUDE := -I../include -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
+	INCLUDE := -I$(HOME)/bertini_source/include  -I../include -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
 	BOOSTSUFFIX :=-mt#no spaces
-	BERTINILIB := $(HOME)/lib/libbertini_opt_nog.a
+	BERTINILIB := $(HOME)/lib/libbertini.a #$(HOME)/lib/libbertini_opt_nog.a
 	MPFRLOC :=#in path
 	INSTALLDIR:=~/bin
-	
 else ifeq (cray,$(MACHINENAME))
 	#cray, as dan brake
 	MCC := CC

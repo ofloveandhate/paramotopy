@@ -24,6 +24,29 @@
 
 #include "step1_funcs.hpp"
 
+#include <gmp.h>
+
+extern "C" {
+	#include "polysolve.h"
+}
+
+
+/**
+ * a wrapper around the parse_input() function from the bertini library.
+ * \return MPType an integer indicating the mptype.
+ * \return currentSeed the current random seed.
+ */
+void parse_input_file_bertini(unsigned int & currentSeed, int & MPType);
+
+
+
+/**
+ * a wrapper around the zero_dim_main() function from the bertini library.
+ * \param MPType an integer indicating the mptype.
+ * \param currentSeed the current random seed.
+ */
+void run_zero_dim_main(int MPType, unsigned int currentSeed);
+
 
 
 
