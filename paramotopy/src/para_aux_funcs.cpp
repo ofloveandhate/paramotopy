@@ -8,7 +8,7 @@ void ParamotopySplashScreen(){
 		<< "     parametrized system analysis software by"
 		<< "\n"
 		<< "     daniel brake and matthew niemerg, with dan bates.\n\n"
-		<< "     www.paramotopy.com     danielthebrake@gmail.com\n"
+		<< "     www.paramotopy.com     danielthebrake@gmail.com  matthew.niemerg@gmail.com \n"
 		<< "**************************" << std::endl;
 	
 	
