@@ -19,7 +19,7 @@
 #ifndef __XMLPREFS__
 #define __XMLPREFS__
 
-#define minprefversion = 102; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+#define minprefversion = 103; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 //#include "runinfo.hpp"
 #include "para_aux_funcs.hpp"
