@@ -1,29 +1,7 @@
-
-#include <mpi.h>
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
 #include "slave.hpp"
 
 
-//from the bertini library.
-extern "C" {
-	int bertini_main(int argC, char *args[]);
-}
+
 
 
 
@@ -47,18 +25,18 @@ extern "C" {
 
 
 void slave(ToSave *TheFiles,
-		   int numfiles,
-		   std::vector<std::string> ParamNames,
-		   std::string base_dir,
-		   int numfilesatatime,
-		   std::string called_dir,
-		   std::string tmpfolder,
-		   int newfilethreshold,
-		   std::string location,
-		   int buffersize,
-		   ProgSettings & paramotopy_settings,
-		   runinfo & paramotopy_info,
-	   timer & process_timer)
+					 int numfiles,
+					 std::vector<std::string> ParamNames,
+					 std::string base_dir,
+					 int numfilesatatime,
+					 std::string called_dir,
+					 std::string tmpfolder,
+					 int newfilethreshold,
+					 std::string location,
+					 int buffersize,
+					 ProgSettings & paramotopy_settings,
+					 runinfo & paramotopy_info,
+					 timer & process_timer)
 {
   int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
   bool standardstep2;
@@ -69,8 +47,9 @@ void slave(ToSave *TheFiles,
     standardstep2 = true;
   }
 	std::stringstream myss;
-	std::string currentSeedstring;
-	int blaint, currentSeed = 0;
+	int blaint;
+	unsigned int currentSeed;
+	int MPType;
 	int linenumber;
 	int numparam = ParamNames.size();
 	int myid;
@@ -95,37 +74,6 @@ void slave(ToSave *TheFiles,
 	double* datareceived = new double[numfilesatatime*(2*numparam+1)]; //for catching from the mpi
 	
 	
-	//initialize argument string for bertini, for the 2.1 solve (setting up the data structure).
-	char *args_parse[11];
-	args_parse[0] = const_cast<char *>("bertini");
-	args_parse[1] = const_cast<char *>("input");
-	args_parse[2] = const_cast<char *>("start");
-	args_parse[3] = const_cast<char *>("0");
-	args_parse[4] = const_cast<char *>("0");
-	args_parse[5] = const_cast<char *>("0");
-	args_parse[6] = const_cast<char *>("0");
-	args_parse[7] = const_cast<char *>("0");
-	args_parse[8] = const_cast<char *>("0");
-	args_parse[9] = const_cast<char *>("0");
-	args_parse[10] = const_cast<char *>("2");
-	
-	
-	//initialize for 2.2 solves, that is no parsing, just interpretation of preexisting .out files.
-	char *args_noparse[12];
-	args_noparse[0] = const_cast<char *>("bertini");
-	args_noparse[1] = const_cast<char *>("input");
-	args_noparse[2] = const_cast<char *>("start");
-	args_noparse[3] = const_cast<char *>("0");
-	args_noparse[4] = const_cast<char *>("0");
-	args_noparse[5] = const_cast<char *>("0");
-	args_noparse[6] = const_cast<char *>("0");
-	args_noparse[7] = const_cast<char *>("0");
-	args_noparse[8] = const_cast<char *>("0");
-	args_noparse[9] = const_cast<char *>("0");
-	args_noparse[10] = const_cast<char *>("3");
-	//do not set the 11th argument here.
-	
-	
 	
 	//setup the vector of filesizes
 	std::vector<int> filesizes;
@@ -148,7 +96,7 @@ void slave(ToSave *TheFiles,
 	for (int i=0; i<numfiles; ++i) {
 		runningfile[i].reserve(2*buffersize);
 	}
-	//	int writethreshold = 1; //how often to check file sizes...
+
 	
 	//make data file location
 	myss << called_dir << "/" << location << "/step2/DataCollected/c" << myid << "/";
@@ -164,19 +112,15 @@ void slave(ToSave *TheFiles,
 	
 	
 	
-	
-	
-	
-	
-	
+
 	
 
 	
 	std::string workingfolder;
 	myss << tmpfolder << "/work" << myid;
 	myss >> workingfolder;
-	myss.clear();
-	myss.str("");
+	myss.clear(); myss.str("");
+	
 	boost::filesystem::remove_all(workingfolder);
 	mkdirunix(workingfolder.c_str());
 	
@@ -235,37 +179,11 @@ void slave(ToSave *TheFiles,
 	
 	
 	
-	//////////////////////////
-	//
-	//     done writing the config, start, and input files
-	//
-	///////////////////////
+
 	std::ofstream fout;
 	
-
 	
-	//make the initial folder
-	std::string initrunfolder;
-	myss << tmpfolder << "/init" << myid;
-	myss >> initrunfolder;
-	myss.clear();
-	myss.str("");
-	boost::filesystem::remove_all(initrunfolder);
-	mkdirunix(initrunfolder.c_str());
 	
-	//start
-	std::string initrunstart = initrunfolder;
-	initrunstart.append("/start");
-	fout.open(initrunstart.c_str());
-	
-	if (!fout.is_open()) {
-		std::cerr << "failed to properly open " << initrunstart << " to open start file, worker " << myid << std::endl;
-		exit(719);
-	}
-	
-	fout << start_char;
-	fout.close();
-	fout.clear();
 	char* input_char = new char[vectorlengths[1]];
 
 #ifdef verbosestep2
@@ -282,38 +200,47 @@ void slave(ToSave *TheFiles,
 #endif
 	
 	
-	//input
+	
+	blaint = chdir(workingfolder.c_str());
+	
+	
 
-	std::string initruninput = initrunfolder;
-	initruninput.append("/input");
-	fout.open(initruninput.c_str());
+	fout.open("start");
 	if (!fout.is_open()) {
-		std::cerr << "failed to properly open " << initruninput << " to open input file, worker " << myid << std::endl;
+		std::cerr << "failed to properly open " << "start" << " to open start file, worker " << myid << std::endl;
+		exit(719);
+	}
+	fout << start_char;
+	fout.close(); fout.clear();
+	
+	
+	
+
+	fout.open("input");
+	if (!fout.is_open()) {
+		std::cerr << "failed to properly open " << "input" << " to open input file, worker " << myid << std::endl;
 		exit(720);
 	}
-	
 	fout << input_char;
-	fout.close();
-	fout.clear();
-	
-
-	
-	blaint = chdir(initrunfolder.c_str());
+	fout.close(); fout.clear();
 	
 	
 #ifdef timingstep2
 	process_timer.press_start("bertini");
 #endif
-	currentSeed = bertini_main(11,args_parse);
+	parse_input_file_bertini(currentSeed, MPType);
 #ifdef timingstep2
 	process_timer.add_time("bertini");
 #endif
 	
-	myss << currentSeed;
-	myss >> currentSeedstring;
-	args_noparse[11] = const_cast<char *>(currentSeedstring.c_str());
-	myss.clear();
-	myss.str("");
+
+	
+	//////////////////////////
+	//
+	//     done writing the config, start, and input files
+	//
+	///////////////////////
+	
 	
 	
 #ifdef timingstep2
@@ -329,11 +256,6 @@ void slave(ToSave *TheFiles,
 		   funcinputvector,
 		   preproc_datavector);
 
-	  
-	  //  std::cout << "cpid = " << cpid << "\n";
-	  // std::stringstream killss;
-	  // killss << "kill " << cpid;
-	  // system(killss.str().c_str());
 
 #ifdef timingstep2
 	process_timer.add_time("read",6);
@@ -344,14 +266,13 @@ void slave(ToSave *TheFiles,
 
 	
 	
+
+	 
+	
 	long loopcounter = 0;  //is for checking whether we are on the first loop
-	
-	blaint = chdir(workingfolder.c_str());  //formerly, used to move down on each iteration of loop.  now just stay in after initially moving into working folder.
-	
-	//todo: check if this chdir was successful
-	
-	
 	std::string target_file;
+	
+	
 	while (1) {
 		
 		/* Receive parameter points and line numbers from the master */
@@ -460,7 +381,7 @@ void slave(ToSave *TheFiles,
 #endif
 			
 #ifndef nosolve
-			blaint = bertini_main(12,args_noparse);
+				run_zero_dim_main(MPType, currentSeed);
 #endif
 			
 #ifdef timingstep2
@@ -514,10 +435,6 @@ blaint = chdir(called_dir.c_str()); //used to move back to the starting director
 	delete[] datareceived;
 	return;
 }//re:slave
-
-
-
-
 
 
 

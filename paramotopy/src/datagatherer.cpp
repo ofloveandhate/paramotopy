@@ -74,8 +74,6 @@ std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > 
 				counter++;
 			}
 		}
-		
-		
 	}
 	
 	
@@ -997,24 +995,24 @@ std::string datagatherer::ParseFailedPaths(std::ifstream & fin){
 	int tempfailnum = 0;
 	std::string tmpstr;
 	
-	std::stringstream faily_myfailfail;
+	std::stringstream faily_mcfailfail;
 	
 	while (1) {
 		
 		getline(fin,tmpstr);
-		faily_myfailfail << tmpstr << "\n";
+		faily_mcfailfail << tmpstr << "\n";
 		if (tmpstr.length()==0) { // if do not have a solution
 			break;
 		}
 		else { //have a soln
 			for (int i=0; i<3+this->numvariables; ++i) {
 				getline(fin,tmpstr);
-				faily_myfailfail << tmpstr << "\n";
+				faily_mcfailfail << tmpstr << "\n";
 			}
 			tempfailnum++;
 		}
 	}
-	return faily_myfailfail.str();
+	return faily_mcfailfail.str();
 }
 
 

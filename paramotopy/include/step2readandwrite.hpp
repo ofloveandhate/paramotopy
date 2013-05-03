@@ -15,9 +15,7 @@
 #include <stdlib.h>
 #include <iomanip>
 #include <omp.h>
-#include "bertini_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "timing.hpp"
+
 
 
 #ifndef __STEP2READANDWRITE_H__
@@ -34,7 +32,14 @@ extern "C" {
 	void computeNumDenom(char **numer, char **denom, char *s);
 }
 
+#include "step2_funcs.hpp"
+#include "timing.hpp"
 
+#include <gmp.h>
+
+extern "C" {
+#include "polysolve.h"
+}
 
 
 

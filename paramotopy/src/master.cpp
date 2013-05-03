@@ -68,16 +68,16 @@ void master(std::string filename,
 
 	
 	
-	std::vector< int > KVector;// for the index making function
+	std::vector< int > index_conversion_vector;// for the index making function
 	std::ofstream mc_out_stream;
 	std::ifstream mc_in_stream;
 	
 	
-	getTermination_OpenMC(mc_in_stream,mc_out_stream,terminationint,KVector,paramotopy_info,paramotopy_settings);
+	getTermination_OpenMC(mc_in_stream,mc_out_stream,terminationint,index_conversion_vector,paramotopy_info,paramotopy_settings);
   if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
     mc_out_stream.precision(16);
   }
-	//opens the mc_in or mc_out file stream, and sets the value of terminationint.  also sets KVector if compgen mesh.
+	//opens the mc_in or mc_out file stream, and sets the value of terminationint.  also sets index_conversion_vector if compgen mesh.
 		
 	
 	
@@ -342,8 +342,8 @@ void master(std::string filename,
 				//form index for matrix of parameter values
 				index = i;
 				for (int jj=paramotopy_info.numparam-1; jj>-1; jj--) {
-					I = (index)%KVector[jj];
-					J = (index - I)/KVector[jj];
+					I = (index)%index_conversion_vector[jj];
+					J = (index - I)/index_conversion_vector[jj];
 					indexvector[jj] = J;
 					index = I;
 				}
@@ -522,7 +522,7 @@ void master(std::string filename,
 #endif
 			}
 			else {
-				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,KVector,tempsends);
+				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,index_conversion_vector,tempsends);
 
 
 				if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
@@ -703,7 +703,7 @@ void FormNextValues(int numfilesatatime,
 					int pointcounter,
 					std::vector< std::vector< std::pair<double,double> > > Values,
 					int countingup,
-					std::vector< int > KVector,
+					std::vector< int > index_conversion_vector,
 					double tempsends[]){
 	
 	int index, I,J;
@@ -715,8 +715,8 @@ void FormNextValues(int numfilesatatime,
 	//get subscripts (zero-based) for the index, countingup
 	index = countingup;
 	for (int jj=numparam-1; jj>-1; --jj) {
-		I = (index)%KVector[jj];
-		J = (index - I)/KVector[jj];
+		I = (index)%index_conversion_vector[jj];
+		J = (index - I)/index_conversion_vector[jj];
 		indexvector[jj] = J;
 		index = I;
 	}
