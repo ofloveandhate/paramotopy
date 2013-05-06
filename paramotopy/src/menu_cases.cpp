@@ -690,7 +690,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
   }
 	
 	
-	std::string settings_filename = paramotopy_info.base_dir;
+	std::string settings_filename = paramotopy_info.location;
 	settings_filename.append("/prefs.xml");
 	paramotopy_settings.save(settings_filename);
   
