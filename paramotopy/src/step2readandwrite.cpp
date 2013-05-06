@@ -24,7 +24,7 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,
 		
 		boost::filesystem::remove(mcfname);
 		
-		if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+		if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
 			//open mc file for writing out to
 			mc_out_stream.open(mcfname.c_str());
 

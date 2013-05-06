@@ -74,7 +74,7 @@ void master(std::string filename,
 	
 	
 	getTermination_OpenMC(mc_in_stream,mc_out_stream,terminationint,index_conversion_vector,paramotopy_info,paramotopy_settings);
-  if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+  if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
     mc_out_stream.precision(16);
   }
 	//opens the mc_in or mc_out file stream, and sets the value of terminationint.  also sets index_conversion_vector if compgen mesh.
@@ -90,7 +90,7 @@ void master(std::string filename,
 	std::string start;
 	GetStart(paramotopy_info.location,
 			 start,  //   <--   reads into memory here
-			 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
+			 paramotopy_settings.settings["mode"]["startfilename"].value());
 #ifdef verbosestep2
 	process_timer.add_time("read");
 #endif
@@ -525,7 +525,7 @@ void master(std::string filename,
 				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,index_conversion_vector,tempsends);
 
 
-				if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+				if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
 
 #ifdef timingstep2
 					process_timer.press_start("write");
@@ -660,7 +660,7 @@ void master(std::string filename,
 	process_timer.press_start("write");
 #endif
 	
-	if (paramotopy_settings.settings["MainSettings"]["writemeshtomc"].intvalue==1){
+	if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
 		mc_out_stream.close();
 	}
 		

@@ -38,7 +38,7 @@ void slave(ToSave *TheFiles,
 					 runinfo & paramotopy_info,
 					 timer & process_timer)
 {
-  int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
+  int sstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
   bool standardstep2;
   if (sstep2 == 0){
     standardstep2 = false;

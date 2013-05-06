@@ -15,7 +15,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/progress.hpp>
 #include <boost/regex.hpp>
-
+#include <boost/function.hpp>
 #ifndef __XMLPREFS__
 #define __XMLPREFS__
 
@@ -28,6 +28,16 @@
    @brief A class that stores the information of a setting as used in an xml file.
 
  */
+
+
+
+
+class menu_option {
+	
+private:
+	std::string name;
+	boost::function<void()> call;
+};
 
 class setting {
 	
@@ -217,8 +227,6 @@ public:
   void GetTemporaryFileLocation();
   /** Get the stifle output setting. */
   void GetStifle();
-  /** Get the step two location. */
-  void GetStepTwoLocation();
   /** Get the machine file location. */
   void GetMachineFile(); 
   /** Get the number of processors to be used. */
@@ -239,8 +247,6 @@ public:
   // path failure prefs
   /** Get the random method setting. */
   void GetRandomMethod();
-  /** Get the security level in the path failure resolution settings. */
-  void GetSecurityLevelPathFailure();
   /** Get the tighten tolerances in the path failure resolution settings. */
   void GetTightenTolerancesPathFailure();
   /** Get the number of iterations to be performed during path failure resolution. */
@@ -266,6 +272,9 @@ public:
   // menu functions
   /** Display paramotopy's main menu. */
   void MainMenu();
+	
+	/** Chain into the bertini settings menus. */
+	void BertiniMenu();
   /** Display the step one options menu. */
   void StepOneMenu();
   /** Display the step two options menu. */
@@ -278,6 +287,13 @@ public:
   void ParallelismMenu();		       
   /** Display the general options menu. */
   void GeneralMenu();
+	/** Menu for Solver modes. */
+	void SolverModeMenu();
+	/** Menu for system interaction. */
+	void SystemMenu();
+	/** Menu for memory management. */
+	void FileMenu();
+	
   /** Display the path failure options for bertini menu. */
   void ManagePathFailureBertini();
   /**  perform meta-settings actions */
