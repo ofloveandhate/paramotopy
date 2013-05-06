@@ -12,25 +12,25 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 
 	chdir(runfolder.str().c_str());
 	
-	if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue==1) {
-		command << paramotopy_settings.settings["MainSettings"]["architecture"].value() << " ";
-		if (paramotopy_settings.settings["MainSettings"]["usemachine"].intvalue==1){
+	if (paramotopy_settings.settings["parallelism"]["parallel"].intvalue==1) {
+		command << paramotopy_settings.settings["parallelism"]["architecture"].value() << " ";
+		if (paramotopy_settings.settings["parallelism"]["usemachine"].intvalue==1){
 			std::string homedir = getenv("HOME");
 			homedir.append("/");
 
 			
 			command << " -machinefile " 
 					<< homedir
-					<< paramotopy_settings.settings["MainSettings"]["machinefile"].value() 
+					<< paramotopy_settings.settings["parallelism"]["machinefile"].value() 
 					<< " ";
 		}
-		command << " -n " <<  paramotopy_settings.settings["MainSettings"]["numprocs"].value();
+		command << " -n " <<  paramotopy_settings.settings["parallelism"]["numprocs"].value();
 	
-		command << " " << paramotopy_settings.settings["MainSettings"]["bertinilocation"].value() << "/bertini";
+		command << " " << paramotopy_settings.settings["system"]["bertinilocation"].value() << "/bertini";
 	}
 	else{
 		
-		command << " " << paramotopy_settings.settings["MainSettings"]["bertinilocation"].value() << "/bertini";
+		command << " " << paramotopy_settings.settings["system"]["bertinilocation"].value() << "/bertini";
 	}
 	
 	std::cout << command.str().c_str() << std::endl;

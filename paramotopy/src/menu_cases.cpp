@@ -14,7 +14,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   
   bool standardstep2;
   // the .intvalue may not be right ...
-  int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
+  int sstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
   if (sstep2 == 0){
     standardstep2 = false;
   }
@@ -84,14 +84,14 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   std::vector<std::string> runningfile; //for storing the data between writes.
   runningfile.resize(numfilestosave);
   for (int i=0; i<numfilestosave; ++i) {
-    runningfile[i].reserve(2*paramotopy_settings.settings["MainSettings"]["buffersize"].intvalue);
+    runningfile[i].reserve(2*paramotopy_settings.settings["system"]["buffersize"].intvalue);
   }
   
   
   std::string called_dir = stackoverflow_getcwd();
   std::string templocation;
-  if (paramotopy_settings.settings["MainSettings"]["useramdisk"].intvalue==1) {
-    templocation = paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value();
+  if (paramotopy_settings.settings["files"]["useramdisk"].intvalue==1) {
+    templocation = paramotopy_settings.settings["files"]["tempfilelocation"].value();
   }
   else {
     templocation = called_dir;
@@ -99,7 +99,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   
   SetUpFolders(paramotopy_info.location,
 							 2,
-							 paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
+							 paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue,
 							 templocation);
   
   
@@ -199,7 +199,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
   //	// read in the start file
   GetStart(paramotopy_info.location,
 					 start,
-					 paramotopy_settings.settings["MainSettings"]["startfilename"].value());
+					 paramotopy_settings.settings["mode"]["startfilename"].value());
   
   
   // for the step 2.1 solve, we need random values
@@ -294,7 +294,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
     
     smallestnumsent = countingup;
     //figure out how many files to do
-    int numtodo = paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue;
+    int numtodo = paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue;
     if (numtodo+countingup>=terminationint) {
       numtodo = terminationint - countingup;
     }
@@ -328,20 +328,20 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 		
 		
     // make tempsends in the step2 loop
-    double data[paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue*(2*paramotopy_info.numparam+1)];
-    memset(data, 0, paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue*(2*paramotopy_info.numparam+1)*sizeof(double) );
+    double data[paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue*(2*paramotopy_info.numparam+1)];
+    memset(data, 0, paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue*(2*paramotopy_info.numparam+1)*sizeof(double) );
     
     int localcounter=0;
     for (int i = 0; i < numtodo; ++i){
       if (paramotopy_info.userdefined) {
-				FormNextValues_mc(paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
+				FormNextValues_mc(paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue,
 													paramotopy_info.numparam,
 													localcounter,
 													countingup,
 													mc_in_stream,data);
       }
       else {
-				FormNextValues(paramotopy_settings.settings["MainSettings"]["numfilesatatime"].intvalue,
+				FormNextValues(paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue,
 											 paramotopy_info.numparam,
 											 localcounter,
 											 paramotopy_info.Values,
@@ -592,7 +592,7 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
   
   bool standardstep2;
-  int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
+  int sstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
   if (sstep2 == 0){
     standardstep2 = false;
   }
@@ -603,9 +603,9 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 	
   std::stringstream mpicommand;
 	
-  mpicommand << paramotopy_settings.settings["MainSettings"]["architecture"].value() << " -n ";
-  mpicommand << paramotopy_settings.settings["MainSettings"]["numprocs"].value() << " ";
-  mpicommand << paramotopy_settings.settings["MainSettings"]["step2location"].value() << "/step2 ";
+  mpicommand << paramotopy_settings.settings["parallelism"]["architecture"].value() << " -n ";
+  mpicommand << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
+  mpicommand << paramotopy_settings.settings["system"]["step2location"].value() << "/step2 ";
   mpicommand << paramotopy_info.inputfilename << " ";
   mpicommand << paramotopy_info.location << " ";
   
@@ -633,7 +633,7 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
   mpicommand << numfilestosave << " ";
   mpicommand << commandss.str();
   
-  mpicommand << paramotopy_settings.settings["MainSettings"]["numfilesatatime"].value() << " ";
+  mpicommand << paramotopy_settings.settings["parallelism"]["numfilesatatime"].value() << " ";
   mpicommand << paramotopy_info.ParameterNames.size() << " ";
   
   for (int i = 0; i < int(paramotopy_info.ParameterNames.size());++i){
@@ -641,17 +641,17 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
     mpicommand << paramotopy_info.ParameterNames[i] << " ";
   }
   
-  mpicommand << paramotopy_settings.settings["MainSettings"]["saveprogresseverysomany"].value() << " ";
-  mpicommand << paramotopy_settings.settings["MainSettings"]["newfilethreshold"].value() << " ";
-  mpicommand << paramotopy_settings.settings["MainSettings"]["buffersize"].value() << " ";
-  mpicommand << paramotopy_settings.settings["MainSettings"]["useramdisk"].value() << " ";
-  if (paramotopy_settings.settings["MainSettings"]["useramdisk"].intvalue==1){
-    mpicommand << " " << paramotopy_settings.settings["MainSettings"]["tempfilelocation"].value() << " ";
+  mpicommand << paramotopy_settings.settings["files"]["saveprogresseverysomany"].value() << " ";
+  mpicommand << paramotopy_settings.settings["files"]["newfilethreshold"].value() << " ";
+  mpicommand << paramotopy_settings.settings["system"]["buffersize"].value() << " ";
+  mpicommand << paramotopy_settings.settings["files"]["useramdisk"].value() << " ";
+  if (paramotopy_settings.settings["files"]["useramdisk"].intvalue==1){
+    mpicommand << " " << paramotopy_settings.settings["files"]["tempfilelocation"].value() << " ";
   }
   mpicommand << paramotopy_info.steptwomode << " ";
 	
-  mpicommand << paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue << " ";
-  if (paramotopy_settings.settings["MainSettings"]["stifle"].intvalue==1){
+  mpicommand << paramotopy_settings.settings["mode"]["standardstep2"].intvalue << " ";
+  if (paramotopy_settings.settings["system"]["stifle"].intvalue==1){
     mpicommand << " > /dev/null ";
   }
   
@@ -733,7 +733,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
   
   //touch files to save, in folders to save data.
   
-  if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue == 0){
+  if (paramotopy_settings.settings["parallelism"]["parallel"].intvalue == 0){
     std::stringstream CurDataCollectedBaseDir;
     CurDataCollectedBaseDir <<  DataCollectedBaseDir << "c" << 1 << "/";
     mkdirunix(CurDataCollectedBaseDir.str().c_str());
@@ -741,7 +741,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
     //no need to touch any files.
   }
   else{
-    for (int i = 1; i < paramotopy_settings.settings["MainSettings"]["numprocs"].intvalue ;++i){
+    for (int i = 1; i < paramotopy_settings.settings["parallelism"]["numprocs"].intvalue ;++i){
       std::stringstream CurDataCollectedBaseDir;
       CurDataCollectedBaseDir <<  DataCollectedBaseDir << "c" << i << "/";
       mkdirunix(CurDataCollectedBaseDir.str().c_str());
@@ -770,7 +770,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	
   //actually run the case
 	
-	if (paramotopy_settings.settings["MainSettings"]["parallel"].intvalue == 0) {		
+	if (paramotopy_settings.settings["parallelism"]["parallel"].intvalue == 0) {		
 		serial_case(paramotopy_settings, paramotopy_info);
 	}// end not parallel
 	

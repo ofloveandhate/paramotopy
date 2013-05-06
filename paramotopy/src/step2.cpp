@@ -323,7 +323,7 @@ int main(int argc, char* argv[]){
 	int arbitraryinteger = 1;
 	MPI_Bcast(&arbitraryinteger, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	
-	if (  (myid==headnode) && (paramotopy_settings.settings["MainSettings"]["deletetmpfilesatend"].intvalue==1) ) {
+	if (  (myid==headnode) && (paramotopy_settings.settings["files"]["deletetmpfilesatend"].intvalue==1) ) {
 	  boost::filesystem::path temppath(tmpfolder.str());
 	  boost::filesystem::remove_all(tmpfolder.str());
 	}

@@ -106,13 +106,13 @@ int main(int argC, char *args[]){
 	paramotopy_settings.load();
 	
 	//splash the bertini intro's for the library and the executable.
-	BertiniSplashScreen(paramotopy_settings.settings["MainSettings"]["bertinilocation"].value());
+	BertiniSplashScreen(paramotopy_settings.settings["system"]["bertinilocation"].value());
 	
 	
 	
 	
 	
-	paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);//sets the base_dir
+	paramotopy_info.AutoScanData(paramotopy_settings.settings["files"]["previousdatamethod"].intvalue);//sets the base_dir
 	
 	
 	if (!paramotopy_info.GetPrevRandom()){
@@ -157,7 +157,7 @@ int main(int argC, char *args[]){
 				paramotopy_info.ParseData();
 
 
-				paramotopy_info.AutoScanData(paramotopy_settings.settings["MainSettings"]["previousdatamethod"].intvalue);
+				paramotopy_info.AutoScanData(paramotopy_settings.settings["files"]["previousdatamethod"].intvalue);
 
 				if (!paramotopy_info.GetPrevRandom()){
 					paramotopy_info.MakeRandomValues();
@@ -183,7 +183,7 @@ int main(int argC, char *args[]){
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";
 				paramotopy_info.GetPrevRandom();  //if didn't find previous values to load, make new ones (but only if use wants to
-				if ( (paramotopy_info.RandomValues.size()==0) || ((paramotopy_info.made_new_folder) && (paramotopy_settings.settings["MainSettings"]["newrandom_newfolder"].intvalue == 1)) )
+				if ( (paramotopy_info.RandomValues.size()==0) || ((paramotopy_info.made_new_folder) && (paramotopy_settings.settings["files"]["newrandom_newfolder"].intvalue == 1)) )
 				{
 					paramotopy_info.MakeRandomValues();
 					std::cout << "made new random values" << std::endl;

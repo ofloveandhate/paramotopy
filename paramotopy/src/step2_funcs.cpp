@@ -68,7 +68,7 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CurrentValues,
 		       runinfo paramotopy_info){
   
   bool standardstep2;
-  int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
+  int sstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
   if (sstep2 == 0){
     standardstep2 = false;
   }
@@ -89,7 +89,7 @@ std::string WriteFailStep2(std::vector<std::pair<double, double> > CurrentValues
 			   runinfo paramotopy_info){
 	
   bool standardstep2;
-  int sstep2 = paramotopy_settings.settings["MainSettings"]["standardstep2"].intvalue;
+  int sstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
   if (sstep2 == 0){
     standardstep2 = false;
   }
