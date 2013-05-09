@@ -6,680 +6,80 @@
 
 
 
-
-void master(std::string filename,
-			int numfilesatatime,
-			int saveprogresseverysomany,
-			std::string called_dir,
-			int steptwomode,
-			ProgSettings & paramotopy_settings,
-			runinfo & paramotopy_info,
-	    timer & process_timer)
+void master_process::master_main(ProgSettings & paramotopy_settings,
+																 runinfo & paramotopy_info,
+																 timer & process_timer)
 
 {
 	
 	
-#ifdef verbosestep2
-	std::cout << "starting initial stuff master\n";
-#endif
-	
 	
 	//some data members used in this function
-	
-	int numprocs, rank;
-	int terminationint;//how many solves to do total.
-	
-	int myid;
-	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
-	MPI_Status status;
-	std::ifstream fin;
-	std::ofstream fout;
-	int numtodo;
-	
-	
-	std::string finishedfile = paramotopy_info.location;
-	finishedfile.append("/step2finished");
-	std::string lastoutfilename0 = paramotopy_info.location;
-	lastoutfilename0.append("/step2/lastnumsent0");
-	std::string lastoutfilename1 = paramotopy_info.location;
-	lastoutfilename1.append("/step2/lastnumsent1");
-	
-	
-	
-	
-	/* Find out how many processes there are in the default
-     communicator */
-	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-	
-	void *v;
-	int flag;
-	int norunflag;
-	MPI_Comm_get_attr( MPI_COMM_WORLD, MPI_TAG_UB, &v, &flag );
-	norunflag = *(int*)v - 1;
-	
-#ifdef verbosestep2
-	std::cout << "parsed\n";
-#endif
-	
-	
-	
-	std::vector< int > lastnumsent; //progress tracker
-	int smallestnumsent = 0;  
 
+	master_process::SetTmpFolder(paramotopy_info, paramotopy_settings);
 	
-	
-	std::vector< int > index_conversion_vector;// for the index making function
-	std::ofstream mc_out_stream;
-	std::ifstream mc_in_stream;
-	
-	
-	getTermination_OpenMC(mc_in_stream,mc_out_stream,terminationint,index_conversion_vector,paramotopy_info,paramotopy_settings);
-  if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
-    mc_out_stream.precision(16);
-  }
-	//opens the mc_in or mc_out file stream, and sets the value of terminationint.  also sets index_conversion_vector if compgen mesh.
-		
-	
-	
-	
-	
-#ifdef verbosestep2
-	process_timer.press_start("read");
-#endif
-	// read in the start file
-	std::string start;
-	GetStart(paramotopy_info.location,
-			 start,  //   <--   reads into memory here
-			 paramotopy_settings.settings["mode"]["startfilename"].value());
-#ifdef verbosestep2
-	process_timer.add_time("read");
-#endif
-	
-	///////////////////
-	//
-	//       get the start and config files, bcast them
-	//
-	///////////////////
-	
+	master_process::MasterSetup(paramotopy_settings, paramotopy_info);
 
+	master_process::SetUpFolders(paramotopy_info);
 	
-#ifdef verbosestep2
-	std::cout << "master making input file" << std::endl;
-#endif
+	master_process::GetTerminationInt(paramotopy_info,paramotopy_settings);
 	
+	master_process::OpenMC(paramotopy_info,paramotopy_settings);
+	
+	master_process::SendStart(paramotopy_settings, paramotopy_info, process_timer);
 
-    int vectorlengths[2] = {0};
-	vectorlengths[0] = start.size() + 1; // + 1 to account for null character
-	
-	
-	std::string inputstring;
+	master_process::SendInput(paramotopy_settings, paramotopy_info, process_timer);
 
-	// for the step 2 memory setup for bertini, we need random values
+	master_process::SeedSwitch(paramotopy_settings, paramotopy_info, process_timer);
+	
+	master_process::LoopSwitch(paramotopy_settings, paramotopy_info, process_timer);
 
-	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(rand()); 
-
+	master_process::CleanupSwitch(paramotopy_settings, paramotopy_info, process_timer);
 	
-	switch (paramotopy_info.steptwomode) {
-		case 2:
-		  inputstring = WriteStep2(tmprandomvalues,
-					   paramotopy_settings,
-					   paramotopy_info); // found in the step2_funcs.* files
-					    
-			break;
-		case 3:
-			inputstring = WriteFailStep2(tmprandomvalues,
-						     paramotopy_settings,
-						     paramotopy_info); // found in the step2_funcs.* files
-				
-			break;
-		default:
-			std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
-			exit(-202);
-			break;
-	}
-	
-	vectorlengths[1] = inputstring.size() + 1; // + 1 to account for null character
-#ifdef verbosestep2
-	std::cout << "the input file is:\n " << inputstring << "\ndone with input file" << std::endl;
-#endif
-
-	
-	
-	
-#ifdef verbosestep2
-	std::cout << myid << " master is telling workers the number of chars to expect." << std::endl;
-#endif
-#ifdef timingstep2
-	process_timer.press_start("send");
-#endif
-	
-	for (int ii = 1; ii < numprocs; ++ii){
-		
-		MPI_Send(&vectorlengths[0], 2, MPI_INT, ii, 12, MPI_COMM_WORLD);
-	}
-#ifdef timingstep2
-	process_timer.add_time("send",numprocs-1);
-#endif
-	
-	
-#ifdef verbosestep2
-	std::cout << "sending start, config, and input." << std::endl;
-#endif
-	
-	
-	
-	char *start_send = new char[vectorlengths[0]];
-	for (int ii = 0; ii < start.size(); ++ii){
-		start_send[ii] = start[ii];
-	}
-	start_send[start.size()] = '\0';
-	
-#ifdef timingstep2
-	process_timer.press_start("send");
-#endif
-	for (int ii = 1; ii < numprocs; ++ii){
-		MPI_Send(&start_send[0], vectorlengths[0], MPI_CHAR, ii, 13, MPI_COMM_WORLD);
-	}
-#ifdef timingstep2
-	process_timer.add_time("send",numprocs-1);
-#endif
-	
-	
-	
-
-	char *input_send = new char[vectorlengths[1]];
-	for (int ii = 0; ii < inputstring.size(); ++ii){
-		input_send[ii] = inputstring[ii];
-	}
-	input_send[inputstring.size()] = '\0';
-	
-#ifdef timingstep2
-	process_timer.press_start("send");
-#endif
-	for (int ii = 1; ii < numprocs; ++ii){
-		MPI_Send(&input_send[0], vectorlengths[1], MPI_CHAR, ii, 14, MPI_COMM_WORLD);
-	}
-#ifdef timingstep2
-	process_timer.add_time("send",numprocs-1);  //one for each worker
-#endif
-	
-
-	
-	
-	/////////////////////////
-	//
-	//    end setup for master
-	//
-	//////////////////////
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	//////////////////////////////
-	//
-	//        initial writes and sends
-	//
-	//////////////////////////
-	
-	
-	
-	
-	
-
-	std::vector< std::pair<double,double> > TmpValues;
-	TmpValues.resize(paramotopy_info.numparam);
-	
-	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
-	indexvector.resize(paramotopy_info.numparam);
-	
-	
-	double* ParamSends = new double[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into datacollected files
-	int I, J, index;
-	double a, b;//real and imaginary parts of the parameter values.
-	std::stringstream ssdeleteme;
-	int localcounter;//how many times through the loop
-	
-	
-	
-	
-	//
-	//        If userdefined, read the initial parameter values into memory...
-	//
-
-	
-	if (paramotopy_info.userdefined) {
-		paramotopy_info.Values.clear();
-		std::string temp;
-		
-		
-		for (int jj=0; (jj < (numprocs-1)*numfilesatatime) && ( (jj+smallestnumsent) < terminationint ) ; ++jj) {
-			
-			getline(mc_in_stream,temp);
-			std::vector< std::pair<double, double> > CurrentValue;
-			std::stringstream ss;
-			ss << temp;
-			for (int i = 0; i < paramotopy_info.numparam;++i){
-				double creal;
-				double cimaginary;
-				ss >> creal;
-				ss >> cimaginary;
-				CurrentValue.push_back(std::pair<double,double>(creal,cimaginary));
-			}
-			
-			paramotopy_info.Values.push_back(CurrentValue);
-		}
-	} // if userdefined
-	
-	
-	
-	
-	
-	
-	
-	////////////////////////////////
-	//
-	//        seed the lastnumsent vector
-	//
-	/////////////////////////////
-	lastnumsent.clear();
-	for (int ii=1; ii<numprocs; ++ii) {
-		lastnumsent.push_back(smallestnumsent + (ii-1)*numfilesatatime);
-#ifdef verbosestep2
-		std::cout << "lastnumsent[" << ii-1 << "] = " << lastnumsent[ii-1] << std::endl;
-#endif
-	}
-	
-	
-	
-	///////////////
-	//
-	//    create the necessary files for the workers
-	//
-	///////////////
-	std::vector< int > numtoprocess_first;
-	numtoprocess_first.resize(numprocs);
-	int biggestnumsent;
-	int loopcounter = 0;
-	for (int proc_count=1;proc_count<(numprocs);++proc_count){
-		
-		
-		
-		/////////////////////////
-		//     make initial data to send to the workers
-		////////////////////////////
-		
-		
-		numtoprocess_first[proc_count-1] = std::min( numfilesatatime, std::max(terminationint-lastnumsent[proc_count-1],0) ); // this is a local number, used to determine how much to seed to this worker, for the first round.
-		for (int i = lastnumsent[proc_count-1]; (i < lastnumsent[proc_count-1]+numfilesatatime) && (i<terminationint  ); ++i){
-			
-			
-			//determine the parameter values for this file
-			if (paramotopy_info.userdefined){
-				//already made the values above
-				TmpValues = paramotopy_info.Values[loopcounter];  // dont worry, loopcounter is incremented...
-				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*jj] = TmpValues[jj].first;//
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*jj+1] = TmpValues[jj].second;//
-				}
-				ParamSends[loopcounter*(2*paramotopy_info.numparam+1)+2*paramotopy_info.numparam] = i;//the line number in mc file
-			}
-			else {//not user defined
-				//form index for matrix of parameter values
-				index = i;
-				for (int jj=paramotopy_info.numparam-1; jj>-1; jj--) {
-					I = (index)%index_conversion_vector[jj];
-					J = (index - I)/index_conversion_vector[jj];
-					indexvector[jj] = J;
-					index = I;
-				}
-				
-				//get param values
-				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
-					a = paramotopy_info.Values[jj][ indexvector[jj] ].first;
-					b = paramotopy_info.Values[jj][ indexvector[jj] ].second;
-					TmpValues[jj].first = a;
-					TmpValues[jj].second = b;
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*jj] = a;//for sending to worker, to write to data file
-					ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*jj+1] = b;
-				}
-				ParamSends[loopcounter*(2*paramotopy_info.numparam+1) + 2*paramotopy_info.numparam] = i;//the line number in the mc file
-			}
-			
-			
-#ifdef timingstep2
-			process_timer.press_start("write");
-#endif
-			//write the mc line, but only if on an automated mesh
-			if (!paramotopy_info.userdefined) {
-        
-				for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
-					mc_out_stream << TmpValues[jj].first << " " << TmpValues[jj].second << " ";
-				}
-				mc_out_stream << std::endl;
-			}
-	
-#ifdef timingstep2
-			process_timer.add_time("write");
-#endif
-			
-			//increment
-			loopcounter++;    //for keeping track of folder to write to
-		}//re: for int i=lastnumsent[proc_count]
-		
-	}//re: for int proc_count=1:numprocs
-	
-	biggestnumsent = smallestnumsent + (numprocs-1)*numfilesatatime - 1;
-	
-
-	
-	
-	
-	
-	
-	
-	///////////////////////////
-	//
-	//         Initially Seed the slaves; send one unit of work to each slave.
-	//
-	///////////////////////////////////
-	
-	
-	for (rank = 1; rank < numprocs; ++rank) {  //no rank 0, because 0 is head node
-		double* tempsends = new double[numfilesatatime*(2*paramotopy_info.numparam+1)];
-		memset(tempsends, 0, numfilesatatime*(2*paramotopy_info.numparam+1)*sizeof(double) );
-		
-		localcounter=0;
-		if (numtoprocess_first[rank-1]!=0) {
-			for (int i=lastnumsent[rank-1]; i<lastnumsent[rank-1] + numtoprocess_first[rank-1];++i){
-				for (int jj=0; jj<2*paramotopy_info.numparam+1; ++jj) {
-					tempsends[localcounter*(2*paramotopy_info.numparam+1)+jj] = ParamSends[i*(2*paramotopy_info.numparam+1)+jj];
-				} // end for
-				localcounter++;
-			} // end for
-		} // end if
-		
-		int sendymcsendsend;
-		if (numtoprocess_first[rank-1] == 0) {
-			sendymcsendsend = norunflag;
-		} // end if
-		else {
-			sendymcsendsend = numtoprocess_first[rank-1];
-		} // end else
-		
-		
-		
-#ifdef timingstep2
-		process_timer.press_start("send");
-#endif
-		
-		
-		// this send is for all of the initial work to be sent to the
-		// worker nodes (i.e. parampoints 0 thru numprocs-2)
-		
-		MPI_Send(&tempsends[0],      /* message buffer */
-				 numfilesatatime*(2*paramotopy_info.numparam+1),                 /* number of data items */
-				 MPI_DOUBLE,           /* data item is an integer */
-				 rank,              /* destination process rank */
-				 sendymcsendsend,           /* user chosen message tag */
-				 MPI_COMM_WORLD);   /* default communicator */
-#ifdef timingstep2
-		process_timer.add_time("send");
-#endif
-		delete[] tempsends;
-	}//re: initial sends
-	
-	
-#ifdef verbosestep2
-	std::cout << "smallest index seeded: " << smallestnumsent << "\n"
-	<< "largest index seeded:  " << biggestnumsent << "\n";
-#endif
-	
-	
-	
-	
-	
-	
-	
-	
-	//////////////////////////////
-	//
-	//        loop over rest of points.
-	//
-	//////////////////////////
-	
-	
-	
-	
-	/* Loop over getting new work requests
-     until there is no more work
-     to be done */
-	int filereceived = 0;
-	int lastoutcounter=1;//for writing the lastnumsent file.  every so many, we write the file.
-	// here!!
-	int countingup = biggestnumsent+1; //essentially the last linenumber of the mc file.
-	
-	while (countingup < terminationint) {
-		
-		smallestnumsent = countingup;
-		//figure out how many files to do
-		numtodo = numfilesatatime;
-		if (numtodo+countingup>=terminationint) {
-			numtodo = terminationint - countingup;
-		}
-		
-		
-		
-#ifdef timingstep2
-		process_timer.press_start("receive");
-#endif
-		/* Receive results from a slave */
-		MPI_Recv(&filereceived,       /* message buffer */
-				 1,                 /* one data item */
-				 MPI_INT,           /* of type int */
-				 MPI_ANY_SOURCE,    /* receive from any sender */
-				 MPI_ANY_TAG,       /* any type of message */
-				 MPI_COMM_WORLD,    /* default communicator */
-				 &status);          /* info about the received message */
-		
-		
-#ifdef timingstep2
-		process_timer.add_time("receive");
-#endif
-
-		
-		
-		
-		// make tempsends in the step2 loop
-		double* tempsends = new double[numfilesatatime*(2*paramotopy_info.numparam+1)];
-		memset(tempsends, 0, numfilesatatime*(2*paramotopy_info.numparam+1)*sizeof(double) );
-		
-		localcounter=0;
-		for (int i = (status.MPI_SOURCE-1)*numfilesatatime; i < (status.MPI_SOURCE-1)*numfilesatatime+numtodo; ++i){
-			
-			
-			if (paramotopy_info.userdefined==1) {
-#ifdef timingstep2
-				process_timer.press_start("read");
-#endif
-				FormNextValues_mc(numfilesatatime,paramotopy_info.numparam,localcounter,countingup,mc_in_stream,tempsends);
-#ifdef timingstep2
-				process_timer.add_time("read");
-#endif
-			}
-			else {
-				FormNextValues(numfilesatatime,paramotopy_info.numparam,localcounter,paramotopy_info.Values,countingup,index_conversion_vector,tempsends);
-
-
-				if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
-
-#ifdef timingstep2
-					process_timer.press_start("write");
-#endif			//write the mc line if not userdefined
-
-					for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
-						mc_out_stream << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj] << " " << tempsends[localcounter*(2*paramotopy_info.numparam+1)+2*jj+1] << " ";
-					}
-					mc_out_stream << std::endl;
-#ifdef timingstep2
-					process_timer.add_time("write");
-#endif
-				}
-			}
-			
-
-
-			//increment
-			localcounter++;
-			countingup++;
-		} //re: make tempsends in the step2 loop
-		
-		
-		
-#ifdef timingstep2
-		process_timer.press_start("send");
-#endif
-		/* Send the slave a new work unit */
-		MPI_Send(&tempsends[0],             /* message buffer */
-				 numfilesatatime*(2*paramotopy_info.numparam+1),                 /* how many data items */
-				 MPI_DOUBLE,           /* data item is an integer */
-				 status.MPI_SOURCE, /* to who we just received from */
-				 numtodo,           /* user chosen message tag */
-				 MPI_COMM_WORLD);   /* default communicator */
-#ifdef timingstep2
-		process_timer.add_time("send");
-#endif
-		
-		
-		
-		lastnumsent[status.MPI_SOURCE] = smallestnumsent;//int(tempsends[(2*numparam)]);
-		
-		{
-			
-			std::stringstream tempss;
-			for (int i=1; i<numprocs; ++i) {
-				tempss << lastnumsent[i] << "\n";
-			}
-			
-#ifdef timingstep2
-			process_timer.press_start("write");
-#endif
-			std::ofstream lastout;
-			if (lastoutcounter%(2*saveprogresseverysomany)==0) {
-				lastout.open(lastoutfilename1.c_str());
-			}
-			else {
-				lastout.open(lastoutfilename0.c_str());
-			}
-
-			lastout << tempss.str();
-			lastout.close();
-			lastout.clear();
-#ifdef timingstep2
-			process_timer.add_time("write");
-#endif
-			
-			
-		}
-		
-		lastoutcounter++;//essentially counts this loop.  will take mod 10, for the time being, and if 0, will write lastout
-		delete[] tempsends;
-	} //re: while loop
-	
-	////////////
-	//
-	//     end while
-	//
-	/////////////
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/* There's no more work to be done, so receive all the outstanding
-     results from the slaves. */
-	double arbitrarydouble = -1;//this way the number of things sent matches the number expected to recieve.
-	
-	
-	for (rank = 1; rank < numprocs; ++rank) {
-	
-		
-		
-#ifdef timingstep2
-		process_timer.press_start("receive");
-#endif
-		MPI_Recv(&filereceived,
-				 1,
-				 MPI_INT,
-				 MPI_ANY_SOURCE,
-				 MPI_ANY_TAG,
-				 MPI_COMM_WORLD,
-				 &status);
-#ifdef timingstep2
-		process_timer.add_time("receive");
-#endif
-		
-		
-		
-#ifdef verbosestep2
-		std::cout << "finally received from " << status.MPI_SOURCE << "\n";
-		std::cout << "Sending kill tag to rank " << int(status.MPI_SOURCE) << "\n";
-#endif
-		
-		
-#ifdef timingstep2
-		process_timer.press_start("send");
-#endif
-		MPI_Send(&arbitrarydouble, 1, MPI_DOUBLE, int(status.MPI_SOURCE), 0, MPI_COMM_WORLD);//send everybody the kill signal.
-#ifdef timingstep2
-		process_timer.add_time("send");
-#endif
-		
-	}
-	
-	
-#ifdef timingstep2
-	process_timer.press_start("write");
-#endif
-	
-	if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
-		mc_out_stream.close();
-	}
-		
-	mc_in_stream.close();
-	fout.open(finishedfile.c_str());
-	fout << 1;
-	fout.close();
-	
-#ifdef timingstep2
-	process_timer.add_time("write");
-#endif
-	
-	
-	delete[] ParamSends;
-	delete[] input_send;
-	delete[] start_send;
 	
 	
 }//re:master
+
+
+///////////////////
+///////////////
+///////////
+//////////  END MASTER MAIN FUNCTION
+///////////
+//////////////
+////////////////
+///////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void master_process::MasterSetup(ProgSettings & paramotopy_settings,
+															 runinfo & paramotopy_info)
+{
+	
+	this->numparam = paramotopy_info.numparam;
+	this->numfilesatatime = paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue;
+	this->numfilesatatime_orig = paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue;
+	
+	this->filename = paramotopy_info.inputfilename;
+	this->standardstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
+	
+	
+	this->lastoutfilename = paramotopy_info.location;
+	this->lastoutfilename.append("/step2/lastnumsent");
+	
+}
+
 
 
 
@@ -697,14 +97,44 @@ void master(std::string filename,
 
 // the master is responsible for generating the data points to work on, and distributing them to the workers.
 
+
+
+void master_process::NextRandomValue(runinfo paramotopy_info,
+																		 int pointcounter, // localcounter tells which indices in tempsends
+																		 int current_index,
+																		 double tempsends[]) // holds the created data
+{
+	MTRand drand;
+	
+	//assign the data
+	for (int ii=0; ii<numparam; ++ii) {
+		double rand_real = drand(), rand_imag = drand();
+		
+		rand_real*=(paramotopy_info.BoundsRight[ii].first
+								- paramotopy_info.BoundsLeft[ii].first);
+		rand_real+=paramotopy_info.BoundsLeft[ii].first;
+		
+		rand_imag*=(paramotopy_info.BoundsRight[ii].second
+								- paramotopy_info.BoundsLeft[ii].second);
+		rand_imag+=paramotopy_info.BoundsLeft[ii].second;
+		
+		
+		tempsends[pointcounter*(2*numparam+1)+2*ii] = rand_real;//for sending to workers, to write into data files.
+		tempsends[pointcounter*(2*numparam+1)+2*ii+1] = rand_imag;
+	}
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_index;//the line number in mc file
+	
+	return;
+
+}
+
+
 // FormNextValues generates parameter points from a mesh-style set
-void FormNextValues(int numfilesatatime,
-					int numparam,
-					int pointcounter,
-					std::vector< std::vector< std::pair<double,double> > > Values,
-					int countingup,
-					std::vector< int > index_conversion_vector,
-					double tempsends[]){
+void master_process::FormNextValues(int numparam,
+										int pointcounter,
+										std::vector< std::vector< std::pair<double,double> > > Values,
+										int current_index,
+										double tempsends[]){
 	
 	int index, I,J;
 	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
@@ -712,8 +142,8 @@ void FormNextValues(int numfilesatatime,
 	
 	
 	
-	//get subscripts (zero-based) for the index, countingup
-	index = countingup;
+	//get subscripts (zero-based) for the index, current_absolute_index
+	index = current_index;
 	for (int jj=numparam-1; jj>-1; --jj) {
 		I = (index)%index_conversion_vector[jj];
 		J = (index - I)/index_conversion_vector[jj];
@@ -726,19 +156,21 @@ void FormNextValues(int numfilesatatime,
 		tempsends[pointcounter*(2*numparam+1)+2*jj] = Values[jj][ indexvector[jj] ].first;//for sending to workers, to write into data files.
 		tempsends[pointcounter*(2*numparam+1)+2*jj+1] = Values[jj][ indexvector[jj] ].second;
 	}
-	tempsends[pointcounter*(2*numparam+1)+2*numparam] = countingup;//the line number in mc file
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_index;//the line number in mc file
 	
 	return;
 }
 
 
+
+
+
 //FormNextValues_mc generates points to send, from a user-defined set
-void FormNextValues_mc(int numfilesatatime,   //how many points in parameter space to set up
-					   int numparam,  //the number of parameters in the run
-					   int pointcounter,	//another integer counter
-					   int mc_line_number,  //an integer counter
-					   std::ifstream & mc_in_stream, //the input file stream we will read from
-					   double tempsends[]){ //tempsends holds the values to send
+void master_process::FormNextValues_mc(int numparam,  //the number of parameters in the run
+											 int pointcounter,	//another integer counter
+											 int mc_line_number,  //an integer counter
+											 std::ifstream & mc_in_stream, //the input file stream we will read from
+											 double tempsends[]){ //tempsends holds the values to send
 	
 	
 	std::string temp;
@@ -746,21 +178,1196 @@ void FormNextValues_mc(int numfilesatatime,   //how many points in parameter spa
 	std::vector< std::pair<double, double> > CValues;
 	std::stringstream ss;
 	ss << temp;
-
+	
   for (int jj = 0; jj < numparam;++jj){
 		ss >> tempsends[pointcounter*(2*numparam+1)+2*jj];
 		ss >> tempsends[pointcounter*(2*numparam+1)+2*jj+1];
 	}
 	
-
+	
   
 	tempsends[pointcounter*(2*numparam+1)+2*numparam] = mc_line_number;//the line number in mc file
 	
   
-
+	
 	
 	return;
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void master_process::SeedSwitch(ProgSettings & paramotopy_settings,
+											 runinfo & paramotopy_info,
+											 timer & process_timer){
+
+	
+	
+	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
+		case 0:
+			master_process::SeedBasic(paramotopy_settings, paramotopy_info, process_timer);
+			break;
+			
+		case 1:
+			master_process::SeedSearch(paramotopy_settings, paramotopy_info, process_timer);
+			break;
+			
+			
+		default:
+			
+			std::cerr << "invalid main_mode setting" << std::endl;
+			MPI_Abort(MPI_COMM_WORLD, 54);
+			break;
+	}
+
+}//re: seed process switch
+
+
+
+void master_process::SeedBasic(ProgSettings & paramotopy_settings,
+							 runinfo & paramotopy_info,
+							 timer & process_timer){
+	
+
+	this->current_absolute_index = 0;
+	
+	double* tempsends = new double[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into	datacollected files
+
+	
+	/////////////////////////
+	//     make initial data to send to the workers
+	////////////////////////////
+	
+	
+	
+	for (int proc_count=1;proc_count<(numprocs);++proc_count){
+		int numtodo = std::min( numfilesatatime, std::max(terminationint-current_absolute_index,0) );
+		
+		
+		if (numtodo>0) {
+					
+			lastnumsent.push_back(current_absolute_index);
+			
+			for (int ii = 0; ii <numtodo; ++ii){
+					//determine the parameter values for this file
+				
+					if (paramotopy_info.userdefined){
+						master_process::FormNextValues_mc(paramotopy_info.numparam,
+																							ii,
+																							current_absolute_index,
+																							mc_in_stream,
+																							tempsends);
+					}
+					else {//not user defined
+						master_process::FormNextValues(paramotopy_info.numparam,
+																					 ii,
+																					 paramotopy_info.Values,
+																					 current_absolute_index,
+																					 tempsends);
+
+						if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+#ifdef timingstep2
+							process_timer.press_start("write");
+#endif
+							for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+								mc_out_stream << tempsends[2*jj]
+											 << " " << tempsends[2*jj+1] << " ";
+							}
+							mc_out_stream << std::endl;
+#ifdef timingstep2
+							process_timer.add_time("write");
+#endif
+						}// if
+					} // else
+					
+					//increment
+					current_absolute_index++;    //for keeping track of folder to write to
+
+			}//re: for int ii=lastnumsent[proc_count]
+			
+#ifdef timingstep2
+			process_timer.press_start("send");
+#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&numtodo,            /* message buffer */
+							 1,										/* how many data items */
+							 MPI_INT,							/* data item is an integer */
+							 proc_count,					/* the destination */
+							 NUM_PACKETS,           /* user chosen message tag */
+							 MPI_COMM_WORLD);			/* default communicator */
+#ifdef timingstep2
+			process_timer.add_time("send");
+#endif
+			
+			
+			
+#ifdef timingstep2
+			process_timer.press_start("send");
+#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&tempsends[0],             /* message buffer */
+							 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
+							 MPI_DOUBLE,           /* data item is an integer */
+							 proc_count, /* to who we just received from */
+							 DATA_DOUBLE,           /* user chosen message tag */
+							 MPI_COMM_WORLD);   /* default communicator */
+#ifdef timingstep2
+			process_timer.add_time("send");
+#endif
+			
+			
+			//now send them here
+			
+			active_workers[proc_count] = true;
+			num_active_workers++;
+			
+		}//re: if numtodo>0
+		else{
+			lastnumsent.push_back(-1);
+			//just send a kill tag
+			master_process::TerminateInactiveWorker(proc_count,process_timer);
+		}
+	}//re: for int proc_count=1:numprocs
+	
+
+
+}
+
+
+void master_process::SeedSearch(ProgSettings & paramotopy_settings,
+								runinfo & paramotopy_info,
+								timer & process_timer){
+
+	
+	
+	
+	this->current_absolute_index = 0;
+	
+	double* tempsends = new double[(numprocs-1)*numfilesatatime*(2*paramotopy_info.numparam+1)];//for sending to workers, to print into	datacollected files
+	
+	
+	/////////////////////////
+	//     make initial data to send to the workers
+	////////////////////////////
+	
+	if (paramotopy_info.userdefined){
+		std::cerr << "invalid userdefined mode inside search mode" << std::endl;
+		MPI_Abort(MPI_COMM_WORLD,438);
+	}
+	
+	
+	if (paramotopy_settings.settings["mode"]["search_desirednumber"].intvalue <= (numprocs-1)) {
+		numfilesatatime = 1;
+	}
+	else
+	{
+		double fractpart, intpart;
+		fractpart = modf ( double(paramotopy_settings.settings["mode"]["search_desirednumber"].intvalue)/double((numprocs-1)), &intpart);
+		
+		
+		numfilesatatime = int(std::max(int(intpart), numfilesatatime));
+	}
+	
+	
+	for (int proc_count=1;proc_count<(numprocs);++proc_count){
+
+		int numtodo = std::min( numfilesatatime, std::max(terminationint-current_absolute_index,0) );
+		
+		
+		if (numtodo>0) {
+			
+			lastnumsent.push_back(current_absolute_index);
+			
+			for (int ii = 0; ii <numtodo; ++ii){
+				
+
+				master_process::NextRandomValue(paramotopy_info,
+																				ii, // current index in tempsends
+																				current_absolute_index,
+																				tempsends); // data to fill
+				
+				if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+#ifdef timingstep2
+					process_timer.press_start("write");
+#endif
+					for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+						mc_out_stream << tempsends[2*jj+ii*(2*paramotopy_info.numparam+1)]
+								<< " " << tempsends[2*jj+1 +ii*(2*paramotopy_info.numparam+1)] << " ";
+					}
+					mc_out_stream << std::endl;
+#ifdef timingstep2
+					process_timer.add_time("write");
+#endif
+				}// if
+				
+				//increment
+				current_absolute_index++;    //for keeping track of folder to write to
+				
+			}//re: for int ii=lastnumsent[proc_count]
+			
+#ifdef timingstep2
+			process_timer.press_start("send");
+#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&numtodo,            /* message buffer */
+							 1,										/* how many data items */
+							 MPI_INT,							/* data item is an integer */
+							 proc_count,					/* the destination */
+							 NUM_PACKETS,           /* user chosen message tag */
+							 MPI_COMM_WORLD);			/* default communicator */
+#ifdef timingstep2
+			process_timer.add_time("send");
+#endif
+			
+			
+			
+#ifdef timingstep2
+			process_timer.press_start("send");
+#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&tempsends[0],             /* message buffer */
+							 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
+							 MPI_DOUBLE,           /* data item is an integer */
+							 proc_count, /* to who we just received from */
+							 DATA_DOUBLE,           /* user chosen message tag */
+							 MPI_COMM_WORLD);   /* default communicator */
+#ifdef timingstep2
+			process_timer.add_time("send");
+#endif
+			
+			
+			//now send them here
+			
+			active_workers[proc_count] = true;
+			num_active_workers++;
+			
+		}//re: if numtodo>0
+		else{
+			lastnumsent.push_back(-1);
+			//just send a kill tag
+			master_process::TerminateInactiveWorker(proc_count,process_timer);
+		}
+	}//re: for int proc_count=1:numprocs
+	
+
+	
+	
+	
+	
+}
+
+
+
+
+void master_process::LoopSwitch(ProgSettings & paramotopy_settings,
+										 runinfo & paramotopy_info,
+										 timer & process_timer){
+	
+	
+	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
+		case 0:
+			master_process::LoopBasic(paramotopy_settings, paramotopy_info, process_timer);
+			break;
+			
+		case 1:
+			master_process::LoopSearch(paramotopy_settings, paramotopy_info, process_timer);
+			break;
+			
+			
+		default:
+			break;
+	}
+	
+	
+	
+}//re: while loop switch
+
+
+void master_process::LoopBasic(ProgSettings & paramotopy_settings,
+							 runinfo & paramotopy_info,
+							 timer & process_timer){
+	
+	
+	MPI_Status status;
+	int numtodo;
+	/* Loop over getting new work requests
+	 until there is no more work
+	 to be done */
+	
+	double* tempsends = new double[numfilesatatime*(2*paramotopy_info.numparam+1)];
+	
+	
+	int lastlineprocessed = -1;
+	
+	master_process::ReadyCheck();
+	
+	
+	while (current_absolute_index < this->terminationint) {
+		
+#ifdef timingstep2
+		process_timer.press_start("receive");
+#endif
+		/* Receive results from a slave */
+		MPI_Recv(&lastlineprocessed,       /* message buffer */
+						 1,                 /* one data item */
+						 MPI_INT,           /* of type int */
+						 MPI_ANY_SOURCE,    /* receive from any sender */
+						 MPI_ANY_TAG,       /* any type of message */
+						 MPI_COMM_WORLD,    /* default communicator */
+						 &status);          /* info about the received message */
+		
+		
+#ifdef timingstep2
+		process_timer.add_time("receive");
+#endif
+
+		
+		//figure out how many files to do
+		numtodo = numfilesatatime;
+		if (numtodo+current_absolute_index>=terminationint) {
+			numtodo = terminationint - current_absolute_index;
+		}
+		
+		
+		
+		//		numtodo guaranteed >0
+#ifdef timingstep2
+		process_timer.press_start("send");
+#endif
+		/* Send the slave a new work unit */
+		MPI_Send(&numtodo,             /* message buffer */
+						 1,                 /* how many data items */
+						 MPI_INT,           /* data item is an integer */
+						 status.MPI_SOURCE, /* to who we just received from */
+						 NUM_PACKETS,           /* user chosen message tag */
+						 MPI_COMM_WORLD);   /* default communicator */
+#ifdef timingstep2
+		process_timer.add_time("send");
+#endif
+		
+		
+			int smallestnumsent = current_absolute_index;
+			
+			// make tempsends in the step2 loop
+			
+			memset(tempsends, 0, numtodo*(2*paramotopy_info.numparam+1)*sizeof(double) );
+			
+			for (int ii = 0; ii < numtodo; ++ii){
+				
+				if (paramotopy_info.userdefined==1) {
+	#ifdef timingstep2
+					process_timer.press_start("read");
+	#endif
+					master_process::FormNextValues_mc(paramotopy_info.numparam,ii,current_absolute_index,mc_in_stream,tempsends);
+	#ifdef timingstep2
+					process_timer.add_time("read");
+	#endif
+				}
+				else {
+					master_process::FormNextValues(paramotopy_info.numparam,
+																				 ii,
+																				 paramotopy_info.Values,
+																				 current_absolute_index,
+																				 tempsends);
+
+					
+					if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+	#ifdef timingstep2
+						process_timer.press_start("write");
+	#endif			//write the mc line if not userdefined
+						
+						for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+							mc_out_stream << tempsends[ii*(2*paramotopy_info.numparam+1)+2*jj] << " "
+												<< tempsends[ii*(2*paramotopy_info.numparam+1)+2*jj+1] << " ";
+						}
+						mc_out_stream << std::endl;
+	#ifdef timingstep2
+						process_timer.add_time("write");
+	#endif
+					}
+				}//re: else
+			
+				
+				current_absolute_index++;  //increment
+			} //re: make tempsends in the step2 loop
+			
+			
+	#ifdef timingstep2
+			process_timer.press_start("send");
+	#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&tempsends[0],             /* message buffer */
+							 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
+							 MPI_DOUBLE,           /* data item is an integer */
+							 status.MPI_SOURCE, /* to who we just received from */
+							 DATA_DOUBLE,           /* user chosen message tag */
+							 MPI_COMM_WORLD);   /* default communicator */
+	#ifdef timingstep2
+			process_timer.add_time("send");
+	#endif
+			
+			
+		
+			lastnumsent[status.MPI_SOURCE] = smallestnumsent;
+		
+
+			std::stringstream tempss;
+			for (int ii=1; ii<numprocs; ++ii) {
+				tempss << lastnumsent[ii] << "\n";
+			}
+			
+	#ifdef timingstep2
+			process_timer.press_start("write");
+	#endif
+			std::ofstream lastout;
+				lastout.open(lastoutfilename.c_str());
+			
+			lastout << tempss.str();
+			lastout.close();
+			lastout.clear();
+	#ifdef timingstep2
+			process_timer.add_time("write");
+	#endif
+			
+
+		
+	} //re: while loop
+	
+	
+	
+	delete[] tempsends;
+}//  re: loop basic
+
+
+
+
+
+
+
+
+void master_process::LoopSearch(ProgSettings & paramotopy_settings,
+								runinfo & paramotopy_info,
+								timer & process_timer){
+	
+	
+	
+	
+	
+	MPI_Status status;
+	int numtodo;
+	/* Loop over getting new work requests
+	 until there is no more work
+	 to be done */
+	
+	double* tempsends = new double[numfilesatatime*(2*paramotopy_info.numparam+1)];
+	
+	
+	int num_solns_this_iteration = -1;
+	
+	master_process::ReadyCheck();
+	
+	
+	int num_found_solns = 0;
+	
+	
+	while ((num_found_solns < paramotopy_settings.settings["mode"]["search_desirednumber"].intvalue) && (current_absolute_index < terminationint) ) {
+		
+		
+		if (numfilesatatime<numfilesatatime_orig) {
+			numfilesatatime += std::min(numfilesatatime_orig-numfilesatatime_orig, 5);
+		}
+#ifdef timingstep2
+		process_timer.press_start("receive");
+#endif
+		/* Receive results from a slave */
+		MPI_Recv(&num_solns_this_iteration,       /* message buffer */
+						 1,                 /* one data item */
+						 MPI_INT,           /* of type int */
+						 MPI_ANY_SOURCE,    /* receive from any sender */
+						 MPI_ANY_TAG,       /* any type of message */
+						 MPI_COMM_WORLD,    /* default communicator */
+						 &status);          /* info about the received message */
+#ifdef timingstep2
+		process_timer.add_time("receive");
+#endif
+		
+		num_found_solns += num_solns_this_iteration;
+		//figure out how many files to do
+		numtodo = numfilesatatime;
+		if (numtodo+current_absolute_index>=terminationint) {
+			numtodo = terminationint - current_absolute_index;
+		}
+		
+		if (num_found_solns>=paramotopy_settings.settings["mode"]["search_desirednumber"].intvalue) {
+			master_process::TerminateActiveWorker(status.MPI_SOURCE, process_timer);
+			break;
+		}
+		else{
+			
+			//		numtodo guaranteed >0
+#ifdef timingstep2
+			process_timer.press_start("send");
+#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&numtodo,             /* message buffer */
+							 1,                 /* how many data items */
+							 MPI_INT,           /* data item is an integer */
+							 status.MPI_SOURCE, /* to who we just received from */
+							 NUM_PACKETS,           /* user chosen message tag */
+							 MPI_COMM_WORLD);   /* default communicator */
+#ifdef timingstep2
+			process_timer.add_time("send");
+#endif
+		}
+		
+		
+		if (numtodo>0) {
+			
+			int smallestnumsent = current_absolute_index;
+			
+			// make tempsends in the step2 loop
+			
+			memset(tempsends, 0, numtodo*(2*paramotopy_info.numparam+1)*sizeof(double) );
+			
+			for (int ii = 0; ii < numtodo; ++ii){
+				
+					master_process::NextRandomValue(paramotopy_info,
+																					ii, // current index in tempsends
+																					current_absolute_index,
+																					tempsends); // data to fill
+					
+					if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+#ifdef timingstep2
+						process_timer.press_start("write");
+#endif			//write the mc line if not userdefined
+						
+						for (int jj=0; jj<paramotopy_info.numparam; ++jj) {
+							mc_out_stream << tempsends[ii*(2*paramotopy_info.numparam+1)+2*jj] << " "
+							<< tempsends[ii*(2*paramotopy_info.numparam+1)+2*jj+1] << " ";
+						}
+						mc_out_stream << std::endl;
+#ifdef timingstep2
+						process_timer.add_time("write");
+#endif
+					}
+				
+				
+				current_absolute_index++;  //increment
+			} //re: make tempsends in the step2 loop
+			
+			
+#ifdef timingstep2
+			process_timer.press_start("send");
+#endif
+			/* Send the slave a new work unit */
+			MPI_Send(&tempsends[0],             /* message buffer */
+							 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
+							 MPI_DOUBLE,           /* data item is an integer */
+							 status.MPI_SOURCE, /* to who we just received from */
+							 DATA_DOUBLE,           /* user chosen message tag */
+							 MPI_COMM_WORLD);   /* default communicator */
+#ifdef timingstep2
+			process_timer.add_time("send");
+#endif
+			
+			
+			
+			lastnumsent[status.MPI_SOURCE] = smallestnumsent;
+			
+			
+			std::stringstream tempss;
+			for (int ii=1; ii<numprocs; ++ii) {
+				tempss << lastnumsent[ii] << "\n";
+			}
+			
+#ifdef timingstep2
+			process_timer.press_start("write");
+#endif
+			std::ofstream lastout;
+			lastout.open(lastoutfilename.c_str());
+			
+			lastout << tempss.str();
+			lastout.close();
+			lastout.clear();
+#ifdef timingstep2
+			process_timer.add_time("write");
+#endif
+			
+			
+		}//re: if numtodo>0
+		
+		
+	} //re: while loop
+
+	
+	
+	delete[] tempsends;
+	
+	
+
+	
+}//re: LoopSearch()
+
+
+
+
+
+
+
+
+
+
+
+////////////////////
+//////////////
+//////////
+////////
+//////           CLEANUP FUNCTIONS
+////
+///
+//
+
+
+
+
+void master_process::CleanupSwitch(ProgSettings & paramotopy_settings,
+									 runinfo & paramotopy_info,
+									 timer & process_timer){
+	
+	
+	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
+			
+		case 0:
+			master_process::CleanupBasic(paramotopy_settings, paramotopy_info, process_timer);
+			break;
+			
+		case 1: // also uses the basic cleanup method
+			master_process::CleanupSearch(paramotopy_settings, paramotopy_info, process_timer);
+			break;
+			
+		default:
+			break;
+	}
+	
+	
+	int arbitraryinteger = 1;
+	MPI_Bcast(&arbitraryinteger, 1, MPI_INT, 0, MPI_COMM_WORLD); // could also be MPI_Barrier()
+	
+	if (paramotopy_settings.settings["files"]["deletetmpfilesatend"].intvalue==1) {
+	  boost::filesystem::path temppath(tmpfolder);
+	  boost::filesystem::remove_all(tmpfolder);
+	}
+	
+	
+}//re: cleanup switch
+
+
+
+void master_process::CleanupBasic(ProgSettings & paramotopy_settings,
+																	runinfo & paramotopy_info,
+																	timer & process_timer){
+	/* There's no more work to be done, so receive all the outstanding
+	 results from the slaves. */
+	
+	
+
+	int* receive_buffer = new int[1];
+	MPI_Status status;
+	int killcounter = 0;
+	
+	if (num_active_workers!=active_workers.size()) {
+		std::cerr << "discrepancy in number of active workers" << std::endl;
+		MPI_Abort(MPI_COMM_WORLD, 778);
+	}
+	else{
+		std::cout << "number of workers is correct at cleanup" << std::endl;
+	}
+	
+	while (num_active_workers>0) {
+
+		
+#ifdef timingstep2
+		process_timer.press_start("receive");
+#endif
+		MPI_Recv(&receive_buffer[0],
+						 1,
+						 MPI_INT,
+						 MPI_ANY_SOURCE,
+						 MPI_ANY_TAG,
+						 MPI_COMM_WORLD,
+						 &status);
+#ifdef timingstep2
+		process_timer.add_time("receive");
+#endif
+		
+		master_process::TerminateActiveWorker(status.MPI_SOURCE, process_timer);
+		
+		
+		std::map< int, bool>::iterator iter;
+		std::stringstream printme;
+		printme << "remaining active workers:\n";
+		for (iter=active_workers.begin(); iter!=active_workers.end(); ++iter) {
+			printme << "worker" << iter->first << "\n";
+		}
+		printme << std::endl;
+		
+		std::cout << printme.str();
+		killcounter++;
+	}
+	
+	
+#ifdef timingstep2
+	process_timer.press_start("write");
+#endif
+	
+	if (paramotopy_info.userdefined!=1 && paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+		mc_out_stream.clear();
+		mc_out_stream.seekp(0, std::ios::beg); // return to the beginning to write the number at the top.
+		// we left plenty of space at the top for this number
+		mc_out_stream << current_absolute_index;
+		mc_out_stream.close();
+	}
+	
+	if (paramotopy_info.userdefined)
+		mc_in_stream.close();
+	
+	std::string finishedfile = paramotopy_info.location;
+	finishedfile.append("/step2finished");
+	
+	std::ofstream fout;
+	fout.open(finishedfile.c_str());
+	fout << 1;
+	fout.close();
+	
+#ifdef timingstep2
+	process_timer.add_time("write");
+#endif
+	
+	delete[] receive_buffer;
+	
+}//re: cleanup basic
+
+
+
+void master_process::CleanupSearch(ProgSettings & paramotopy_settings,
+																	 runinfo & paramotopy_info,
+																	 timer & process_timer){
+	
+	master_process::CleanupBasic(paramotopy_settings, paramotopy_info, process_timer);
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void master_process::SendStart(ProgSettings & paramotopy_settings,
+															 runinfo & paramotopy_info,
+															 timer & process_timer){
+	
+	
+	
+	
+#ifdef timingstep2
+	process_timer.press_start("read");
+#endif
+	// read in the start file
+	std::string start;
+	GetStart(paramotopy_info.location,
+					 start,  //   <--   reads into memory here
+					 paramotopy_settings.settings["mode"]["startfilename"].value());
+#ifdef timingstep2
+	process_timer.add_time("read");
+#endif
+	
+	int start_length = start.size() + 1; // + 1 to account for null character
+	
+	char *start_send = new char[start_length];
+	for (int ii = 0; ii <  int(start.size()); ++ii){
+		start_send[ii] = start[ii];
+	}
+	start_send[start.size()] = '\0';
+	
+	
+	
+
+#ifdef timingstep2
+	process_timer.press_start("send");
+#endif
+	
+	for (int ii = 1; ii < numprocs; ++ii){
+		MPI_Send(&start_length, 1, MPI_INT, ii, NUM_CHARACTERS, MPI_COMM_WORLD);
+	}
+#ifdef timingstep2
+	process_timer.add_time("send",numprocs-1);
+#endif
+	
+
+	
+
+	
+#ifdef timingstep2
+	process_timer.press_start("send");
+#endif
+	for (int ii = 1; ii < numprocs; ++ii){
+		MPI_Send(&start_send[0], start_length, MPI_CHAR, ii, TEXT_FILE, MPI_COMM_WORLD);
+	}
+#ifdef timingstep2
+	process_timer.add_time("send",numprocs-1);
+#endif
+	
+	
+	delete[] start_send;
+	
+	
+}
+
+
+
+
+
+void master_process::SendInput(ProgSettings & paramotopy_settings,
+							 runinfo & paramotopy_info,
+							 timer & process_timer){
+	
+	
+	
+	
+	// for the step 2 memory setup for bertini, we need random values
+	std::vector<std::pair<double, double> > tmprandomvalues = paramotopy_info.MakeRandomValues(rand());
+	
+	
+	
+	std::string inputstring;
+	switch (paramotopy_info.steptwomode) {
+		case 2:
+		  inputstring = WriteStep2(tmprandomvalues,
+															 paramotopy_settings,
+															 paramotopy_info); // found in the step2_funcs.* files
+			
+			break;
+		case 3:
+			inputstring = WriteFailStep2(tmprandomvalues,
+																	 paramotopy_settings,
+																	 paramotopy_info); // found in the step2_funcs.* files
+			
+			break;
+		default:
+			std::cerr << "bad steptwomode: " << paramotopy_info.steptwomode << " -- exiting!" << std::endl;
+			exit(-202);
+			break;
+	}
+	
+	
+
+#ifdef verbosestep2
+	std::cout << "the input file is:\n " << inputstring << std::endl;
+#endif
+	
+	
+	int input_length = inputstring.size() + 1; // + 1 to account for null character
+#ifdef timingstep2
+	process_timer.press_start("send");
+#endif
+	for (int ii = 1; ii < numprocs; ++ii){
+		MPI_Send(&input_length, 1, MPI_INT, ii, NUM_CHARACTERS, MPI_COMM_WORLD);
+	}
+#ifdef timingstep2
+	process_timer.add_time("send",numprocs-1);
+#endif
+	
+	
+	char *input_send = new char[input_length];
+	for (int ii = 0; ii < int(inputstring.size()); ++ii){
+		input_send[ii] = inputstring[ii];
+	}
+	input_send[inputstring.size()] = '\0';
+	
+#ifdef timingstep2
+	process_timer.press_start("send");
+#endif
+	for (int ii = 1; ii < numprocs; ++ii){
+		MPI_Send(&input_send[0], input_length, MPI_CHAR, ii, TEXT_FILE, MPI_COMM_WORLD);
+	}
+#ifdef timingstep2
+	process_timer.add_time("send",numprocs-1);  //one for each worker
+#endif
+	
+	
+	delete[] input_send;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void master_process::GetTerminationInt(runinfo & paramotopy_info,ProgSettings & paramotopy_settings){
+	
+	
+	std::string mcfname = paramotopy_info.location;
+	mcfname.append("/mc");
+	if (!paramotopy_info.userdefined) {
+		index_conversion_vector.push_back(1);
+		for (int ii=1; ii<paramotopy_info.numparam; ++ii) {
+			index_conversion_vector.push_back(index_conversion_vector[ii-1]*paramotopy_info.NumMeshPoints[ii-1]);
+		}
+		
+		if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==0) {
+			terminationint = index_conversion_vector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
+		}
+		else if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==1){
+			terminationint = paramotopy_settings.settings["mode"]["search_iterations"].intvalue;
+		}
+		
+	}
+	
+	else {
+		
+		terminationint = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
+	}
+	
+	return;
+
+};
+
+
+
+
+
+//opens the mc_in or mc_out file stream
+void master_process::OpenMC(runinfo & paramotopy_info,ProgSettings & paramotopy_settings){
+	
+
+	std::string mcfname = paramotopy_info.location;
+	mcfname.append("/mc");
+	
+	if (!paramotopy_info.userdefined) {
+		boost::filesystem::remove(mcfname);
+		
+		if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+			//open mc file for writing out to
+			mc_out_stream.open(mcfname.c_str());
+			
+			//end open mc file
+			if (!mc_out_stream.is_open()){
+				std::cerr << "failed to open the parameter value out file: " << mcfname << std::endl;
+				exit(11);
+				
+			}
+			mc_out_stream << "                                          " << std::endl;
+//      mc_out_stream << terminationint << std::endl;
+		}
+		if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
+			mc_out_stream.precision(16);
+		}
+	}
+	else {
+		
+		mc_in_stream.open(mcfname.c_str(), std::ios::in);
+		if (!mc_in_stream.is_open()){
+			std::cerr << "critical error: failed to open mc file to read parameter values.  filename: " << mcfname << std::endl;
+			exit(10);
+		}
+    std::string burnme;
+    std::getline(mc_in_stream,burnme); // burn the line containing the number of lines in the file
+	}
+	
+	return;
+}
+
+
+
+void master_process::SetTmpFolder(runinfo & paramotopy_info,
+																	ProgSettings & paramotopy_settings){
+
+
+
+	std::stringstream templocation;
+	if (paramotopy_settings.settings["files"]["customtmplocation"].intvalue==1){
+		templocation << paramotopy_settings.settings["files"]["tempfilelocation"].value();
+	}
+	else {
+		templocation << called_dir;
+	}
+	templocation << "/bfiles_" << paramotopy_info.inputfilename << "/tmpstep2";
+	
+	
+	tmpfolder = templocation.str();
+
+}
+
+
+
+
+
+
+
+void master_process::SetUpFolders(runinfo & paramotopy_info){
+	
+	
+	std::string DataCollectedbase_dir = paramotopy_info.location;
+	DataCollectedbase_dir.append("/step2/DataCollected/");
+	mkdirunix(DataCollectedbase_dir);
+
+	//make text file with names of folders with data in them
+	std::string mydirfname = paramotopy_info.location;
+	mydirfname.append("/folders");
+	std::ofstream fout(mydirfname.c_str());
+	if (!fout.is_open()){
+		std::cerr << "failed to open " << mydirfname << " to write folder names!\n";
+	}
+	else{
+		for (int i = 1; i < numprocs;++i){
+		  std::stringstream tmpss;
+		  tmpss << DataCollectedbase_dir;
+		  tmpss << "c";
+		  tmpss << i;
+		  fout << tmpss.str() << (i!=numprocs-1 ? "\n" :  "");
+			mkdirunix(tmpss.str());
+		}
+	}
+	fout.close();
+	
+}
+
+
+
+void master_process::TerminateInactiveWorker(int worker_id,
+																		 timer & process_timer)
+{
+	
+	
+	
+	int arbitraryinteger = 0;
+#ifdef timingstep2
+	process_timer.press_start("send");
+#endif	
+	/* Send the slave a new work unit */
+	MPI_Send(&arbitraryinteger,            /* message buffer */
+					 1,										/* how many data items */
+					 MPI_INT,							/* data item is an integer */
+					 worker_id,					/* the destination */
+					 TERMINATE,           /* user chosen message tag */
+					 MPI_COMM_WORLD);			/* default communicator */
+#ifdef timingstep2
+	process_timer.add_time("send");
+#endif
+	
+	if (active_workers.find(worker_id)!=active_workers.end()) {
+		std::cerr << "terminating an active worker as an inactive!\n";
+		MPI_Abort(MPI_COMM_WORLD,690);
+	}
+	
+}
+
+void master_process::TerminateActiveWorker(int worker_id,
+																						 timer & process_timer)
+{
+	
+	
+	
+	int arbitraryinteger = 0;
+#ifdef timingstep2
+	process_timer.press_start("send");
+#endif
+	/* Send the slave a new work unit */
+	MPI_Send(&arbitraryinteger,            /* message buffer */
+					 1,										/* how many data items */
+					 MPI_INT,							/* data item is an integer */
+					 worker_id,					/* the destination */
+					 TERMINATE,           /* user chosen message tag */
+					 MPI_COMM_WORLD);			/* default communicator */
+#ifdef timingstep2
+	process_timer.add_time("send");
+#endif
+	
+	if (active_workers.find(worker_id)==active_workers.end()) {
+		std::cerr << "terminating an INactive worker as active!\n";
+		MPI_Abort(MPI_COMM_WORLD,691);
+	}
+	
+	active_workers.erase(worker_id);
+	num_active_workers--;
+}
+
+
+void master_process::ReadyCheck()
+{
+	
+	bool its_all_good = true;
+	std::vector< std::string > reported_errors;
+	
+	
+	if (numfilesatatime<0) {
+		reported_errors.push_back("unset numfilesatatime");
+		its_all_good = false;
+	}
+	
+	std::cout << numfilesatatime << std::endl;
+	sleep(10);
+	
+	
+	if (terminationint<0) {
+		reported_errors.push_back("unset terminationint");
+		its_all_good = false;
+	}
+	
+	if (tmpfolder.size()==0) {
+		reported_errors.push_back("no tmpfolder");
+		its_all_good = false;
+	}
+	
+//	if (index_conversion_vector.size()==0) {
+//		reported_errors.push_back("bad index_conversion_vector");
+//		its_all_good = false;
+//	}
+	
+	if (!its_all_good){
+		std::cerr << "master " << myid << " reported its not all good, with bad flags:\n";
+		
+		for (int ii=0; ii<int(reported_errors.size()); ii++) {
+			std::cerr << "master flag" << ii << " " << reported_errors[ii] << std::endl;
+		}
+		std::cerr << "\n\nABORTING master " << myid << std::endl;
+		MPI_Abort(MPI_COMM_WORLD, 652);
+	}
+}
+
+
+
+
 
 

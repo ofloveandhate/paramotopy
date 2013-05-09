@@ -4,9 +4,11 @@
 
 void ParamotopySplashScreen(){
 	
-	std::cout << "\n*******************************\n Welcome to Paramotopy.\n"
-		<< "     parametrized system analysis software by"
-		<< "\n"
+	std::cout
+	  << "\n"
+		<< "*******************************\n"
+		<< " Welcome to Paramotopy.\n"
+		<< "     parametrized system analysis software by\n"
 		<< "     daniel brake and matthew niemerg, with dan bates.\n\n"
 		<< "     www.paramotopy.com     danielthebrake@gmail.com  matthew.niemerg@gmail.com \n"
 		<< "**************************" << std::endl;
@@ -36,6 +38,28 @@ args_splash[1] = const_cast<char *>("--version");
  return;
  
 }
+
+
+
+int GetFileParserIndex(std::string filename){
+	
+	std::map < std::string , int > possible_savefiles;
+  possible_savefiles["real_solutions"] = 1;
+  possible_savefiles["nonsingular_solutions"] = 1;
+  possible_savefiles["singular_solutions"] = 1;
+  possible_savefiles["raw_data"] = -1;
+  possible_savefiles["raw_solutions"] = -1;
+  possible_savefiles["main_data"] = -1;
+  possible_savefiles["midpath_data"] = -1;
+  possible_savefiles["failed_paths"] = 2;
+  possible_savefiles["real_finite_solutions"] = 1;
+
+	
+	return possible_savefiles[filename];
+	
+}
+
+
 
 
 
@@ -451,4 +475,17 @@ std::string stackoverflow_getcwd()
 
 
 
+
+void safe_chdir(std::string desired_directory){
+	int success;
 	
+	
+	success = chdir(desired_directory.c_str());
+	
+	
+//TODO: make this safe
+}
+
+
+
+

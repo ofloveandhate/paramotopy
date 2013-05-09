@@ -4,6 +4,327 @@
 
 
 
+
+//constructs a file name for reading/writing
+std::string datagatherer::MakeTargetFilename(std::string filename){
+  std::stringstream ss;
+  ss << this->DataCollectedbase_dir
+	<< filename
+	<< this->slavemap[filename].filecount;
+  return ss.str();
+}
+
+
+
+void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
+															runinfo & paramotopy_info,
+															int myid,
+															std::string called_dir){
+	
+	
+	
+	datagatherer slavegatherer;
+	datagatherer::slave_init();
+	
+	
+	settingmap::iterator iter;
+	for (iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end(); ++iter){
+		if (iter->second.intvalue==1) {
+			std::string tmpstr = iter->first;
+			if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue==0 && tmpstr.compare("real_solutions") == 0){
+				tmpstr = "real_finite_solutions";
+			}
+			datagatherer::add_file_to_save(tmpstr);
+		}
+	}
+	
+	
+	this->buffersize = paramotopy_settings.settings["system"]["buffersize"].intvalue;
+	this->newfilethreshold = paramotopy_settings.settings["files"]["newfilethreshold"].intvalue;
+	this->numvariables = paramotopy_info.numvariables;
+	
+	
+	
+	//make data file location
+	std::stringstream myss;
+	myss << called_dir << "/" << paramotopy_info.location << "/step2/DataCollected/c" << myid << "/";
+	this->DataCollectedbase_dir = myss.str();//specific to this worker, as based on myid
+	myss.clear(); myss.str("");
+	
+	
+	if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue==0){
+		this->real_filename =  "real_finite_solutions";
+		this->standardstep2 = 0;
+	}
+	else{
+		this->real_filename = "real_solutions";
+		this->standardstep2 = 1;
+	}
+	
+	
+	this->ParamNames = paramotopy_info.ParameterNames;
+	
+	
+}
+
+bool datagatherer::SlaveCollectAndWriteData(double current_params[],
+																						ProgSettings & paramotopy_settings,
+																						timer & process_timer){
+  
+	
+
+	// Collect the Data
+	std::map< std::string, fileinfo> ::iterator iter;
+	for (iter = this->slavemap.begin(); iter!= this->slavemap.end();++iter){
+
+	  //get data from file
+#ifdef timingstep2
+	  process_timer.press_start("read");
+#endif
+	  
+		if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==1 && iter->first.compare(this->real_filename)==0) { //1: continuous loop for search
+
+			datagatherer::AppendOnlyPosReal(iter->first, // the file name
+																			current_params,
+																			paramotopy_settings);
+			
+			
+		}
+		else {//0: basic mode
+			
+			datagatherer::AppendData(iter->first, // the file name
+															 current_params);
+			
+		}
+		
+	  
+	  
+#ifdef timingstep2
+	  process_timer.add_time("read");
+#endif
+	  
+	  
+	  //if big enough
+	  if ( int(iter->second.runningfile.size()) > this->buffersize){
+			
+	    
+	    iter->second.filesize += int(iter->second.runningfile.size());
+
+#ifdef timingstep2
+	    process_timer.press_start("write");
+#endif
+			
+			datagatherer::WriteData(iter->second.runningfile,
+															datagatherer::MakeTargetFilename(iter->first));
+	    
+#ifdef timingstep2
+	    process_timer.add_time("write");
+#endif
+	    iter->second.runningfile.clear();//reset the string
+	    if (iter->second.filesize > this->newfilethreshold) { //update the file count
+	      iter->second.filecount++;
+	      iter->second.filesize = 0;
+	    }
+	  }
+	  
+		
+	}
+	
+	
+	
+	return true;
+}
+
+
+
+
+
+
+void datagatherer::AppendOnlyPosReal(std::string orig_filename,
+																		 double *current_params,
+																		 ProgSettings & paramotopy_settings){
+	//this function will operate on any *_solutions file
+	
+	
+	std::string cline = "";
+  std::stringstream outstring;
+	
+	
+	
+	
+  std::ifstream fin(orig_filename.c_str());
+  
+  if (!fin.is_open()) {
+    std::cerr << "failed to open file '" << orig_filename << "' to read data" << std::endl;
+    MPI_Abort(MPI_COMM_WORLD,-42);
+  }
+  
+	std::vector< std::vector < std::pair< std::string, std::string > > > solutions_this_point = datagatherer::ParseSolutionsFile_ActualSolutions(fin);
+	fin.close();
+	
+	//now have the solutions in numerical form!
+	
+	
+	//the search condition goes here.
+	int tmp_num_found_solns = 0;
+	std::stringstream converter, current_point_data;
+	for (int ii=0; ii<int(solutions_this_point.size()); ++ii) {
+		
+		
+		int is_soln = 1;
+		for (int jj=0; (jj<this->numvariables) && (is_soln); ++jj) {
+			double comparitor_real, comparitor_imag;
+			converter << solutions_this_point[ii][jj].first << solutions_this_point[ii][jj].second;
+			converter >> comparitor_real >> comparitor_imag;
+			converter.clear(); converter.str("");
+			
+			
+			if (comparitor_real<0 || fabs(comparitor_imag)>1e-8 ) {
+				is_soln = 0;
+			}
+			
+		}
+		
+
+		if (is_soln==1) {
+			for (int jj=0; jj<this->numvariables; ++jj) {
+				current_point_data << solutions_this_point[ii][jj].first << " " << solutions_this_point[ii][jj].second << "\n";
+			}
+			current_point_data << "\n";
+			tmp_num_found_solns++;
+		}
+		
+		
+		
+	}
+	
+	bool meets_upper_thresh;
+	
+	if (paramotopy_settings.settings["mode"]["search_numposrealthreshold_upper"].intvalue==-1){
+		meets_upper_thresh = true;
+	}
+	else{
+		meets_upper_thresh = (tmp_num_found_solns<=paramotopy_settings.settings["mode"]["search_numposrealthreshold_upper"].intvalue);
+	}
+		
+		
+	bool meets_lower_thresh = (tmp_num_found_solns>=paramotopy_settings.settings["mode"]["search_numposrealthreshold_lower"].intvalue);
+	
+	if (meets_lower_thresh && meets_upper_thresh) {
+		
+		outstring << current_params[2*int(ParamNames.size())] << "\n";
+		
+		for (int ii = 0; ii < int(ParamNames.size());++ii){
+			outstring.precision(16);
+			outstring  << current_params[2*ii] << " ";
+			outstring.precision(16);
+			outstring << current_params[2*ii+1] << " ";
+		}
+		outstring << "\n";
+		
+		outstring << tmp_num_found_solns << "\n\n";
+		outstring << current_point_data.str();
+		
+		slavemap[orig_filename].num_found_solns = tmp_num_found_solns;
+		slavemap[orig_filename].runningfile.append(outstring.str());
+		
+		
+  }
+  else
+	{
+		slavemap[orig_filename].num_found_solns = 0;
+	}
+	
+
+	
+	
+}
+
+
+
+
+void datagatherer::AppendData(std::string orig_filename,
+															double *current_params){
+  
+
+  std::string cline = "";
+  std::stringstream outstring;
+  std::ifstream fin(orig_filename.c_str());
+  
+  if (!fin.is_open()) {
+    std::cerr << "failed to open file '" << orig_filename << "' to read data" << std::endl;
+    exit(-42);
+  }
+  
+  
+  outstring << current_params[2*int(ParamNames.size())] << "\n";
+	
+  for (int ii = 0; ii < int(ParamNames.size());++ii){
+    outstring.precision(16);
+		outstring  << current_params[2*ii] << " " << current_params[2*ii+1] << " ";
+  }
+  outstring << "\n";
+  while(getline(fin,cline)){
+    outstring << cline << "\n";
+  }
+  fin.close();
+  
+	slavemap[orig_filename].num_found_solns = 0;
+	slavemap[orig_filename].runningfile.append(outstring.str());
+	
+	
+  return;
+}
+
+void datagatherer::WriteAllData(){
+	
+	std::map<std::string, fileinfo>::iterator iter;
+	
+	for (iter=this->slavemap.begin(); iter!=this->slavemap.end(); iter++) {
+		datagatherer::WriteData(iter->second.runningfile,
+														datagatherer::MakeTargetFilename(iter->first));
+	}
+	
+}
+
+void datagatherer::WriteData(std::string outstring,
+														 std::string target_file){
+	
+	
+  std::ofstream fout;
+  // test if file target file is open
+  
+  struct stat filestatus;
+  
+  if (stat( target_file.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
+//    std::cout << "file " << target_file << "already found, opening for append" << std::endl;
+    fout.open(target_file.c_str(),std::ios::app);
+    
+  }
+  else{
+//    std::cout << "file " << target_file << "not found, opening fresh" << std::endl;
+    fout.open(target_file.c_str());
+    for (int ii = 0; ii < int(this->ParamNames.size());++ii){
+      fout << this->ParamNames[ii] << (ii != int(this->ParamNames.size())-1? " ": "\n");
+    }
+  }
+  
+  if (!fout.is_open()) {
+    std::cerr << "failed to open target dataout file '" << target_file << "'\n";
+    exit(-41);
+  }
+  
+  fout << outstring;
+  fout.close();
+}
+
+
+
+
+
+
+
+
 bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails, std::vector< point > & successful_resolves){
 	
 	
@@ -31,11 +352,8 @@ bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails, std::
 	folder_with_data /= "gathered_data/finalized";
 	
 	std::vector < point > current_data = datagatherer::GatherFinalizedDataToMemory(folder_with_data);
-	
-	std::cout << "comparing initial to gathered" << std::endl;
-	
+
 	successful_resolves = CompareInitial_Gathered(terminal_fails, current_data);
-	std::cout << "done comparing initial to gathered" << std::endl;
 	return true;
 	
 }
@@ -48,13 +366,13 @@ std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > 
 	
 	
 	if (terminal_fails.size() == current_data.size()) {
-		std::cout << "no points successfully resolved" << std::endl;
+//		std::cout << "no points successfully resolved" << std::endl;
 	}
 	else{
 		std::vector< int > flag_if_success;
 		flag_if_success.resize(current_data.size());
 		
-		for (int ii=0; ii<current_data.size(); ++ii) {
+		for (int ii=0; ii<int(current_data.size()); ++ii) {
 			flag_if_success[ii]=1;
 		} // seed the vector
 		
@@ -203,7 +521,7 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 	std::vector< std::string > next_folders = folders_with_data; // seed
 	std::vector< std::string > current_folders;
 	
-	for (int ii=0; ii<folders_with_data.size(); ++ii) {
+	for (int ii=0; ii<int(folders_with_data.size()); ++ii) {
 		next_folders_are_basic.push_back(true);
 	}
 	
@@ -222,7 +540,7 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 		for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj=jj+2) {
 			datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
 			boost::filesystem::create_directory(output_folder_name);
-			std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
+//			std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
 			datagatherer::MergeFolders( file_to_gather, current_folders[jj], current_folders[jj+1], output_folder_name,parser_index);
 			
 			
@@ -258,12 +576,10 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 	
 	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);
 	
-	std::cout << "done finalizing" << std::endl;  // removeme
-	
+
 	if (source_folder_is_basic==false) {
 		boost::filesystem::remove_all(source_folder);  //remove the previous step's files
 	}
-	std::cout << "done removing" << std::endl;  // removeme
 	return;
 }
 
@@ -292,8 +608,7 @@ std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 	
 	filetoopen = resolved_file_name;
 	
-	std::cout << filetoopen.string() << " opening to read in successful resolves." << std::endl;
-	
+
 	if (!boost::filesystem::exists(filetoopen)) {
 		std::cerr << "file " << filetoopen.string() << " doesn't exist, even though it should." << std::endl;
 		return successful_resolves;
@@ -775,7 +1090,7 @@ void datagatherer::rest_of_files(std::ifstream & datafile, std::string & output_
 	datafile.close();
 	
 	
-	for (int ii=file_index+1; ii < filelist.size(); ++ii) {
+	for (int ii=file_index+1; ii < int(filelist.size()); ++ii) {
 		
 		datafile.open(filelist[ii].c_str());
 		getline(datafile,tmpstr); // waste the parameter name line
@@ -805,7 +1120,7 @@ bool datagatherer::endoffile_stuff(std::ifstream & datafile, int & file_index, s
 	std::string tmpstr;
 	datafile.close();
 	file_index++;
-	if (file_index+1>filelist.size()) {  // the +1 is to compensate for zero-centered indexing...
+	if (file_index+1>int(filelist.size())) {  // the +1 is to compensate for zero-centered indexing...
 		return false;
 	}
 	else{
@@ -895,23 +1210,29 @@ bool datagatherer::ReadPoint(std::ifstream & fin, int & next_index, std::string 
 	
 }
 
-std::vector< std::vector < std::pair< std::string, std::string > > > datagatherer::ParseSolutionsFile_ActualSolutions(std::ifstream & fin){
+std::vector< std::vector < std::pair< std::string, std::string > > > datagatherer::ParseSolutionsFile_ActualSolutions(std::ifstream & fin)
+{
 	
 	std::string tmpstr;
 	int number_of_solutions;
-	getline(fin,tmpstr);
+	std::stringstream converter;
 	
+	
+
+	//create the main structure
 	std::vector< std::vector < std::pair< std::string, std::string > > > solutions;
 	
-	//  first we read in the number of solutions.
 	
-	std::stringstream converter;
-	converter << tmpstr;  //get the line number
+	//  first we read in the number of solutions.
+	getline(fin,tmpstr);
+	converter << tmpstr;  //get the number of solutions from the top of the file
 	converter >> number_of_solutions;
-	converter.clear(); //reset
-	converter.str("");
+	
+	converter.clear(); converter.str(""); //reset
+	
 	
 	getline(fin,tmpstr); //burn one line
+	
 	
 	for (int solution_counter = 0; solution_counter <  number_of_solutions; ++solution_counter) {
 		std::vector < std::pair< std::string, std::string > > temporary_solution;//allocate the solution.
@@ -921,14 +1242,13 @@ std::vector< std::vector < std::pair< std::string, std::string > > > datagathere
 			std::pair < std::string, std::string > temporary_coordinates;
 			
 			getline(fin,tmpstr);
-			
 			converter << tmpstr;
 			
 			converter >> temporary_coordinates.first;
 			converter >> temporary_coordinates.second;
 			temporary_solution.push_back(temporary_coordinates);
-			converter.clear(); //reset
-			converter.str("");
+			converter.clear(); converter.str(""); //reset
+			
 		}
 		
 		solutions.push_back(temporary_solution);
@@ -942,6 +1262,10 @@ std::vector< std::vector < std::pair< std::string, std::string > > > datagathere
 	
 	return solutions;
 }
+
+
+
+
 
 std::string datagatherer::ParseSolutionsFile(std::ifstream & fin){ //std::vector< std::vector < std::pair< std::string, std::string > > >
 	
@@ -1062,6 +1386,55 @@ std::vector< std::string > datagatherer::GetFoldersForData(std::string dir){
 	
 	return foldervector;
 }
+
+
+
+void DataManagementMainMenu(runinfo & paramotopy_info){
+	
+  datagatherer lets_gather_some_data(paramotopy_info.base_dir, paramotopy_info.fundamental_dir,paramotopy_info.numvariables);
+  
+  std::stringstream menu;
+  
+  menu << "\n\nData Management Options\n\n" //
+	<< "1) Change Run Folder\n" //make menu
+	<< "2) Gather Data\n"
+	<< "*\n"
+	<< "0) Go Back\n"
+	<< "\n: ";
+  int choice = -1001;
+  while (choice!=0) {
+    
+    
+    choice = get_int_choice(menu.str(),0,2);//display menu, get choice
+    
+    switch (choice) {
+			case 0:
+				break;
+				
+			case 1:
+				paramotopy_info.ScanData();
+				break;
+				
+			case 2:
+				
+				lets_gather_some_data.GatherDataFromMenu();
+				break;
+				
+				
+			default:
+				std::cout << "somehow an unacceptable entry submitted :(\n";
+				break;
+    }
+    
+  }
+  
+  
+  return;
+  
+}
+
+
+
 
 
 

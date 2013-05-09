@@ -23,7 +23,7 @@
 
 
 /**
- * the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator and denominator of the number.  We pass the input by casting via (char *)
+ * the computeNumdenom function is in the bertini library, but not the headers, hence its inclusion here.  it takes in a character array, and pointers which return the numerator and denominator of the number.  We pass the input by casting via (char *)
  * \param s the number to be converted to rational form
  * \return numer the numerator
  * \return denom the denomenator
@@ -57,57 +57,6 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_s
 
 
 /**
- * reads data from bertini output files, and writes it to files in DataCollected folder, if the threshold is big enough
- * \param numfiles The number of files being saved.
- * \param runningfile MUTABLE The vector of strings containing the data accrued so far.
- * \param linenumber Parameter point index
- * \param TheFiles Struct containing the names of the files to be collected
- * \param ParamNames Names of the parameters
- * \param AllParams Current parameter values.
- * \param buffersize The threshold for dumping to disk
- * \param DataCollectedbase_dir The directory in which to write data
- * \param filesizes Keeps track of how large the files are, in number of characters.
- * \param newfilethreshold Number of KB over which a new data file is started
- * \param myid Worker id determined by MPI
- * \param process_timer Timer object for collecting timing data.
- */
-bool SlaveCollectAndWriteData(int & numfiles,
-							  std::vector<std::string> & runningfile,
-							  const int  linenumber,
-							  ToSave * TheFiles,
-							  const std::vector<std::string> ParamNames,
-							  const std::vector<std::pair<double,double> > AllParams,
-							  int buffersize,
-							  const std::string DataCollectedbase_dir,
-							  std::vector< int > & filesizes,
-							  const int newfilethreshold,
-							  const int myid,
-							  timer & process_timer);
-
-/**
- * creates a string to append read-in data to the running file.
- * \param point_index parameter point index
- * \param orig_filename Name of the data file to be read.
- * \param ParamStrings deprecated, needs removal.
- * \param CValues Currend parameter values.
- * \return String of the entire data file.
- */
-std::string AppendData(int point_index,
-		       std::string orig_filename,
-		       std::vector<std::string> ParamStrings,
-		       std::vector<std::pair<double, double> > CValues);
-
-/** 
- * Write data to disk.
- * \param outstring The file to write
- * \param target_file name of the file to write to.
- * \ParamStrings names of the parameters
- */
-void WriteData(std::string outstring,
-			   std::string target_file,
-			   std::vector<std::string> ParamStrings);
-
-/**
  * reads in the start file to memory
  * \param dir The directory in which to read the start file
  * \param start MUTABLE String containing the start file
@@ -128,13 +77,6 @@ int GetLastNumSent(std::string base_dir,
 					int numprocs);
 
 
-/**
- * Reads in the random values to be used in this solve.
- * \param base_dir Directory in which to look for the random values file.
- * \param RandomValues Mutable vector in which to store the random values read in by this function.
- */
-void GetRandomValues(std::string base_dir,
-					 std::vector< std::pair<double,double> > & RandomValues);
 
 
 /**

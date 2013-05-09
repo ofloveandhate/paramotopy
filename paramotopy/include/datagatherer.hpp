@@ -30,6 +30,34 @@
 #ifndef __DATAGATHERER_H__
 #define __DATAGATHERER_H__
 
+#include "runinfo.hpp"
+#include "xml_preferences.hpp"
+#include "timing.hpp"
+
+
+class fileinfo {
+	
+	
+public:
+	
+	fileinfo(){
+		filesize = filecount = num_found_solns = 0;
+		parser_index = -11;
+		runningfile = "";
+	}
+	
+	int filesize;
+	int filecount;
+	int num_found_solns;
+	
+	std::string runningfile;
+	
+	int parser_index;
+	
+		
+	
+	
+};
 
 
 /**
@@ -70,8 +98,7 @@ public:
 		this->run_to_analyze = loc;
 	};
 	
-	
-	
+
 	
 		//data members
 	
@@ -89,15 +116,121 @@ public:
 	/** index for parser choice.  different filetypes use different parsers */
 	std::vector < int > gather_parser_indices;
 	
+
+	std::vector<std::string> ParamNames;
+	int numfiles;
+	std::string DataCollectedbase_dir;
+	int buffersize;
+	int newfilethreshold;
+	int myid;
+	std::string real_filename;
+	std::map< std::string, fileinfo> slavemap;
+	int standardstep2;
+	
+	
+	int num_reals(){
+			return this->slavemap[this->real_filename].num_found_solns;
+	}
+	
+	void slave_init(){
+		ParamNames.clear();
+		slavemap.clear();
+		this->standardstep2 = 0;
+		this->numfiles = 0;
+		this->buffersize = this->newfilethreshold = -1;
+		this->myid = -1;
+		this->DataCollectedbase_dir = "";
+	}
+	
+	
+	
+	
+	
+	void add_file_to_save(std::string filename){
+	
+		fileinfo blankinfo;
+
+		this->slavemap[filename] = blankinfo;
+		this->numfiles ++;
+		
+		this->slavemap[filename].parser_index = GetFileParserIndex(filename);
+		
+		
+	}
+	
+	std::string MakeTargetFilename(std::string filename);
+	
+	
+	
+	
+	void SlaveSetup(ProgSettings & paramotopy_settings,
+									runinfo & paramotopy_info,
+									int myid,
+									std::string called_dir);
+	
+	
+	
+	/**
+	 * reads data from bertini output files, and writes it to files in DataCollected folder, if the threshold is big enough
+	 * \param linenumber Parameter point index
+	 * \param AllParams Current parameter values.
+	 * \param paramotopy_settings the settings structure, passed by reference
+	 * \param process_timer Timer object for collecting timing data.
+	 */
+	bool SlaveCollectAndWriteData(double *current_params,
+																ProgSettings & paramotopy_settings,
+																timer & process_timer);
+	
+	
+	/**
+	 * sorts the input file for positive real solutions
+	 * creates a string to append read-in data to the running file.
+	 * \param orig_filename Name of the data file to be read.
+	 * \param current_parameter_values Current parameter values.
+	 * \param paramotopy_settings the settings structure, passed by reference
+	 */
+	void AppendOnlyPosReal(std::string orig_filename,
+												 double *current_params,
+												 ProgSettings & paramotopy_settings);
+	
+	
+	
+	
+	/**
+	 * creates a string to append read-in data to the running file.
+	 * \param orig_filename Name of the data file to be read.
+	 * \param current_parameter_values Current parameter values.
+	 */
+	void AppendData(std::string orig_filename,
+									double *current_params);
+	
+	
+	
+	
+	
+	void WriteAllData();
+	
+	
+	
+	/**
+	 * Write data to disk.
+	 * \param outstring The file to write
+	 * \param target_file name of the file to write to.
+	 * \ParamStrings names of the parameters
+	 */
+	void WriteData(std::string outstring,
+								 std::string target_file);
 	
 
-
-	
-
 	
 	
 	
-	//functions
+	
+	
+	
+	
+	
+	
 	
 	
 	/** outermost method for gathering data during failure analysis mode.
@@ -260,7 +393,8 @@ private:
 };
 
 
-
+/** Display the data management main menu.  */
+void DataManagementMainMenu(runinfo & paramotopy_info);
 
 
 
