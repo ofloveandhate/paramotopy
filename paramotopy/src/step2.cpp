@@ -1,54 +1,6 @@
-#include <mpi.h>
-
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
+#include "step2.hpp"
 
 
-
-
-#define BOOST_FILESYSTEM_VERSION 3
-#define BOOST_FILESYSTEM_NO_DEPRECATED
-
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/progress.hpp>
-#include <boost/regex.hpp>
-
-
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
-#include "step2readandwrite.hpp"
-#include "master.hpp"
-#include "slave.hpp"
-#include "para_aux_funcs.hpp"
-#include "timing.hpp"
-
-
-/*
- the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
- and denominator of the number.  I pass the input by casting via (char *)
- */
-extern "C" {
-	void computeNumDenom(char **numer, char **denom, char *s);
-}
-
-
-extern "C" {
-	int bertini_main(int argC, char *args[]);
-}
 
 
 int main(int argc, char* argv[]){
@@ -58,10 +10,8 @@ int main(int argc, char* argv[]){
 	
 	srand(time(NULL));
 	
-	
-	int numfilesatatime;//
-	int saveprogresseverysomany;
-	int devshm, newfilethreshold, buffersize, steptwomode;
+
+	int steptwomode;
 	int myid;
 	int numprocs;
 	int namelen;
@@ -83,16 +33,12 @@ int main(int argc, char* argv[]){
 	
 	
 	std::string called_dir = stackoverflow_getcwd();
+	std::string homedir = getenv("HOME");
 	
-	
-	
-	
-	ToSave *TheFiles;
+
 	std::string filename, location;
 	
-	int numfiles;
-	int numparam;
-	bool standardstep2;
+
 	
 	std::vector<std::vector<std::pair<double,double> > > AllParams;
 	std::vector<std::string> ParamNames;
@@ -102,25 +48,16 @@ int main(int argc, char* argv[]){
 	
     ///////////////////
     //
-    //    should be done getting info from commandstring (argv), including some of:
+    //    should be done getting info from commandstring (argv):
     //
-    //    ParamNames (vector)
-    //    CValuesVect
-    //    numsubfolders (computed from numfilesatatime)
-    //    TheFiles with fields filecount (string), saved (bool), filename (string).
-    //    numparam
-    //    firstrun
-    //    toss
-    //    blank
     //    filename
-    //    numfiles
-    //    numfilesatatime
-    //    standardstep2
+		//		location
+    //    steptwomode
     //
     //////////////////
 	
-	for (int i = 0; i < argc; ++i){
-		commandss << argv[i] << " ";  //put the argv on the commandss, so that can convert appropriate types (integers, etc)
+	for (int ii = 0; ii < argc; ++ii){
+		commandss << argv[ii] << " ";  //put the argv on the commandss, so that can convert appropriate types (integers, etc)
 	}
 	
 	if ( (argc!=1) && (numprocs>1)){
@@ -128,70 +65,9 @@ int main(int argc, char* argv[]){
 	  commandss >> blank;  // name of program, */step2
 	  commandss >> filename;  // name of input file to paramotopy
 	  commandss >> location;
-	  commandss >> numfiles; // number of files to save
-	  
-	  TheFiles = new ToSave[numfiles];
-	  for (int i = 0; i < numfiles;++i){
-	    commandss >> TheFiles[i].filename;
-	    TheFiles[i].saved = true;
-	    commandss >> TheFiles[i].filecount;
-	  }
-	  
-	  
-	  commandss >> numfilesatatime;//number of folders for each processor to own, and work out of.
-	  commandss >> numparam;//number of parameters in the input file.
-	  
-	  for (int i = 0; i < numparam;++i){
-	    std::string param;
-	    commandss >> param;
-	    ParamNames.push_back(param);
-	  }
-	  
-	  commandss >> saveprogresseverysomany;
-	  commandss >> newfilethreshold;
-	  commandss >> buffersize;
-	  commandss >> devshm;
-	  if (devshm==1) {
-	    commandss >> sharedmemorylocation;
-	  }
-	  
-	  commandss >> steptwomode;
-	  std::cout << "steptwomode: " << steptwomode << "\n";
-	  // this flag is to determine if the current paramotopy run
-	  // should do a standardstep2 or should
-	  // do a step2 run that's not really a parameter run
-	  // i.e. does standard bertini runs for all the parameter points
-	  
-	  commandss >> standardstep2;
-	  
-	  commandss.clear();
-	  commandss.str("");
+		commandss >> steptwomode;
+		commandss.clear(); commandss.str("");
 
-	  if (!standardstep2){
-	    for (int i = 0; i < numfiles; ++i){
-	      if (TheFiles[i].filename.compare("real_solutions") == 0){
-					TheFiles[i].filename = "real_finite_solutions";
-	      } 
-	    }
-	  }
-	  
-#ifdef verbosestep2
-	  if (myid==headnode){
-	    std::cout << "ParamNames: ";
-	    for (int i=0; i< int(ParamNames.size());++i){
-	      std::cout << ParamNames[i] << " ";
-	    }
-	    
-	    std::cout << "\n"
-		      << "numparam: " << numparam << "\n"
-		      << "blank: " << blank << "\n"
-		      << "filename: " << filename << "\n"
-		      << "numfilestosave: " << numfiles << "\n"
-		      << "numfilesatatime: " << numfilesatatime << "\n"
-		      << "standardstep2: " << standardstep2 << "\n";
-	  }
-#endif
-	  
 	}
 	else{
 	  // didn't provide filename or any arguments ...
@@ -202,33 +78,7 @@ int main(int argc, char* argv[]){
 	  return 1;
 	}
 	
-	std::string base_dir=make_base_dir_name(filename);  //
 	
-	std::string templocation;
-	if (devshm==1) {
-	  templocation = sharedmemorylocation;
-	}
-	else {
-	  templocation = called_dir;
-	}
-	
-	if (myid==headnode) {
-		
-		std::cout << "headnode setting up folders\n";
-		
-	  SetUpFolders(location,
-		       numprocs,
-		       numfilesatatime,
-		       templocation);
-		std::cout << "headnode done setting up folders\n";
-	}
-	
-	std::string homedir = getenv("HOME");
-	
-	
-	std::stringstream tmpfolder;
-	tmpfolder << templocation << "/bfiles_"
-		  << filename << "/tmpstep2"  ;
 	
 	
 
@@ -245,14 +95,15 @@ int main(int argc, char* argv[]){
 #ifdef timingstep2
 	process_timer.add_time("read");
 #endif
-	paramotopy_info.location = location;
+	paramotopy_info.location = location; // essentially from the command line
 	paramotopy_info.steptwomode = steptwomode;
+
 	
 	
 	
 	
-	//instantiate the settings, set the filename
-	std::string settingsfilename = location;//not homedir; anymore
+	//instantiate the settings
+	std::string settingsfilename = location;
 	settingsfilename.append("/prefs.xml");
 	if (!boost::filesystem::exists(settingsfilename)) {
 	  std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! id:" << myid << std::endl;
@@ -269,68 +120,73 @@ int main(int argc, char* argv[]){
 	
 	
 	
-	
 	//get random values from file in base_dir.  probably destroyed during parsing process.  gotta do this after parsing.
 #ifdef timingstep2
 	process_timer.press_start("read");
 #endif
-	GetRandomValues(paramotopy_info.location,
-					paramotopy_info.RandomValues);
+	paramotopy_info.GetRandomValues();
 #ifdef timingstep2
 	process_timer.add_time("read");
 #endif
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	std::string base_dir=make_base_dir_name(filename);  //
+	
+	
+
+
+	
+	std::string timingfolder = location;
+	timingfolder.append("/timing");
+#ifdef timingstep2
+	if (myid==0) {
+		if (boost::filesystem::exists(timingfolder)){
+			boost::filesystem::remove_all(timingfolder);
+		}
+		mkdirunix(timingfolder.c_str());
+	}
+#endif
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	//the main body of the program is here:
 	if (myid==headnode){
-	  
-	  master(filename,
-		 numfilesatatime,
-		 saveprogresseverysomany,
-		 called_dir,
-		 steptwomode,
-		 paramotopy_settings,
-		 paramotopy_info,
-		 process_timer);
+		master_process master;
+		master.master_main(paramotopy_settings, paramotopy_info, process_timer);
 	}
 	else{
-	  
-	  slave(TheFiles,
-		numfiles,
-		ParamNames,
-		base_dir,
-		numfilesatatime,
-		called_dir,
-		tmpfolder.str(),
-		newfilethreshold,
-		location,
-		buffersize,
-		paramotopy_settings,
-		paramotopy_info,
-		process_timer);
+	  slave_process slave;
+		slave.slave_main(paramotopy_settings, paramotopy_info, process_timer);
 	}
 	
+
 	
-	//need to sync right here, so the master does not erase the folder before done with it.
 	
 	
 #ifdef timingstep2
-	std::string timingfolder = location;
-	timingfolder.append("/timing");
 	process_timer.write_timing_data(timingfolder,myid);
 #endif
 	
-	int arbitraryinteger = 1;
-	MPI_Bcast(&arbitraryinteger, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
 	
-	if (  (myid==headnode) && (paramotopy_settings.settings["files"]["deletetmpfilesatend"].intvalue==1) ) {
-	  boost::filesystem::path temppath(tmpfolder.str());
-	  boost::filesystem::remove_all(tmpfolder.str());
-	}
-	
-	
-	
-	delete[] TheFiles;
+
 	MPI_Finalize();//wrap it up
 	
 	

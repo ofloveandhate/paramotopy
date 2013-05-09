@@ -31,7 +31,6 @@
 #include "para_aux_funcs.hpp"
 
 #include "xml_preferences.hpp"
-#include "datagatherer.hpp"
 
 
 /** The input file parser. 
@@ -61,13 +60,19 @@ public:
   int numvariables;
   /** The number of variable groups. */
   int numvargroup;
-  /** The number of parameters. */
-  int numparam;
+  
+  int numparam; /** The number of parameters. */
+	
   /** The number of constants. */
   int numconsts;
-  std::string location;//this may well be changed/ renamed/ deleted
+	
+	//this may well be changed/ renamed/ deleted
   /**  The current working directory ? as we move in the directory structure. */
+  std::string location;
+	
+	/** bfiles_filename */
   std::string fundamental_dir;
+	
   /** The bfiles_filename base directory. */
   std::string base_dir;
   
@@ -106,6 +111,9 @@ public:
   /** The parameter values. */
   std::vector< std::vector< std::pair<double,double> > > Values;
   
+	std::vector< std::pair<double,double> > BoundsLeft;
+	std::vector< std::pair<double,double> > BoundsRight;
+	
   /** Flag for user-defined monte carlo file. True if yes, false if no. */
   bool userdefined;
   
@@ -120,6 +128,26 @@ public:
   /** Random initial values.  In the pair, real is first, imaginary is second. */
   std::vector< std::pair<double,double> > RandomValues;
   
+	
+	
+	
+	
+	
+	
+	
+	
+	////////////
+	//////////
+	////////
+	///////
+	//////
+	//            methods
+	//////
+	///////
+	/////////
+	///////////
+	/////////////
+	
   /** The default paramotopy constructor. */
   runinfo(){
     steptwomode = -1;
@@ -187,8 +215,7 @@ public:
       Flag to indicate if a new folder was created or not.
    */
   bool made_new_folder;
-  /** Display the data management main menu.  */
-  void DataManagementMainMenu();
+  
   /** Display the random value menu. */
   void RandomMenu(){
     std::stringstream ss;
@@ -235,6 +262,16 @@ public:
   /** Make the random values.  */
   std::vector<std::pair<double, double> > MakeRandomValues(int garbageint);
   
+	
+	/**
+	 * Reads in the random values to be used in this solve.
+	 * \param base_dir Directory in which to look for the random values file.
+	 * \param RandomValues Mutable vector in which to store the random values read in by this function.
+	 */
+	void GetRandomValues();
+
+	
+	
   /** Write the original paramotopy file in the bfiles_filename/run# folder. */
   void WriteOriginalParamotopy(std::string dir);
   /** Write a modified paramotopy file in the corresponding iteration folder used in the path failure analysis. */
@@ -404,7 +441,9 @@ private:
   /** Make the parameter values for the step 2 runs. */
   void MakeValues();
 	
-  
+	/** Set the right and left bounds for the interval in question. */
+  void MakeBounds();
+	
   /** ? */
   void SetDataFirst();
   /** ? */

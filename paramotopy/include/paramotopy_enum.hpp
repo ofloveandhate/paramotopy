@@ -7,19 +7,14 @@ enum OPTIONS {Start, Input, SetRandom, SaveRandom, LoadRandom, WriteStepOne, Run
 
 
 
-//struct preferences{
-//	
-//	std::string machinefile;
-//	int architecture;
-//	int usemachine;
-//	int numprocs;
-//	int numfilesatatime;
-//	int saveprogresseverysomany;
-//	int newfilethreshold;
-//	int devshm;
-//	int stifle;
-//	std::string step2location;
-//};
+enum MPI_FLAGS {
+	NUM_PACKETS,
+	NUM_CHARACTERS,
+	TERMINATE,
+	TEXT_FILE,
+	DATA_DOUBLE,
+	SLAVE_ITERATION_FINISHED};
+
 
 /**
  * Struct containing names of files to be collected.
@@ -30,6 +25,6 @@ struct ToSave{
 	std::string filename;
 	bool saved;
 	int filecount;
-	
+	int parser_index;
 };
 #endif

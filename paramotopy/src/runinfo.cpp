@@ -24,7 +24,7 @@ bool runinfo::CheckRunStepOne(){
       return false;
     }
     
-  }  // if there is no nonsingular file, i.e. run is not done
+  }  // if there is no nonsingular file, ii.e. run is not done
   else{
     typedef std::vector< boost::filesystem::path > vec;
     vec v;
@@ -219,9 +219,9 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
   else{
     inputfilestream << " ";
   }
-  for (int i = 0; i < int(VarGroups.size());++i){
-    inputfilestream << VarGroups[i]
-		    << ( i != numvargroup-1? ",":";\n\n" );
+  for (int ii = 0; ii < int(VarGroups.size());++ii){
+    inputfilestream << VarGroups[ii]
+		    << ( ii != numvargroup-1? ",":";\n\n" );
     
     
   }
@@ -232,14 +232,14 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
 
 
     inputfilestream << "constant ";
-    for (int i = 0; i < numparam;++i){
-      inputfilestream << "rand" << ParameterNames[i]
-		      << (i!= numparam-1?",":";\n");
+    for (int ii = 0; ii < numparam;++ii){
+      inputfilestream << "rand" << ParameterNames[ii]
+		      << (ii!= numparam-1?",":";\n");
     }
     inputfilestream << "constant ";
-    for (int i = 0; i < numparam;++i){
-      inputfilestream << "here" << ParameterNames[i]
-		      << (i!= numparam -1?",":";\n");
+    for (int ii = 0; ii < numparam;++ii){
+      inputfilestream << "here" << ParameterNames[ii]
+		      << (ii!= numparam -1?",":";\n");
     }
     
     
@@ -252,8 +252,8 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
     
     inputfilestream << "pathvariable t;\n"
 		    << "parameter ";
-    for (int i =0;i < numparam;++i){
-      inputfilestream << ParameterNames[i] << (i!= numparam-1?",":";\n");
+    for (int ii =0;ii < numparam;++ii){
+      inputfilestream << ParameterNames[ii] << (ii!= numparam-1?",":";\n");
     }
     
     // Declare Functions
@@ -270,9 +270,9 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
   else{ // just leave all the parameters as constants, and update the num.out file accordingly
     
     inputfilestream << "constant ";
-    for (int i = 0; i < numparam;++i){
-      inputfilestream << ParameterNames[i]
-                      << (i!= numparam-1?",":";\n");
+    for (int ii = 0; ii < numparam;++ii){
+      inputfilestream << ParameterNames[ii]
+                      << (ii!= numparam-1?",":";\n");
     }
 
     // user given constants                                                                            
@@ -341,7 +341,7 @@ void runinfo::GetInputFileName(){
 }
 
 void runinfo::GetInputFileName(std::string suppliedfilename){
-  struct stat filestatus;
+
   if (boost::filesystem::exists(suppliedfilename)){  // if it can see the 'finished' file
     inputfilename = suppliedfilename;
   }
@@ -368,9 +368,9 @@ void runinfo::WriteRandomValues(){
     std::cerr << "failed to open " << randpointfilename << " to write random points\n";
   }
   // write the random points
-  for (int i = 0; i < numparam; ++i){
-    fout << RandomValues[i].first << " "
-	 << RandomValues[i].second << "\n";
+  for (int ii = 0; ii < numparam; ++ii){
+    fout << RandomValues[ii].first << " "
+	 << RandomValues[ii].second << "\n";
   }
   
   fout.close();
@@ -388,9 +388,9 @@ void runinfo::SaveRandom(){
   fout.precision(16);
   fout.open(randpointfilename.c_str());
   
-  for (int i = 0; i < numparam; ++i){
-    fout << RandomValues[i].first << " "
-	 << RandomValues[i].second << "\n";
+  for (int ii = 0; ii < numparam; ++ii){
+    fout << RandomValues[ii].first << " "
+	 << RandomValues[ii].second << "\n";
   }
   fout.close();
   
@@ -530,8 +530,8 @@ void runinfo::SetRandom(){
     int paramrandchoice = 1;
     while (paramrandchoice != 0){
       std::cout << "0 - Done specifying random values\n";
-      for (int i = 0; i < numparam;++i){
-	std::cout << i+1 << " - " << ParameterNames[i]
+      for (int ii = 0; ii < numparam;++ii){
+	std::cout << ii+1 << " - " << ParameterNames[ii]
 		  << "\n";
       }
       paramrandchoice = get_int_choice("Enter the parameter you want to rerandomize : ",0,numparam);
@@ -577,9 +577,9 @@ void runinfo::SetRandom(){
 void runinfo::PrintRandom(){
 	
   std::cout << "The random initial values for the parameters are : \n";
-  for (int i = 0; i < int(ParameterNames.size());++i){
-    std::cout << ParameterNames[i] << " = " << RandomValues[i].first
-	      << " + " << RandomValues[i].second << "*I\n";
+  for (int ii = 0; ii < int(ParameterNames.size());++ii){
+    std::cout << ParameterNames[ii] << " = " << RandomValues[ii].first
+	      << " + " << RandomValues[ii].second << "*I\n";
     
   }
   std::cout << std::endl;
@@ -598,7 +598,7 @@ void runinfo::CopyUserDefinedFile(){
     boost::filesystem::path mcfile(this->mcfname);
     if (!boost::filesystem::exists(mcfile)) {
       std::cerr << "mcfile specified by the input file does not exist..." 
-		<< std::endl;
+				<< std::endl;
       std::cerr << "mcfile: " << mcfile << "\n";
       return;
     }
@@ -699,6 +699,7 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
     runinfo::ReadParameters(fin);
     runinfo::MakeParameterNames();
     runinfo::MakeValues();
+		runinfo::MakeBounds();
   }
   
   runinfo::ReadCustomLines(fin);
@@ -746,7 +747,7 @@ void runinfo::ReadSizes(std::ifstream & fin){
 //part of the suite of parse input functions, reads the parameter declarations.
 void runinfo::ReadParameters(std::ifstream & fin){
   Parameters.clear();
-  for (int i = 0; i < numparam; ++i){
+  for (int ii = 0; ii < numparam; ++ii){
     std::string tmp;
     getline(fin,tmp);
     Parameters.push_back(tmp);
@@ -759,7 +760,7 @@ void runinfo::ReadParameters(std::ifstream & fin){
 void runinfo::MakeRandomValues(){
   RandomValues.clear();
   MTRand drand(time(0));
-  for (int i = 0; i < numparam;++i){
+  for (int ii = 0; ii < numparam;++ii){
     double creal = double(drand());
     double cimaginary = double(drand());
 		RandomValues.push_back(std::pair<double,double>(creal,cimaginary));
@@ -776,15 +777,15 @@ void runinfo::MakeRandomValues(std::vector< std::pair< std::pair< double, double
   RandomValues.clear();
   // make the random values with the specified ranges.
   MTRand drand(time(0));
-  for (int i = 0; i < int(RandomRanges.size()); ++i){
+  for (int ii = 0; ii < int(RandomRanges.size()); ++ii){
     double crandreal = drand();
     double crandimaginary = drand();
-    crandreal*=(RandomRanges[i].first.second
-		- RandomRanges[i].first.first);
-    crandreal+=RandomRanges[i].first.first;
-    crandimaginary*=(RandomRanges[i].second.second
-		     -RandomRanges[i].second.first);
-    crandimaginary+=RandomRanges[i].second.first;
+    crandreal*=(RandomRanges[ii].first.second
+		- RandomRanges[ii].first.first);
+    crandreal+=RandomRanges[ii].first.first;
+    crandimaginary*=(RandomRanges[ii].second.second
+		     -RandomRanges[ii].second.first);
+    crandimaginary+=RandomRanges[ii].second.first;
     RandomValues.push_back(std::pair<double,double>(crandreal,
 						    crandimaginary));
     
@@ -814,10 +815,48 @@ std::vector<std::pair<double, double> > runinfo::MakeRandomValues(int seed_value
 }
 
 
+
+
+
+//read the random values from the step1.
+void runinfo::GetRandomValues(){
+  
+  std::stringstream myss;
+  std::ifstream fin;
+  std::string randfilename = this->location;
+  randfilename.append("/randstart");
+  fin.open(randfilename.c_str());
+  
+  if (!fin.is_open()) {
+    std::cout << "failed to open randfilename: " << randfilename << "\n";
+    exit(731);
+  }
+  
+  int ccount=0;
+  std::string mytemp;
+  while(getline(fin,mytemp)){
+    std::stringstream myss;
+    myss << mytemp;
+    double crandreal;
+    double crandimaginary;
+    myss >> crandreal;
+    myss >> crandimaginary;
+    this->RandomValues[ccount].first = crandreal;
+    this->RandomValues[ccount].second = crandimaginary;
+    ++ccount;
+  }
+  std::cout << std::endl;
+  fin.close();
+  //end get random values
+  
+}
+
+
+
 //part of the suite of parse input functions, reads the functions from the paramotopy input file
 void runinfo::ReadFunctions(std::ifstream & fin){
   Functions.clear();
-  for (int i = 0; i < numfunct; ++i){
+  for (int ii = 0; ii < numfunct; ++ii){
     std::string tmp;
     getline(fin,tmp);
     Functions.push_back(tmp);
@@ -830,7 +869,7 @@ void runinfo::ReadFunctions(std::ifstream & fin){
 //part of the suite of parse input functions, reads the variable groups from paramotopy input file
 void runinfo::ReadVarGroups(std::ifstream & fin){
   VarGroups.clear();
-  for (int i = 0; i < numvargroup; ++i){
+  for (int ii = 0; ii < numvargroup; ++ii){
     std::string tmp;
     getline(fin,tmp);
     VarGroups.push_back(tmp);
@@ -853,8 +892,7 @@ void runinfo::ReadConstants(std::ifstream & fin){
 //part of the suite of parse input functions, reads the constants
 void runinfo::ReadConstantStrings(std::ifstream & fin){
   ConstantNames.clear();
-  std::cout << "Number of constants = "  << numconsts << "\n";
-  for (int i = 0; i < numconsts;++i){
+  for (int ii = 0; ii < numconsts;++ii){
     std::string tmp;
     getline(fin,tmp);
     ConstantNames.push_back(tmp);
@@ -868,12 +906,12 @@ void runinfo::GetNumVariables(){
   int count = 0;
   size_t comma_found;
   
-  for (int i=0; i<numvargroup; ++i) {
+  for (int ii=0; ii<numvargroup; ++ii) {
     count++;
-    comma_found = VarGroups[i].find(",");
+    comma_found = VarGroups[ii].find(",");
     while ( comma_found != std::string::npos ) {
       count++;
-      comma_found = VarGroups[i].find(",",comma_found+1,1);
+      comma_found = VarGroups[ii].find(",",comma_found+1,1);
     }
   }
   numvariables = count;
@@ -884,10 +922,10 @@ void runinfo::GetNumVariables(){
 
 void runinfo::MakeFunctions(std::stringstream & inputfilestream){
   inputfilestream << "\n";
-  for (int i = 0; i < numfunct;++i){
-    inputfilestream << "f" << i+1
+  for (int ii = 0; ii < numfunct;++ii){
+    inputfilestream << "f" << ii+1
 		    << " = "
-		    << Functions[i]
+		    << Functions[ii]
 		    << ";\n";
     
   }
@@ -901,18 +939,18 @@ void runinfo::MakeVariableGroups(std::stringstream & fout, ProgSettings paramoto
   if (paramotopy_settings.settings["stage1bertini"]["USERHOMOTOPY"].value() == "1"){
     fout << "\n";
     fout << "variable ";
-    for (int i = 0; i < numvargroup; ++i){
-      fout << VarGroups[i];
-      fout << (i != numvargroup - 1 ? ", " : "");
+    for (int ii = 0; ii < numvargroup; ++ii){
+      fout << VarGroups[ii];
+      fout << (ii != numvargroup - 1 ? ", " : "");
     }
     fout << ";\n";
     
   }
   else{
-    for (int i = 0; i < numvargroup;++i){
+    for (int ii = 0; ii < numvargroup;++ii){
       fout << "\n";
       fout << "variable_group ";
-      fout << VarGroups[i];
+      fout << VarGroups[ii];
       fout << ";";    
     }
     
@@ -924,9 +962,9 @@ void runinfo::MakeVariableGroups(std::stringstream & fout, ProgSettings paramoto
 void runinfo::MakeDeclareConstants(std::stringstream & fout){
   fout << "\n";
   fout << "constant ";
-  for (int i = 0; i < int(this->ParameterNames.size());++i){
-    fout << this->ParameterNames[i]
-	 << (i != int(this->ParameterNames.size())-1?",":";\n");
+  for (int ii = 0; ii < int(this->ParameterNames.size());++ii){
+    fout << this->ParameterNames[ii]
+	 << (ii != int(this->ParameterNames.size())-1?",":";\n");
     
   }
   if (this->Constants.size()!=0){
@@ -939,9 +977,9 @@ void runinfo::MakeDeclareConstants(std::stringstream & fout){
 //writes the function declaration to mutable stringstream, for writing to file for bertini later.
 void runinfo::MakeDeclareFunctions(std::stringstream & inputfilestream){
   inputfilestream << "function ";
-  for (int i = 1; i <=numfunct;++i){
-    inputfilestream << "f" << i;
-    if (i != numfunct){
+  for (int ii = 1; ii <=numfunct;++ii){
+    inputfilestream << "f" << ii;
+    if (ii != numfunct){
       inputfilestream << ", ";
     }
     else{
@@ -954,17 +992,17 @@ void runinfo::MakeDeclareFunctions(std::stringstream & inputfilestream){
 
 void runinfo::MakeConstants(std::stringstream & fout){
   
-  for (int i = 0; i < int(this->RandomValues.size());++i){
-    fout << this->ParameterNames[i]
+  for (int ii = 0; ii < int(this->RandomValues.size());++ii){
+    fout << this->ParameterNames[ii]
 	 << " = "
-	 << this->RandomValues[i].first
+	 << this->RandomValues[ii].first
 	 << " + "
-	 << this->RandomValues[i].second
+	 << this->RandomValues[ii].second
 		<< "*I;\n";
   }
   
-  for (int i = 0; i < int(ConstantNames.size());++i){
-    fout << "\n" << this->ConstantNames[i];
+  for (int ii = 0; ii < int(ConstantNames.size());++ii){
+    fout << "\n" << this->ConstantNames[ii];
   }
   fout << "\n";
 }
@@ -982,46 +1020,46 @@ void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > Current
 	
 
   if (standardstep2){
-    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+    for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
       inputfilestream << "rand"
-		      << this->ParameterNames[i]
+		      << this->ParameterNames[ii]
 		      << " = "
-		      << this->RandomValues[i].first << " + " << this->RandomValues[i].second
+		      << this->RandomValues[ii].first << " + " << this->RandomValues[ii].second
 		      << "*I;\n";
     }
     
-    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
+    for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
       inputfilestream << "here"
-		      << this->ParameterNames[i]
+		      << this->ParameterNames[ii]
 		      << " = "
-		      << CurrentValues[i].first << " + " << CurrentValues[i].second
+		      << CurrentValues[ii].first << " + " << CurrentValues[ii].second
 		      << "*I;\n";
     }
     
-    for (int i = 0; i < int(this->ConstantNames.size());++i){
-      inputfilestream << this->ConstantNames[i]
+    for (int ii = 0; ii < int(this->ConstantNames.size());++ii){
+      inputfilestream << this->ConstantNames[ii]
 		      << "\n";
     }
     
-    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
-      inputfilestream << this->ParameterNames[i]
+    for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
+      inputfilestream << this->ParameterNames[ii]
 		      << "= t*rand"
-		      << this->ParameterNames[i]
+		      << this->ParameterNames[ii]
 		      << " + (1-t)*here"
-		      << this->ParameterNames[i]
+		      << this->ParameterNames[ii]
 		      << ";\n";
     }
     
   }
   else{
-    for (int i = 0; i < int(this->ParameterNames.size()); ++i){
-    inputfilestream << this->ParameterNames[i]
+    for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
+    inputfilestream << this->ParameterNames[ii]
 		    << " = "
-		    << this->RandomValues[i].first << " + " << this->RandomValues[i].second
+		    << this->RandomValues[ii].first << " + " << this->RandomValues[ii].second
 		    << "*I;\n";
     }
-    for (int i = 0; i < int(this->ConstantNames.size());++i){
-      inputfilestream << this->ConstantNames[i]
+    for (int ii = 0; ii < int(this->ConstantNames.size());++ii){
+      inputfilestream << this->ConstantNames[ii]
                       << "\n";
     }
 
@@ -1037,7 +1075,7 @@ void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > Current
 
 void runinfo::MakeValues(std::ifstream & fin){
 	
-  
+	this->NumMeshPoints.clear();
   Values.clear();
 	
   std::string temp;
@@ -1046,7 +1084,7 @@ void runinfo::MakeValues(std::ifstream & fin){
     std::vector< std::pair<double, double> > CValue;
     std::stringstream ss;
     ss << temp;
-    for (int i = 0; i < numparam;++i){
+    for (int ii = 0; ii < numparam;++ii){
       double creal;
       double cimaginary;
       ss >> creal;
@@ -1062,20 +1100,57 @@ void runinfo::MakeValues(std::ifstream & fin){
 }
 
 
+
+
+
+void runinfo::MakeBounds(){
+	
+	if (this->userdefined!=0) {
+		std::cout << "attempting to set bounds in a non-computer-generated" << std::endl;
+		exit(-12);
+	}
+	
+	this->BoundsLeft.clear();
+	this->BoundsRight.clear();
+	// parse the parameter string per line
+  for (int ii = 0; ii < int(Parameters.size());++ii){
+		std::string temp;
+    std::stringstream ss;
+    ss << Parameters[ii];
+    ss >> temp; // pull the name off the string
+
+    // values given by lep, rep, and # of mesh points
+    double lepr; // left end point real
+    double lepi; // right end point real
+    double repr; //
+    double repi;
+		
+    ss >> lepr;
+    ss >> lepi;
+    ss >> repr;
+    ss >> repi;
+		this->BoundsLeft.push_back(std::pair< double, double> (lepr, lepi));
+		this->BoundsRight.push_back(std::pair< double, double> (repr, repi));
+  }
+  return;
+
+	
+	
+}
 //sets the Values and NumMeshPoints variables in the runinfo class
 void runinfo::MakeValues(){
 	
-  NumMeshPoints.clear();
-  Values.clear();
-  //	std::vector< std::vector< std::pair<double,double> > > MeshValues;
-  
+  this->NumMeshPoints.clear();
+  this->Values.clear();
+
+
   // parse the parameter string per line
-  for (int i = 0; i < int(Parameters.size());++i){
+  for (int ii = 0; ii < int(Parameters.size());++ii){
     std::string temp;
     //    bool userdefined;
     
     std::stringstream ss;
-    ss << Parameters[i];
+    ss << Parameters[ii];
     ss >> temp;
     //   ss >> userdefined;
     //   if (!userdefined){
@@ -1091,17 +1166,18 @@ void runinfo::MakeValues(){
     ss >> repr;
     ss >> repi;
     ss >> meshpoints;
-    NumMeshPoints.push_back(meshpoints);
+		
+    this->NumMeshPoints.push_back(meshpoints); // add the number of meshpoints to the vector keeping track
     double stepr = (repr - lepr)/(meshpoints-1);
     double stepi = (repi - lepi)/(meshpoints+1);
     double currentr = lepr;
     double currenti = lepi;
-    for (int j = 0; j < meshpoints;++j){
-      currentmesh.push_back(std::pair<double,double>(currentr,currenti));
+    for (int jj = 0; jj < meshpoints;++jj){
+      currentmesh.push_back(std::pair<double,double>(currentr,currenti)); // set the temp value
       currentr+=stepr;
       currenti+=stepi;
     }
-    Values.push_back(currentmesh);
+    this->Values.push_back(currentmesh);// add to the Values vector.
     
     
     // fin.close();
@@ -1115,9 +1191,9 @@ void runinfo::MakeValues(){
 void runinfo::MakeParameterNames(){
 	
   ParameterNames.clear();
-  for (int i = 0; i < numparam;++i){
+  for (int ii = 0; ii < numparam;++ii){
     std::stringstream ss;
-    ss << Parameters[i];
+    ss << Parameters[ii];
     std::string paramname;
     ss >> paramname;
     ParameterNames.push_back(paramname);
@@ -1204,49 +1280,7 @@ void runinfo::DisplayAllValues(){
 
 
 
-void runinfo::DataManagementMainMenu(){
-	
-  datagatherer lets_gather_some_data(this->base_dir, this->fundamental_dir,this->numvariables);
-  
-  std::stringstream menu;
-  
-  menu << "\n\nData Management Options\n\n" //
-       << "1) Change Run Folder\n" //make menu
-       << "2) Gather Data\n"
-	<< "*\n"
-       << "0) Go Back\n"
-       << "\n: ";
-  int choice = -1001;
-  while (choice!=0) {
-    
-    
-    choice = get_int_choice(menu.str(),0,2);//display menu, get choice
-    
-    switch (choice) {
-    case 0:
-      break;
-      
-    case 1:
-      runinfo::ScanData();
-      break;
-      
-    case 2:
-      
-      lets_gather_some_data.GatherDataFromMenu();
-      break;
-      
-      
-    default:
-      std::cout << "somehow an unacceptable entry submitted :(\n";
-      break;
-    }
-    
-  }
-  
-  
-  return;
-  
-}
+
 
 
 

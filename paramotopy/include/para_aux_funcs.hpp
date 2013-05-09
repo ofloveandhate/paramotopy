@@ -55,6 +55,19 @@ void ParamotopySplashScreen();
 */
 void BertiniSplashScreen(std::string bertinilocation);
 
+
+
+
+/**
+ get the index for the particular filename.  not the fastest lookup, should only perform seldomly.
+ \param filename the string name of the file.
+ \return parser index of the filename
+ */
+int GetFileParserIndex(std::string filename);
+
+
+
+
 /** Get the files to parse.
  \param run_to_analyze - The path of the folder to analyze.
  \param gather_savefiles - Gather all the files to be saved 
@@ -186,6 +199,9 @@ std::string stackoverflow_getcwd();
  \param mydir - The directory to make.
 */
 void mkdirunix(std::string mydir);
+
+
+void safe_chdir(std::string desired_directory);
 
 
 #endif

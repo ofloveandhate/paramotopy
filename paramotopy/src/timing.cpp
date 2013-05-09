@@ -51,9 +51,12 @@ bool timer::create_timer(const std::string timer_name){
 
 
 
+
 bool timer::write_timing_data(const boost::filesystem::path folder_to_write_to, const int myid){
 
 	boost::filesystem::path file_to_write_to = folder_to_write_to;
+	
+	
 	
 	std::stringstream converter;
 	converter << myid;

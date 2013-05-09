@@ -178,7 +178,7 @@ int main(int argC, char *args[]){
 				
 			case 2:
 				//data management
-				paramotopy_info.DataManagementMainMenu();
+				DataManagementMainMenu(paramotopy_info);
 				mkdirunix(paramotopy_info.base_dir);
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";

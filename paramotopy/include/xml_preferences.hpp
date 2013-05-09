@@ -287,6 +287,28 @@ public:
   void ParallelismMenu();		       
   /** Display the general options menu. */
   void GeneralMenu();
+	
+	/** main switch for solver modes. */
+	void SetSearchMode();
+	
+	/** get the number of iterations for a pos real search */
+	void SetSearchIterations();
+	
+	/** switch between accumulating a specific number of solutions, or a number of points with a desired number of positive real solutions */
+	void SetSearchSubmode();
+	
+	/** get the threshold for number of positive real solutions occurring at any point */
+	void SetSearchPosRealThresh();
+	
+	
+	/** get the number of desired solutions for a pos real search */
+	void SetSearchDesiredNumber();
+	
+	
+	/** menu for search mode. */
+	void SearchMenu();
+	
+	
 	/** Menu for Solver modes. */
 	void SolverModeMenu();
 	/** Menu for system interaction. */
