@@ -16,7 +16,7 @@ The Bertini software package, on which Paramotopy depends, has its own copyright
 "The Program" refers to any copyrightable work licensed under this license.  Each licensee 
 is addressed as "you" and may be any individual or an organization.
 
-"Paramotopy" refers to two executables, 'Paramotopy' and 'Stage2', and all source code for each.
+"Paramotopy" refers to two executables, 'Paramotopy' and 'Step2', and all source code for each.
 
 To "modify" a work means to copy from or adapt all or part of the work in a fashion requiring 
 copyright permission, other than the making of an exact copy. The resulting work is called a 
