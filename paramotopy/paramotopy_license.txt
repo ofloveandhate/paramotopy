@@ -13,25 +13,25 @@ The Bertini software package, on which Paramotopy depends, has its own copyright
 
 0. Definitions
 
-"The Program" refers to any copyrightable work licensed under this licence.  Each licensee 
+"The Program" refers to any copyrightable work licensed under this license.  Each licensee 
 is addressed as "you" and may be any individual or an organization.
 
 "Paramotopy" refers to two executables, 'Paramotopy' and 'Stage2', and all source code for each.
 
-To “modify” a work means to copy from or adapt all or part of the work in a fashion requiring 
+To "modify" a work means to copy from or adapt all or part of the work in a fashion requiring 
 copyright permission, other than the making of an exact copy. The resulting work is called a 
-“modified version” of the earlier work or a work “based on” the earlier work.
+"modified version" of the earlier work or a work "based on" the earlier work.
 
-To “propagate” a work means to do anything with it that, without permission, would make you 
+To "propagate" a work means to do anything with it that, without permission, would make you 
 directly or secondarily liable for infringement under applicable copyright law, except executing 
 it on a computer or modifying a private copy. Propagation includes copying, distribution (with or 
 without modification), or making available to the public.
 
-To “convey” a work means any kind of propagation that enables other parties to make or receive 
+To "convey" a work means any kind of propagation that enables other parties to make or receive 
 copies. Mere interaction with a user through a computer network, with no transfer of a copy, is 
 not conveying.
 
-A “Standard Interface” means an interface that either is an official standard defined by a 
+A "Standard Interface" means an interface that either is an official standard defined by a 
 recognized standards body, or, in the case of interfaces specified for a particular programming 
 language, one that is widely used among developers working in that language.
 
