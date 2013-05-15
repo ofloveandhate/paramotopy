@@ -1,10 +1,17 @@
 /**
-\mainpage Paramotopy
-
-Paramotopy is a parallel parameter homotopy program, using Bertini as the homotopy continuation solver.
-
+ \mainpage Paramotopy
+ 
+ Paramotopy is a parallel parameter homotopy program, using Bertini as the homotopy continuation solver.
+  
+	<a href="http://www.paramotopy.com">Paramotopy Website</a>
+	
+	<a href="http://www3.nd.edu/~sommese/bertini/">Bertini Website</a>
+	
 \section Intro
 
 \image html homotopycontinuation_generic.png
+
 \image html homotopycontinuation_paramotopy.png
+
 */
+
