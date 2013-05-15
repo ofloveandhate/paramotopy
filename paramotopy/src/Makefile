@@ -48,6 +48,7 @@ else ifeq (MACBRAKE, $(MACHINENAME))
 	BERTINILIB := $(HOME)/lib/libbertini.a #$(HOME)/lib/libbertini_opt_nog.a
 	MPFRLOC :=#in path
 	INSTALLDIR:=~/bin
+
 else ifeq (cray,$(MACHINENAME))
 	#cray, as dan brake
 	MCC := CC
@@ -62,13 +63,13 @@ else ifeq (cray,$(MACHINENAME))
 	
 else ifeq (macniemerg,$(MACHINENAME))
 	#matt n's macintosh
-	MCC:= mpic++ -mpe=mpicheck
+	MCC:= mpic++ #-mpe=mpicheck
 	CC:= g++
 	BOOSTLOC := /usr/local/lib/
-	INCLUDE := -I../include -I/usr/local/include
+	INCLUDE := -I../include -I$(HOME)/Research/Bertini/bertini1.4/bertini/include #-I/usr/local/include 
 	MANDATORYOPT := -fopenmp
 	BOOSTSUFFIX :=#nothing
-	BERTINILIB := ../lib/libbertinimacmn.a
+	BERTINILIB := ../lib/libbertini_osx.10.6.a
 	MPFRLOC:=#already in path
 	STATICFLAG :=#nothing
 	INSTALLDIR=UNSETLOCATION
