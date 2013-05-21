@@ -120,7 +120,7 @@ int main(int argC, char *args[]){
 		std::cout << "made new random values" << std::endl;
 	}
 	
-	paramotopy_info.CopyUserDefinedFile();
+	
 	
 	// Make the appropriate Directory to place the input file in
 	paramotopy_info.mkdirstep1();

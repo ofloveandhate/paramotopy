@@ -6,35 +6,36 @@
 
 
 
-void master_process::master_main(ProgSettings & paramotopy_settings,
-																 runinfo & paramotopy_info,
+void master_process::master_main(ProgSettings input_settings,
+																 runinfo input_p_info,
 																 timer & process_timer)
 
 {
-	
+	this->paramotopy_settings = input_settings;
+	this->paramotopy_info = input_p_info;
 	
 	
 	//some data members used in this function
 
-	master_process::SetTmpFolder(paramotopy_info, paramotopy_settings);
+	master_process::SetTmpFolder();
 	
-	master_process::MasterSetup(paramotopy_settings, paramotopy_info);
+	master_process::MasterSetup();
 
-	master_process::SetUpFolders(paramotopy_info);
+	master_process::SetUpFolders();
 	
-	master_process::GetTerminationInt(paramotopy_info,paramotopy_settings);
+	master_process::GetTerminationInt();
 	
-	master_process::OpenMC(paramotopy_info,paramotopy_settings);
+	master_process::OpenMC();
 	
-	master_process::SendStart(paramotopy_settings, paramotopy_info, process_timer);
+	master_process::SendStart(process_timer);
 
-	master_process::SendInput(paramotopy_settings, paramotopy_info, process_timer);
+	master_process::SendInput(process_timer);
 
-	master_process::SeedSwitch(paramotopy_settings, paramotopy_info, process_timer);
+	master_process::SeedSwitch(process_timer);
 	
-	master_process::LoopSwitch(paramotopy_settings, paramotopy_info, process_timer);
+	master_process::LoopSwitch(process_timer);
 
-	master_process::CleanupSwitch(paramotopy_settings, paramotopy_info, process_timer);
+	master_process::CleanupSwitch(process_timer);
 	
 	
 	
@@ -63,8 +64,7 @@ void master_process::master_main(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::MasterSetup(ProgSettings & paramotopy_settings,
-															 runinfo & paramotopy_info)
+void master_process::MasterSetup()
 {
 	
 	this->numparam = paramotopy_info.numparam;
@@ -99,9 +99,7 @@ void master_process::MasterSetup(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::NextRandomValue(runinfo paramotopy_info,
-																		 int pointcounter, // localcounter tells which indices in tempsends
-																		 int current_index,
+void master_process::NextRandomValue(int pointcounter, // localcounter tells which indices in tempsends
 																		 double tempsends[]) // holds the created data
 {
 	MTRand drand;
@@ -122,7 +120,7 @@ void master_process::NextRandomValue(runinfo paramotopy_info,
 		tempsends[pointcounter*(2*numparam+1)+2*ii] = rand_real;//for sending to workers, to write into data files.
 		tempsends[pointcounter*(2*numparam+1)+2*ii+1] = rand_imag;
 	}
-	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_index;//the line number in mc file
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_absolute_index;//the line number in mc file
 	
 	return;
 
@@ -130,11 +128,9 @@ void master_process::NextRandomValue(runinfo paramotopy_info,
 
 
 // FormNextValues generates parameter points from a mesh-style set
-void master_process::FormNextValues(int numparam,
-										int pointcounter,
-										std::vector< std::vector< std::pair<double,double> > > Values,
-										int current_index,
-										double tempsends[]){
+void master_process::FormNextValues(int pointcounter,
+																		std::vector< std::vector< std::pair<double,double> > > Values,
+																		double tempsends[]){
 	
 	int index, I,J;
 	std::vector< int > indexvector;//for forming a subscript from an index, for !userdefined case
@@ -143,7 +139,7 @@ void master_process::FormNextValues(int numparam,
 	
 	
 	//get subscripts (zero-based) for the index, current_absolute_index
-	index = current_index;
+	index = current_absolute_index;
 	for (int jj=numparam-1; jj>-1; --jj) {
 		I = (index)%index_conversion_vector[jj];
 		J = (index - I)/index_conversion_vector[jj];
@@ -156,7 +152,7 @@ void master_process::FormNextValues(int numparam,
 		tempsends[pointcounter*(2*numparam+1)+2*jj] = Values[jj][ indexvector[jj] ].first;//for sending to workers, to write into data files.
 		tempsends[pointcounter*(2*numparam+1)+2*jj+1] = Values[jj][ indexvector[jj] ].second;
 	}
-	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_index;//the line number in mc file
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_absolute_index;//the line number in mc file
 	
 	return;
 }
@@ -166,15 +162,12 @@ void master_process::FormNextValues(int numparam,
 
 
 //FormNextValues_mc generates points to send, from a user-defined set
-void master_process::FormNextValues_mc(int numparam,  //the number of parameters in the run
-											 int pointcounter,	//another integer counter
-											 int mc_line_number,  //an integer counter
-											 std::ifstream & mc_in_stream, //the input file stream we will read from
-											 double tempsends[]){ //tempsends holds the values to send
+void master_process::FormNextValues_mc(int pointcounter,	//another integer counter
+																			 double tempsends[]){ //tempsends holds the values to send
 	
 	
 	std::string temp;
-	getline(mc_in_stream,temp);
+	getline(this->mc_in_stream,temp);
 	std::vector< std::pair<double, double> > CValues;
 	std::stringstream ss;
 	ss << temp;
@@ -186,7 +179,7 @@ void master_process::FormNextValues_mc(int numparam,  //the number of parameters
 	
 	
   
-	tempsends[pointcounter*(2*numparam+1)+2*numparam] = mc_line_number;//the line number in mc file
+	tempsends[pointcounter*(2*numparam+1)+2*numparam] = current_absolute_index;//the line number in mc file
 	
   
 	
@@ -212,19 +205,17 @@ void master_process::FormNextValues_mc(int numparam,  //the number of parameters
 
 
 
-void master_process::SeedSwitch(ProgSettings & paramotopy_settings,
-											 runinfo & paramotopy_info,
-											 timer & process_timer){
+void master_process::SeedSwitch(timer & process_timer){
 
 	
 	
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 		case 0:
-			master_process::SeedBasic(paramotopy_settings, paramotopy_info, process_timer);
+			master_process::SeedBasic(process_timer);
 			break;
 			
 		case 1:
-			master_process::SeedSearch(paramotopy_settings, paramotopy_info, process_timer);
+			master_process::SeedSearch(process_timer);
 			break;
 			
 			
@@ -239,9 +230,7 @@ void master_process::SeedSwitch(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::SeedBasic(ProgSettings & paramotopy_settings,
-							 runinfo & paramotopy_info,
-							 timer & process_timer){
+void master_process::SeedBasic(timer & process_timer){
 	
 
 	this->current_absolute_index = 0;
@@ -267,17 +256,12 @@ void master_process::SeedBasic(ProgSettings & paramotopy_settings,
 					//determine the parameter values for this file
 				
 					if (paramotopy_info.userdefined){
-						master_process::FormNextValues_mc(paramotopy_info.numparam,
-																							ii,
-																							current_absolute_index,
-																							mc_in_stream,
+						master_process::FormNextValues_mc(ii,
 																							tempsends);
 					}
 					else {//not user defined
-						master_process::FormNextValues(paramotopy_info.numparam,
-																					 ii,
+						master_process::FormNextValues(ii,
 																					 paramotopy_info.Values,
-																					 current_absolute_index,
 																					 tempsends);
 
 						if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
@@ -349,9 +333,7 @@ void master_process::SeedBasic(ProgSettings & paramotopy_settings,
 }
 
 
-void master_process::SeedSearch(ProgSettings & paramotopy_settings,
-								runinfo & paramotopy_info,
-								timer & process_timer){
+void master_process::SeedSearch(timer & process_timer){
 
 	
 	
@@ -396,9 +378,7 @@ void master_process::SeedSearch(ProgSettings & paramotopy_settings,
 			for (int ii = 0; ii <numtodo; ++ii){
 				
 
-				master_process::NextRandomValue(paramotopy_info,
-																				ii, // current index in tempsends
-																				current_absolute_index,
+				master_process::NextRandomValue(ii, // current index in tempsends
 																				tempsends); // data to fill
 				
 				if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
@@ -474,18 +454,16 @@ void master_process::SeedSearch(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::LoopSwitch(ProgSettings & paramotopy_settings,
-										 runinfo & paramotopy_info,
-										 timer & process_timer){
+void master_process::LoopSwitch(timer & process_timer){
 	
 	
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 		case 0:
-			master_process::LoopBasic(paramotopy_settings, paramotopy_info, process_timer);
+			master_process::LoopBasic(process_timer);
 			break;
 			
 		case 1:
-			master_process::LoopSearch(paramotopy_settings, paramotopy_info, process_timer);
+			master_process::LoopSearch(process_timer);
 			break;
 			
 			
@@ -498,9 +476,7 @@ void master_process::LoopSwitch(ProgSettings & paramotopy_settings,
 }//re: while loop switch
 
 
-void master_process::LoopBasic(ProgSettings & paramotopy_settings,
-							 runinfo & paramotopy_info,
-							 timer & process_timer){
+void master_process::LoopBasic(timer & process_timer){
 	
 	
 	MPI_Status status;
@@ -573,16 +549,14 @@ void master_process::LoopBasic(ProgSettings & paramotopy_settings,
 	#ifdef timingstep2
 					process_timer.press_start("read");
 	#endif
-					master_process::FormNextValues_mc(paramotopy_info.numparam,ii,current_absolute_index,mc_in_stream,tempsends);
+					master_process::FormNextValues_mc(ii,tempsends);
 	#ifdef timingstep2
 					process_timer.add_time("read");
 	#endif
 				}
 				else {
-					master_process::FormNextValues(paramotopy_info.numparam,
-																				 ii,
+					master_process::FormNextValues(ii,
 																				 paramotopy_info.Values,
-																				 current_absolute_index,
 																				 tempsends);
 
 					
@@ -660,9 +634,7 @@ void master_process::LoopBasic(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::LoopSearch(ProgSettings & paramotopy_settings,
-								runinfo & paramotopy_info,
-								timer & process_timer){
+void master_process::LoopSearch(timer & process_timer){
 	
 	
 	
@@ -746,9 +718,7 @@ void master_process::LoopSearch(ProgSettings & paramotopy_settings,
 			
 			for (int ii = 0; ii < numtodo; ++ii){
 				
-					master_process::NextRandomValue(paramotopy_info,
-																					ii, // current index in tempsends
-																					current_absolute_index,
+					master_process::NextRandomValue(ii, // current index in tempsends
 																					tempsends); // data to fill
 					
 					if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
@@ -845,19 +815,17 @@ void master_process::LoopSearch(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::CleanupSwitch(ProgSettings & paramotopy_settings,
-									 runinfo & paramotopy_info,
-									 timer & process_timer){
+void master_process::CleanupSwitch(timer & process_timer){
 	
 	
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 			
 		case 0:
-			master_process::CleanupBasic(paramotopy_settings, paramotopy_info, process_timer);
+			master_process::CleanupBasic(process_timer);
 			break;
 			
 		case 1: // also uses the basic cleanup method
-			master_process::CleanupSearch(paramotopy_settings, paramotopy_info, process_timer);
+			master_process::CleanupSearch(process_timer);
 			break;
 			
 		default:
@@ -878,9 +846,7 @@ void master_process::CleanupSwitch(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::CleanupBasic(ProgSettings & paramotopy_settings,
-																	runinfo & paramotopy_info,
-																	timer & process_timer){
+void master_process::CleanupBasic(timer & process_timer){
 	/* There's no more work to be done, so receive all the outstanding
 	 results from the slaves. */
 	
@@ -890,7 +856,7 @@ void master_process::CleanupBasic(ProgSettings & paramotopy_settings,
 	MPI_Status status;
 	int killcounter = 0;
 	
-	if (num_active_workers!=active_workers.size()) {
+	if (num_active_workers!=int(active_workers.size())) {
 		std::cerr << "discrepancy in number of active workers" << std::endl;
 		MPI_Abort(MPI_COMM_WORLD, 778);
 	}
@@ -964,11 +930,9 @@ void master_process::CleanupBasic(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::CleanupSearch(ProgSettings & paramotopy_settings,
-																	 runinfo & paramotopy_info,
-																	 timer & process_timer){
+void master_process::CleanupSearch(timer & process_timer){
 	
-	master_process::CleanupBasic(paramotopy_settings, paramotopy_info, process_timer);
+	master_process::CleanupBasic(process_timer);
 	
 }
 
@@ -983,9 +947,7 @@ void master_process::CleanupSearch(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::SendStart(ProgSettings & paramotopy_settings,
-															 runinfo & paramotopy_info,
-															 timer & process_timer){
+void master_process::SendStart(timer & process_timer){
 	
 	
 	
@@ -1048,9 +1010,7 @@ void master_process::SendStart(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::SendInput(ProgSettings & paramotopy_settings,
-							 runinfo & paramotopy_info,
-							 timer & process_timer){
+void master_process::SendInput(timer & process_timer){
 	
 	
 	
@@ -1134,7 +1094,7 @@ void master_process::SendInput(ProgSettings & paramotopy_settings,
 
 
 
-void master_process::GetTerminationInt(runinfo & paramotopy_info,ProgSettings & paramotopy_settings){
+void master_process::GetTerminationInt(){
 	
 	
 	std::string mcfname = paramotopy_info.location;
@@ -1168,7 +1128,7 @@ void master_process::GetTerminationInt(runinfo & paramotopy_info,ProgSettings & 
 
 
 //opens the mc_in or mc_out file stream
-void master_process::OpenMC(runinfo & paramotopy_info,ProgSettings & paramotopy_settings){
+void master_process::OpenMC(){
 	
 
 	std::string mcfname = paramotopy_info.location;
@@ -1210,8 +1170,7 @@ void master_process::OpenMC(runinfo & paramotopy_info,ProgSettings & paramotopy_
 
 
 
-void master_process::SetTmpFolder(runinfo & paramotopy_info,
-																	ProgSettings & paramotopy_settings){
+void master_process::SetTmpFolder(){
 
 
 
@@ -1235,7 +1194,7 @@ void master_process::SetTmpFolder(runinfo & paramotopy_info,
 
 
 
-void master_process::SetUpFolders(runinfo & paramotopy_info){
+void master_process::SetUpFolders(){
 	
 	
 	std::string DataCollectedbase_dir = paramotopy_info.location;

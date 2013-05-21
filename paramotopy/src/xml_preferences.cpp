@@ -4,6 +4,7 @@
 const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] = 
 { "real_solutions", "nonsingular_solutions", "singular_solutions", "raw_data", "raw_solutions","main_data","midpath_data"   };
 
+
 //NUMMANDATORY_SAVEFILES is set in xml_preferences.hpp
 const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] = 
 { "failed_paths" };
@@ -1336,8 +1337,8 @@ void ProgSettings::SolverModeMenu(){
   
   menu << "\n\nSolver Mode Settings:\n\n"
 	<< "1) Brute-force -vs- Search.\n"
-	<< "2) Standard stage2 run.\n"
-	<< "3) File to use for stage2 start file\n"
+	<< "2) Standard step2 run.\n"
+	<< "3) File to use for step2 start file\n"
 	<< "*\n"
 	<< "0) go back\n"
 	<< "\n: ";

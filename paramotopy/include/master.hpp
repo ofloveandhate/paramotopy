@@ -31,7 +31,13 @@
 
 
 
-
+/**
+ *  @class "master_process"
+ *
+ * process for distribution of parameter points and termination of workers. 
+ *
+ * \brief master process for basic searches and brute-force runs.
+ **/
 
 class master_process{
 	
@@ -71,9 +77,14 @@ public:
 	/**
 	 * the main master process.  to be used by which ever process gets myid==0.  handles the distribution of the parameter points to the workers via MPI.
 
+	 this is the only public method excepting the constructors.
+	 
+	 \param input_settings     current input settings.
+	 \param input_p_info       current parser run info.
+	 \param process_timer      MUTABLE current timer, and returns to user for further use.
 	 */
-	void master_main(ProgSettings & paramotopy_settings,
-									 runinfo & paramotopy_info,
+	void master_main(ProgSettings input_settings,
+									 runinfo input_p_info,
 									 timer & process_timer);
 	
 	
@@ -82,44 +93,53 @@ public:
 	
 	
 private:
-	std::vector< int > lastnumsent; //progress tracker
 	
-	int numprocs;
+	runinfo paramotopy_info; ///<  the parsed paramotopy input file.
+	ProgSettings paramotopy_settings; ///< the ProgSettings for this process
 	
-	int myid;
+	std::vector< int > lastnumsent; ///< progress tracker
 	
-	int numparam;
+	int numprocs;    ///< number of processors in the communicator
 	
-	std::string filename;
+	int myid;        ///<  my MPI id relative to communicator
 	
-	int standardstep2;
+	int numparam;		 ///< number of parameters in problem
 	
-	int numfilesatatime;
-	int numfilesatatime_orig;
+	std::string filename;  ///< filename for problem
 	
-	int terminationint;
-	int current_absolute_index;
+	int standardstep2;  ///< switch for total degree vs. coeff. homotopy
+	
+	int numfilesatatime;    ///< current number of files passed out at each distribution
+	int numfilesatatime_orig; ///< given number of files passed out at each distribution
+	
+	int terminationint;   ///< maximum absolute_current_index value before loop breaks.
+	int current_absolute_index;  ///< the current absolute index.  
 	
 	
-	std::string lastoutfilename;
-	std::string tmpfolder;
-	std::string called_dir;
-	std::string homedir;
+	std::string lastoutfilename;  ///< name of the progress file
+	std::string tmpfolder; ///< where the temp files at?
+	std::string called_dir;  ///< where was I when I was instantiated?
+	std::string homedir; ///< where is $(HOME)?  
 	
-	std::ofstream mc_out_stream;
-	std::ifstream mc_in_stream;
+	std::ofstream mc_out_stream;  ///< parameter point out file
+	std::ifstream mc_in_stream; ///< parameter point in file
 	
 	std::vector< int > index_conversion_vector;// for the index making function
 
 	
-	std::map< int, bool> active_workers;
-	int num_active_workers;
+	std::map< int, bool> active_workers; ///< map for tracking the active workers.
+	int num_active_workers;  ///< parity checker
 	
 	
 	
-	
-	void MasterSetup(ProgSettings & paramotopy_settings,
-									 runinfo & paramotopy_info);
+	/**
+	 the master setup function  
+	 
+	 uses the runinfo and ProgSettings in memory to setup the rest of the necessaries.
+	 
+
+	 */
+	void MasterSetup();
 	
 	
 	
@@ -133,19 +153,28 @@ private:
 	//
 	
 	
-	
-	void SeedSwitch(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-									timer & process_timer);
-	
-	void SeedBasic(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
+	/**
+	 switch for choosing seed process
+	 
+	 \param process_timer      current timer
+	 */
+	void SeedSwitch(timer & process_timer);
 	
 	
-	void SeedSearch(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
+	/**
+	 basic seeding function
+	 
+	 \param process_timer      current timer
+	 */
+	void SeedBasic(timer & process_timer);
+	
+	/**
+	 search mode seeding  function
+	 
+	 
+	 \param process_timer      current timer
+	 */
+	void SeedSearch(timer & process_timer);
 	
 	
 
@@ -164,20 +193,27 @@ private:
 	//
 	
 	
+	/**
+	 main loop switch
+	 
+	 \param process_timer      current timer
+	 */
+	void LoopSwitch(timer & process_timer);
 	
-	void LoopSwitch(ProgSettings & paramotopy_settings,
-																			 runinfo & paramotopy_info,
-									timer & process_timer);
 	
+	/**
+	 basic mode run loop
+	 
+	 \param process_timer      current timer
+	 */
+	void LoopBasic(timer & process_timer);
 	
-	
-	void LoopBasic(ProgSettings & paramotopy_settings,
-																 runinfo & paramotopy_info,
-								 timer & process_timer);
-	
-	void LoopSearch(ProgSettings & paramotopy_settings,
-																	runinfo & paramotopy_info,
-									timer & process_timer);
+	/**
+	 search mode loop
+	 
+	 \param process_timer      current timer
+	 */
+	void LoopSearch(timer & process_timer);
 	
 	
 	
@@ -194,20 +230,29 @@ private:
 
 	
 	
+	/**
+	 cleanup switch
+	 
+	 \param process_timer      current timer
+	 */
+	void CleanupSwitch(timer & process_timer);
 	
-	void CleanupSwitch(ProgSettings & paramotopy_settings,
-																		 runinfo & paramotopy_info,
-																		 timer & process_timer);
+	
+	/**
+	 basic mode cleanup function.
+	 
+	 \param process_timer      current timer
+	 */
+	void CleanupBasic(timer & process_timer);
 	
 	
+	/**
+	 search mode cleanup function.
+	 
+	 \param process_timer      current timer
+	 */
 	
-	void CleanupBasic(ProgSettings & paramotopy_settings,
-																		runinfo & paramotopy_info,
-																		timer & process_timer);
-	
-	void CleanupSearch(ProgSettings & paramotopy_settings,
-																		 runinfo & paramotopy_info,
-										 timer & process_timer);
+	void CleanupSearch(timer & process_timer);
 	
 	
 	
@@ -223,13 +268,19 @@ private:
 	///
 	//
 	
-	void SendInput(ProgSettings & paramotopy_settings,
-																 runinfo & paramotopy_info,
-								 timer & process_timer);
+	/**
+	 sends input file to all workers in the communicator via a for loop MPI_Send
+	 
+	 \param process_timer      current timer
+	 */
+	void SendInput(timer & process_timer);
 	
-	void SendStart(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
+	/**
+	 sends start file to all workers in communicator via a for loop MPI_Send
+	 
+	 \param process_timer      current timer
+	 */
+	void SendStart(timer & process_timer);
 	
 	
 	
@@ -256,9 +307,7 @@ private:
 	 * \param pointcounter counts the number of loops.  determines which index in tempsends gets set.
 	 * \param tempsends the variable in which the parameter points get set, for distribution to the workers via MPI.
 	 */
-	void NextRandomValue(runinfo paramotopy_info,
-											 int pointcounter, // localcounter tells which indices in tempsends
-											 int current_absolute_index,
+	void NextRandomValue(int pointcounter, // localcounter tells which indices in tempsends
 											 double tempsends[]);
 	
 	
@@ -266,58 +315,67 @@ private:
 	
 	/**
 	 * the function for determining the parameter values to send next.
-	 * \param numfilesatatime how many parameter points get passed to a worker at the appropriate time.
+	 
 	 * \param numparam the number of parameters in the problem being solved.
 	 * \param pointcounter counts the number of loops.  determines which index in tempsends gets set.
 	 * \param Values the parameter discretization values.
 	 * \param countingup counter.
-	 * \param index_conversion_vector for converting the number corresponding to the parameter point to an index for lookup in Values
 	 * \param tempsends the variable in which the parameter points get set, for distribution to the workers via MPI.
 	 */
-	void FormNextValues(int numparam,
-											int pointcounter,
+	void FormNextValues(int pointcounter,
 											std::vector< std::vector< std::pair<double,double> > > Values,
-											int countingup,
 											double tempsends[]);
 	
 	/**
 	 * the user-defined parameter set function for setting the parameter values to send next
-	 * \param numfilesatatime how many parameter points get passed to a worker at the appropriate time.
-	 * \param numparam the number of parameters in the problem being solved.
 	 * \param pointcounter counts the number of loops.  determines which index in tempsends gets set.
-	 * \param mc_line_number the line number of the current parameter point, in the mc file.
-	 * \param mc_in_stream the file from which we are reading parameter points.
 	 * \param tempsends the variable in which the parameter points get set, for distribution to the workers via MPI.
 	 */
-	void FormNextValues_mc(int numparam,
-												 int pointcounter,
-												 int mc_line_number,
-												 std::ifstream & mc_in_stream,
+	void FormNextValues_mc(int pointcounter,
 												 double tempsends[]);
 
 	
 	
+	/** 
+	 sets the value of this->terminationint
+	 
+	 */
+	void GetTerminationInt();
 	
-	void GetTerminationInt(runinfo & paramotopy_info,
-														 ProgSettings & paramotopy_settings);
+	/**
+	 opens the mc_in_stream and mc_out_stream files as necessary 
+	 */
+	void OpenMC();
 	
 	
-	void OpenMC(runinfo & paramotopy_info,
-							ProgSettings & paramotopy_settings);
+	/**
+	 sets the value of this->tmpfolder
+	 
+	 */
+	void SetTmpFolder();
 	
+	/**
+	 creates the folders for the workers, and writes the names of the folders to a file in bfiles_filename/run#/folders
+	 
+	 */
+	void SetUpFolders();
 	
-	void SetTmpFolder(runinfo & paramotopy_info,
-										ProgSettings & paramotopy_settings);
-	
-	
-	void SetUpFolders(runinfo & paramotopy_info);
-	
+	/**
+	 sends the TERMINATE tag to an INACTIVE worker, but does not remove them from the list of active workers (cuz this worker shouldn't be on it).
+	 */
 	void TerminateInactiveWorker(int worker_id,
-											 timer & process_timer);
-	
-	void TerminateActiveWorker(int worker_id,
 															 timer & process_timer);
 	
+	
+	/**
+	 sends the TERMINATE tag to an ACTIVE worker, and removes it from the list, decrementing the num_active_workers counter.
+	 */
+	void TerminateActiveWorker(int worker_id,
+														 timer & process_timer);
+	
+	/**
+	 just makin' sure we are ready to go before we do go.
+	 */
 	void ReadyCheck();
 };
 

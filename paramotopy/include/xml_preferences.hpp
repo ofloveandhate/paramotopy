@@ -24,20 +24,18 @@
 //#include "runinfo.hpp"
 #include "para_aux_funcs.hpp"
 
+
+
+
+
+
+
+
 /**
-   @brief A class that stores the information of a setting as used in an xml file.
-
+ \class "setting"
+ @brief A class that stores the information of a setting as used in an xml file.
+ 
  */
-
-
-
-
-class menu_option {
-	
-private:
-	std::string name;
-	boost::function<void()> call;
-};
 
 class setting {
 	
