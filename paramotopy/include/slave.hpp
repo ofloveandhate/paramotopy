@@ -36,6 +36,13 @@ extern "C" {
 
 
 
+/**
+ *  @class "slave_process"
+ *
+ * process for running Bertini to solve a problem.
+ *
+ * \brief slave process for basic searches and brute-force runs.
+ **/
 
 
 class slave_process{
@@ -44,6 +51,13 @@ class slave_process{
 public:
 	
 	
+	/** 
+	 default constructor.
+	 
+	 for now, gets its membership in the default communicator MPI_COMM_WORLD.  
+	 
+	 sets stuff to empty or bad values for checking readiness later.
+	 */
 	
 	slave_process(){
 		this->have_dotout = false;
@@ -72,77 +86,88 @@ public:
 	};
 	
 	
-	
-	void slave_main(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
+	/**
+	 * the main slave process.  to be used by myid!=0.
+	 
+	 this is the only public method excepting the constructors.
+	 
+	 \param input_settings     current input settings.
+	 \param input_p_info       current parser run info.
+	 \param process_timer      MUTABLE current timer, and returns to user for further use.
+	 */	void slave_main(ProgSettings input_settings,
+									runinfo input_p_info,
 									timer & process_timer);
 	
 	
 	
 private:
 	
-	
-	std::string filename;
-	int numfilesatatime;
-	int numfilesatatime_orig;
-	std::string called_dir;
-	std::string homedir;
-	
-	std::string workingfolder;
-	
-	std::string tmpfolder;
+	runinfo paramotopy_info; ///<  the parsed paramotopy input file.
+	ProgSettings paramotopy_settings; ///< the ProgSettings for this process
 	
 	
+	std::string filename;			///< the filename for the problem
+	int numfilesatatime;			///< the expected number of files per send
+	int numfilesatatime_orig; ///< the expected number of files per send
+	std::string called_dir;   ///< where was I instantiated?
+	std::string homedir;      ///< where is $(HOME)?
 	
-	datagatherer slavegatherer;
+	std::string workingfolder;  ///< where should I go to perform work?
 	
-	unsigned int currentSeed;
-	int MPType;
+	std::string tmpfolder;			///< the basis for workingfolder
 	
 	
-	int linenumber;
+	
+	datagatherer slavegatherer;  ///< data member from datagatherer, which will gather bertini output files.
+	
+	unsigned int currentSeed;    ///< the current seed for random number generator.
+	int MPType;   ///< MPType for current run.
+	
+	
+	int linenumber;  ///<  what line is currently being run
 
-	int numparam;
+	int numparam;  ///<  the number of parameters in the problem.
 	
 	
-	int numprocs;
+	int numprocs;  ///< the number of processors in my MPI communicator.
 
 	
-	int myid;
+	int myid; ///< my id withing my MPI communicator
 	
-	int standardstep2;
-	
-	
-	std::vector<std::string> numdotout;
-	std::vector<std::string> arrdotout;
-	std::vector<std::string> degdotout;
-	std::vector<std::string> namesdotout;
-	std::vector<std::string> config;
-	std::vector<std::string> funcinput;
-	std::vector<std::string> preproc_data;
+	int standardstep2;   ///< flag for total degree or coefficient parameter homotopy.
 	
 	
-//	std::vector<std::pair<double,double> >  current_parameter_values;
+	std::vector<std::string> numdotout;			///<  num.out file.
+	std::vector<std::string> arrdotout;			///<  arr.out file.
+	std::vector<std::string> degdotout;			///<  degout file.
+	std::vector<std::string> namesdotout;		///<  names.out file.
+	std::vector<std::string> config;				///<  config file.
+	std::vector<std::string> funcinput;			///<  func_input file.
+	std::vector<std::string> preproc_data;	///<  preproc_data file.
 	
-	bool have_dotout;
+
+	bool have_dotout;  			///<  flag indicating whether we have read the .out files into memory.
+	bool have_input;  			///<  flag indicating whether we have received the INPUT file from master.
+	char* input_file;       ///< the input file in a c-friendly format
+	
+	bool have_start;  			///<  flag indicating whether we have received the START file from master.
+	char* start_file;       ///< the start file in a c-friendly format
 	
 	
-	bool have_input;
-	char* input_file;
-	
-	bool have_start;
-	char* start_file;
-	
-	
-	bool in_working_folder;
+	bool in_working_folder; ///< boolean indicating whether i think i am in the correct location to perform work.
 	
 	
 	
 	
 	
-	
-	void SlaveSetup(ProgSettings & paramotopy_settings,
-																 runinfo & paramotopy_info);
+	/**
+	 the slave setup function
+	 
+	 uses the runinfo and ProgSettings in memory to setup the rest of the necessaries.
+	 
+	 
+	 */
+	void SlaveSetup();
 	
 	
 	
@@ -158,19 +183,29 @@ private:
 	//
 	
 	
-	
-	void SeedSwitch(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-									timer & process_timer);
-	
-	void SeedBasic(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
+	/**
+	 switch for choosing seed process
+	 
+	 \param process_timer      current timer
+	 */
+	void SeedSwitch(timer & process_timer);
 	
 	
-	void SeedSearch(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-									timer & process_timer);
+	/**
+	 basic seeding function
+	 
+	 \param process_timer      current timer
+	 */
+	void SeedBasic(timer & process_timer);
+	
+	
+	/**
+	 search mode seeding  function
+	 
+	 
+	 \param process_timer      current timer
+	 */
+	void SeedSearch(timer & process_timer);
 	
 	
 	
@@ -190,19 +225,29 @@ private:
 	
 	
 	
-	void LoopSwitch(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-									timer & process_timer);
+	
+	/**
+	 main loop switch
+	 
+	 \param process_timer      current timer
+	 */
+	void LoopSwitch(timer & process_timer);
 	
 	
+	/**
+	 basic mode run loop
+	 
+	 \param process_timer      current timer
+	 */
+	void LoopBasic(timer & process_timer);
 	
-	void LoopBasic(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
 	
-	void LoopSearch(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-									timer & process_timer);
+	/**
+	 search mode loop
+	 
+	 \param process_timer      current timer
+	 */
+	void LoopSearch(timer & process_timer);
 	
 	
 	
@@ -219,20 +264,29 @@ private:
 	
 	
 	
+	/**
+	 cleanup switch
+	 
+	 \param process_timer      current timer
+	 */
+	void CleanupSwitch(timer & process_timer);
 	
-	void CleanupSwitch(ProgSettings & paramotopy_settings,
-										 runinfo & paramotopy_info,
-										 timer & process_timer);
+	
+	/**
+	 basic mode cleanup function.
+	 
+	 \param process_timer      current timer
+	 */
+	void CleanupBasic(timer & process_timer);
 	
 	
+	/**
+	 search mode cleanup function.
+	 
+	 \param process_timer      current timer
+	 */
 	
-	void CleanupBasic(ProgSettings & paramotopy_settings,
-										runinfo & paramotopy_info,
-										timer & process_timer);
-	
-	void CleanupSearch(ProgSettings & paramotopy_settings,
-										 runinfo & paramotopy_info,
-										 timer & process_timer);
+	void CleanupSearch(timer & process_timer);
 	
 	
 	
@@ -247,41 +301,73 @@ private:
 	////
 	///
 	//
+	/**
+	 receives the input file to all workers in the communicator
+	 
+	 \param process_timer      current timer
+	 */
+	void ReceiveInput(timer & process_timer);
 	
-	void ReceiveInput(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
-	
-	void ReceiveStart(ProgSettings & paramotopy_settings,
-								 runinfo & paramotopy_info,
-								 timer & process_timer);
-	
+	/**
+	 receives the start file to all workers in the communicator
+	 
+	 \param process_timer      current timer
+	 */
+	void ReceiveStart(timer & process_timer);
 	
 	
+	/**
+	 writes the start file to the current location with the name "start"
+	 */
 	void WriteStart();
 	
-	
+	/**
+	 writes the input file to the current location with the name "input"
+	 */
 	void WriteInput();
 	
-	
+	/**
+	 reads the preparsed bertini input file into memory.
+	 */
 	void ReadDotOut();
 	
+	/**
+	 writes the previously stored preparsed bertini input file to disk.
+	 */
 	void WriteDotOut();
 	
+	
+	/**
+	 writes the previously stored num.out file to disk, replacing the old parameter values with our custom ones.
+	 */
 	void WriteNumDotOut(double current_params[]);
 	
-	void SetWorkingFolder(ProgSettings & paramotopy_settings,
-												runinfo & paramotopy_info);
+	
+	/**
+	 sets the working_folder value.
+	 */
+	void SetWorkingFolder();
 	
 	
-	
+	/**
+	 clears the working_folder.
+	 */
 	void PurgeWorkingFolder();
 	
+	/**
+	 moves into the working folder, and sets in_working_folder = true.
+	 */
 	void MoveToWorkingFolder();
 	
-	
+	/**
+	 moves to called_dir and sets in_working_folder = false.
+	 */
 	void GoCalledDir();
 	
+	
+	/**
+	 makes sure ready to roll.  helps ensure reliability.
+	 */
 	void ReadyCheck();
 	
 	

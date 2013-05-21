@@ -35,24 +35,35 @@
 #include "timing.hpp"
 
 
+
+/**
+ *  @class "fileinfo"
+ *
+ * stores data related to a gathered file, such as the number of found solutions, the parser switch index, the file text and size, and the current number of the file.
+ *
+ * \brief Class for caching/storing gathered temp output files.
+ **/
+
+
 class fileinfo {
 	
 	
 public:
 	
+	/** default constructor */
 	fileinfo(){
 		filesize = filecount = num_found_solns = 0;
 		parser_index = -11;
 		runningfile = "";
 	}
 	
-	int filesize;
-	int filecount;
-	int num_found_solns;
+	int filesize; ///< number of characters.
+	int filecount; ///<  current index of file.  like 0 in real_solutions0
+	int num_found_solns; ///<  the most recent number of found solutions.
 	
-	std::string runningfile;
+	std::string runningfile;  ///<  file text
 	
-	int parser_index;
+	int parser_index;  ///<  the parser switch index.
 	
 		
 	

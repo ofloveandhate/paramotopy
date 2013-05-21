@@ -13,29 +13,31 @@
 
 
 
-void slave_process::slave_main(ProgSettings & paramotopy_settings,
-					 runinfo & paramotopy_info,
+void slave_process::slave_main(ProgSettings input_settings,
+					 runinfo input_p_info,
 					 timer & process_timer)
 {
 
+	this->paramotopy_settings = input_settings;
+	this->paramotopy_info = input_p_info;
 	
 	
 
 	this->slavegatherer.SlaveSetup(paramotopy_settings,paramotopy_info,this->myid,this->called_dir);
 	
-	slave_process::SlaveSetup(paramotopy_settings,paramotopy_info);
+	slave_process::SlaveSetup();
 	
-	slave_process::ReceiveStart(paramotopy_settings,paramotopy_info,process_timer);
+	slave_process::ReceiveStart(process_timer);
 
-	slave_process::ReceiveInput(paramotopy_settings, paramotopy_info, process_timer);
+	slave_process::ReceiveInput(process_timer);
 	
-	slave_process::SetWorkingFolder(paramotopy_settings, paramotopy_info);
+	slave_process::SetWorkingFolder();
 	
 	slave_process::PurgeWorkingFolder();
 	
 	slave_process::MoveToWorkingFolder();
 
-	slave_process::LoopSwitch(paramotopy_settings, paramotopy_info, process_timer);
+	slave_process::LoopSwitch(process_timer);
 	
 	slave_process::GoCalledDir();
 	
@@ -50,8 +52,7 @@ void slave_process::slave_main(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::SlaveSetup(ProgSettings & paramotopy_settings,
-															 runinfo & paramotopy_info){
+void slave_process::SlaveSetup(){
 	
 	this->numparam = paramotopy_info.numparam;
 	this->numfilesatatime = paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue;
@@ -74,25 +75,19 @@ void slave_process::SlaveSetup(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::SeedSwitch(ProgSettings & paramotopy_settings,
-								runinfo & paramotopy_info,
-															 timer & process_timer)
+void slave_process::SeedSwitch(timer & process_timer)
 {
 
 }
 
-void slave_process::SeedBasic(ProgSettings & paramotopy_settings,
-							 runinfo & paramotopy_info,
-															timer & process_timer)
+void slave_process::SeedBasic(timer & process_timer)
 {
 	
 }
 
 
 
-void slave_process::SeedSearch(ProgSettings & paramotopy_settings,
-								runinfo & paramotopy_info,
-															 timer & process_timer)
+void slave_process::SeedSearch(timer & process_timer)
 {
 	
 }
@@ -115,17 +110,15 @@ void slave_process::SeedSearch(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::LoopSwitch(ProgSettings & paramotopy_settings,
-								runinfo & paramotopy_info,
-															 timer & process_timer)
+void slave_process::LoopSwitch(timer & process_timer)
 {
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 		case 0:
-			slave_process::LoopBasic(paramotopy_settings, paramotopy_info, process_timer);
+			slave_process::LoopBasic(process_timer);
 			break;
 			
 		case 1:
-			slave_process::LoopSearch(paramotopy_settings, paramotopy_info, process_timer);
+			slave_process::LoopSearch(process_timer);
 			break;
 			
 			
@@ -136,9 +129,7 @@ void slave_process::LoopSwitch(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::LoopBasic(ProgSettings & paramotopy_settings,
-							 runinfo & paramotopy_info,
-															timer & process_timer)
+void slave_process::LoopBasic(timer & process_timer)
 {
 	
 	
@@ -282,9 +273,7 @@ void slave_process::LoopBasic(ProgSettings & paramotopy_settings,
 	
 }
 
-void slave_process::LoopSearch(ProgSettings & paramotopy_settings,
-								runinfo & paramotopy_info,
-															 timer & process_timer)
+void slave_process::LoopSearch(timer & process_timer)
 {
 	
 	
@@ -474,9 +463,7 @@ void slave_process::LoopSearch(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::CleanupSwitch(ProgSettings & paramotopy_settings,
-									 runinfo & paramotopy_info,
-																	timer & process_timer)
+void slave_process::CleanupSwitch(timer & process_timer)
 {
 
 	
@@ -488,16 +475,12 @@ void slave_process::CleanupSwitch(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::CleanupBasic(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-																 timer & process_timer)
+void slave_process::CleanupBasic(timer & process_timer)
 {
 	
 }
 
-void slave_process::CleanupSearch(ProgSettings & paramotopy_settings,
-									 runinfo & paramotopy_info,
-																	timer & process_timer)
+void slave_process::CleanupSearch(timer & process_timer)
 {
 	
 }
@@ -518,9 +501,7 @@ void slave_process::CleanupSearch(ProgSettings & paramotopy_settings,
 
 
 
-void slave_process::ReceiveInput(ProgSettings & paramotopy_settings,
-									runinfo & paramotopy_info,
-									timer & process_timer)
+void slave_process::ReceiveInput(timer & process_timer)
 {
 	
 	if (this->have_input) {
@@ -550,9 +531,7 @@ void slave_process::ReceiveInput(ProgSettings & paramotopy_settings,
 	
 }
 
-void slave_process::ReceiveStart(ProgSettings & paramotopy_settings,
-																 runinfo & paramotopy_info,
-																 timer & process_timer)
+void slave_process::ReceiveStart(timer & process_timer)
 {
 	
 	MPI_Status status;
@@ -916,8 +895,7 @@ void slave_process::WriteNumDotOut(double current_params[]){
 
 
 
-void slave_process::SetWorkingFolder(ProgSettings & paramotopy_settings,
-																		 runinfo & paramotopy_info){
+void slave_process::SetWorkingFolder(){
 	
 	
 	
