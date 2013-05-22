@@ -936,7 +936,7 @@ void runinfo::MakeFunctions(std::stringstream & inputfilestream){
 //writes variable groups to stringstream for bertini input file.
 void runinfo::MakeVariableGroups(std::stringstream & fout, ProgSettings paramotopy_settings){
   
-  if (paramotopy_settings.settings["stage1bertini"]["USERHOMOTOPY"].value() == "1"){
+  if (paramotopy_settings.settings["step1bertini"]["USERHOMOTOPY"].value() == "1"){
     fout << "\n";
     fout << "variable ";
     for (int ii = 0; ii < numvargroup; ++ii){
