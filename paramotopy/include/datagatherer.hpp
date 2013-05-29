@@ -95,7 +95,7 @@ public:
 	};
 	
 	/** constructor with instantiation of base_dir, fundamental_dir, and numvar.  intended for use in the collection of data for a complete run, including merging of failed path successes. */
-	datagatherer(std::string bdir, std::string fundir, int numvar){
+	datagatherer(boost::filesystem::path bdir, boost::filesystem::path fundir, int numvar){
 		this->base_dir = bdir;
 		this->fundamental_dir = fundir;
 		this->numvariables = numvar;
@@ -103,7 +103,7 @@ public:
 	};
 	
 	/** constructor with instantiation of numvariables, and run_to_analyze.  intended for use in failed path analysis */
-	datagatherer(int numvar, std::string loc){
+	datagatherer(int numvar, boost::filesystem::path loc){
 		this->fundamental_dir = "";
 		this->numvariables = numvar;
 		this->run_to_analyze = loc;
@@ -115,13 +115,15 @@ public:
 	
 	
 	/** fundamental directory -- bfiles_filename */
-	std::string fundamental_dir;
+	boost::filesystem::path fundamental_dir;
 	/** base directory, including the run number. -- bfiles_filename/run0 */
-	std::string base_dir;
+	boost::filesystem::path base_dir;
 	/** number of variables in the problem */
 	int numvariables;
+	
 	/** the run to collect data from */
 	boost::filesystem::path run_to_analyze;
+	
 	/** names of files to gather */
 	std::vector < std::string > gather_savefiles;
 	/** index for parser choice.  different filetypes use different parsers */
@@ -130,12 +132,12 @@ public:
 
 	std::vector<std::string> ParamNames;
 	int numfiles;
-	std::string DataCollectedbase_dir;
+	boost::filesystem::path DataCollectedbase_dir;
 	int buffersize;
 	int newfilethreshold;
 	int myid;
 	std::string real_filename;
-	std::map< std::string, fileinfo> slavemap;
+	std::map< std::string, fileinfo> slavemap;  // a map between file names and fileinfo (as defined above)
 	int standardstep2;
 	
 	
@@ -169,7 +171,7 @@ public:
 		
 	}
 	
-	std::string MakeTargetFilename(std::string filename);
+	boost::filesystem::path MakeTargetFilename(std::string filename);
 	
 	
 	
@@ -177,7 +179,7 @@ public:
 	void SlaveSetup(ProgSettings & paramotopy_settings,
 									runinfo & paramotopy_info,
 									int myid,
-									std::string called_dir);
+									boost::filesystem::path called_dir);
 	
 	
 	
@@ -227,10 +229,9 @@ public:
 	 * Write data to disk.
 	 * \param outstring The file to write
 	 * \param target_file name of the file to write to.
-	 * \ParamStrings names of the parameters
 	 */
 	void WriteData(std::string outstring,
-								 std::string target_file);
+								 boost::filesystem::path target_file);
 	
 
 	
@@ -303,23 +304,23 @@ public:
 	 * \param mergefailed Bool determining whether to merge data from failed path analysis.  This is false if collecting from a run DURING failed path analysis (it would break things), but is true if doing a menu collection.
 	 */
 	void CollectSpecificFiles(std::string file_to_gather,
-														std::vector < std::string > folders_with_data,
-														std::string run_to_analyze,
+														std::vector < boost::filesystem::path > folders_with_data,
+														boost::filesystem::path run_to_analyze,
 														int parser_index,
 														bool mergefailed);
 	
 	/** Read the folders containing the data.  The folder names are contained in a plain text file.
 	 * \param dir String containing the name of the directory in which to look.
 	 */
-	std::vector< std::string > GetFoldersForData(std::string dir);
+	std::vector< boost::filesystem::path > GetFoldersForData(boost::filesystem::path dir);
 	
 	/** A lower-level function.  Increases the output folder index by 1, during a merge.
 	 * \param output_folder_name MUTABLE string to hold the new folder name.
 	 * \param base_output_folder_name The string from which we build output_folder_name
 	 * \param output_folder_index MUTABLE integer, which herein is incremented, and contatenated to base_... to make the output_folder_name.
 	 */
-	void IncrementOutputFolder(std::string & output_folder_name,
-														 std::string base_output_folder_name,
+	void IncrementOutputFolder(boost::filesystem::path & output_folder_name,
+														 boost::filesystem::path base_output_folder_name,
 														 int & output_folder_index);
 	
 	/** A lower-level function.  Actually merges two folders, left and right, into the output_folder_name, using the parser determined by parser_index.
@@ -328,7 +329,11 @@ public:
 	 * \param output_folder_name The name of the folder into which to place the merged data.
 	 * \param parser_index The index of the parser to use on this filetype.
 	 */
-	void MergeFolders(std::string file_to_gather, std::string left_folder, std::string right_folder, std::string output_folder_name, int parser_index);
+	void MergeFolders(std::string file_to_gather,
+										boost::filesystem::path left_folder,
+										boost::filesystem::path right_folder,
+										boost::filesystem::path output_folder_name,
+										int parser_index);
 	
 	/**
 	 * Write the total collected data to a single file, and verify that the data is in order.
@@ -338,7 +343,8 @@ public:
 	 * \param parser_index The parser choice to use.  Corresponds to file_to_gather.
 	 * \param mergefailed Boolean indicating whether the data checks out.
 	 */
-	void finalize_run_to_file(std::string file_to_gather, std::string source_folder,std::string base_output_folder_name, int parser_index, bool mergefailed);
+	void finalize_run_to_file(std::string file_to_gather, boost::filesystem::path source_folder,
+														boost::filesystem::path base_output_folder_name, int parser_index, bool mergefailed);
 	
 	/**
 	 * While merging, we will get to a point when there is no more sorting to do.  The rest of the data is in set of files, and in order, so all that remains is to copy the rest of the file in to the output file.  This function does that.
@@ -349,7 +355,8 @@ public:
 	 * \param file_index Index integer of the file currently being read.
 	 * \param parser_index The integer index of the parser being used.
 	 */
-	void rest_of_files(std::ifstream & datafile, std::string & output_buffer, std::ofstream & outputfile, std::vector < std::string > filelist, int file_index, int parser_index);
+	void rest_of_files(std::ifstream & datafile, std::string & output_buffer, std::ofstream & outputfile,
+										 std::vector < boost::filesystem::path > filelist, int file_index, int parser_index);
 	
 	/**
 	 *  Reads the remainder of a file into memory, after a point at which we are certain there is not more sorting to be done.
@@ -357,7 +364,7 @@ public:
 	 * \param file_index The integer index of the file being read.
 	 * \param filelist The vector containing the list of the files to read.
 	 */
-	bool endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < std::string > filelist);
+	bool endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < boost::filesystem::path > filelist);
 	
 	
 	/** function for parsing ***_solutions files, as output from bertini.
@@ -372,6 +379,7 @@ public:
 	 * \param data The string to which to read the data.
 	 * \param parser_index The parser to use.
 	 */
+	
 	bool ReadPoint(std::ifstream & fin, int & next_index, std::string & data, int parser_index);
 	
 	/** function for parsing ***_solutions files, as output from bertini.

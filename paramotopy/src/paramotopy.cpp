@@ -83,12 +83,10 @@ int main(int argC, char *args[]){
 	}
 	else{
 		std::stringstream commandss;
-		for (int i=0;i<argC;++i){
-			commandss << args[i] << " ";	
-		}
-		std::string garbage;
-		commandss >> garbage;
-		commandss >> suppliedfilename;
+		commandss << args[1];
+		
+		suppliedfilename = commandss.str();
+		
 		paramotopy_info.GetInputFileName(suppliedfilename);
 	}
 	paramotopy_info.ParseData();
@@ -98,7 +96,7 @@ int main(int argC, char *args[]){
 	
 	std::string prefdir = homedir;
 	prefdir.append("/.paramotopy");
-	mkdirunix(prefdir);
+	boost::filesystem::create_directories(prefdir);
 	
 
 	ProgSettings paramotopy_settings;
@@ -179,7 +177,7 @@ int main(int argC, char *args[]){
 			case 2:
 				//data management
 				DataManagementMainMenu(paramotopy_info);
-				mkdirunix(paramotopy_info.base_dir);
+				boost::filesystem::create_directories(paramotopy_info.base_dir);
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";
 				paramotopy_info.GetPrevRandom();  //if didn't find previous values to load, make new ones (but only if use wants to

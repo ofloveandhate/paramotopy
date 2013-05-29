@@ -76,7 +76,7 @@ void master_process::MasterSetup()
 	
 	
 	this->lastoutfilename = paramotopy_info.location;
-	this->lastoutfilename.append("/step2/lastnumsent");
+	this->lastoutfilename /= "step2/lastnumsent";
 	
 }
 
@@ -912,8 +912,8 @@ void master_process::CleanupBasic(timer & process_timer){
 	if (paramotopy_info.userdefined)
 		mc_in_stream.close();
 	
-	std::string finishedfile = paramotopy_info.location;
-	finishedfile.append("/step2finished");
+	boost::filesystem::path finishedfile = paramotopy_info.location;
+	finishedfile /= "step2finished";
 	
 	std::ofstream fout;
 	fout.open(finishedfile.c_str());
@@ -1097,8 +1097,8 @@ void master_process::SendInput(timer & process_timer){
 void master_process::GetTerminationInt(){
 	
 	
-	std::string mcfname = paramotopy_info.location;
-	mcfname.append("/mc");
+	boost::filesystem::path mcfname = paramotopy_info.location;
+	mcfname /= "mc";
 	if (!paramotopy_info.userdefined) {
 		index_conversion_vector.push_back(1);
 		for (int ii=1; ii<paramotopy_info.numparam; ++ii) {
@@ -1131,8 +1131,8 @@ void master_process::GetTerminationInt(){
 void master_process::OpenMC(){
 	
 
-	std::string mcfname = paramotopy_info.location;
-	mcfname.append("/mc");
+	boost::filesystem::path mcfname = paramotopy_info.location;
+	mcfname /= "mc";
 	
 	if (!paramotopy_info.userdefined) {
 		boost::filesystem::remove(mcfname);
@@ -1197,25 +1197,31 @@ void master_process::SetTmpFolder(){
 void master_process::SetUpFolders(){
 	
 	
-	std::string DataCollectedbase_dir = paramotopy_info.location;
-	DataCollectedbase_dir.append("/step2/DataCollected/");
-	mkdirunix(DataCollectedbase_dir);
+	boost::filesystem::path DataCollectedbase_dir = paramotopy_info.location;
+	DataCollectedbase_dir /= "step2/DataCollected";
+	boost::filesystem::create_directories(DataCollectedbase_dir);
 
 	//make text file with names of folders with data in them
-	std::string mydirfname = paramotopy_info.location;
-	mydirfname.append("/folders");
+	boost::filesystem::path mydirfname = paramotopy_info.location;
+	mydirfname /= "folders";
 	std::ofstream fout(mydirfname.c_str());
 	if (!fout.is_open()){
-		std::cerr << "failed to open " << mydirfname << " to write folder names!\n";
+		std::cerr << "failed to open " << mydirfname.string() << " to write folder names!\n";
 	}
 	else{
 		for (int i = 1; i < numprocs;++i){
-		  std::stringstream tmpss;
-		  tmpss << DataCollectedbase_dir;
-		  tmpss << "c";
-		  tmpss << i;
-		  fout << tmpss.str() << (i!=numprocs-1 ? "\n" :  "");
-			mkdirunix(tmpss.str());
+		  std::stringstream converter;
+			converter << i;
+			
+			boost::filesystem::path makeme =  DataCollectedbase_dir;
+		  makeme /= "c";
+			
+		  makeme += converter.str();
+			converter.clear();
+			converter.str("");
+			
+		  fout << makeme.string() << "\n";
+			boost::filesystem::create_directories(makeme);
 		}
 	}
 	fout.close();
@@ -1304,7 +1310,7 @@ void master_process::ReadyCheck()
 		its_all_good = false;
 	}
 	
-	if (tmpfolder.size()==0) {
+	if (tmpfolder.string().size()==0) {
 		reported_errors.push_back("no tmpfolder");
 		its_all_good = false;
 	}

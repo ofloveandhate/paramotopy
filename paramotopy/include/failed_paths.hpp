@@ -99,7 +99,7 @@ private:
       Set the vector of failed folders.
       \param dir - The directory where the failed paths could exist in some subdirectory.
    */
-  void get_folders_for_fail(std::string dir);
+  void get_folders_for_fail(boost::filesystem::path dir);
 
   /** 
       Write a new step1 file with different random points to run to the failed paths in the step 2 process.
@@ -136,7 +136,7 @@ private:
       \param iteration - The current iteration number in the attempt to resolve path failures.
       \param startfilename - The file to copy.
    */
-  void copy_step_one(std::string from_dir, std::string to_dir, int iteration, std::string startfilename);
+  void copy_step_one(boost::filesystem::path from_dir, boost::filesystem::path to_dir, int iteration, std::string startfilename);
   /** 
       Report the failed paths to the user.
       \param paramotopy_info - The current paramotopy run info.

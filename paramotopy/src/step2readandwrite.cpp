@@ -7,7 +7,7 @@
 
 
 
-int GetStart(std::string dir,
+int GetStart(boost::filesystem::path dir,
 						 std::string & start,
 						 std::string startfilename){
   
@@ -17,9 +17,10 @@ int GetStart(std::string dir,
   std::ifstream fin;
   //get start file in memory
   std::string copyme;
-  std::string startstring=dir;
-  startstring.append("/step1/");
-  startstring.append(startfilename);
+	
+  boost::filesystem::path startstring=dir;
+  startstring /= "step1";
+	startstring /= startfilename;
   fin.open(startstring.c_str());
   
   if (!fin.is_open()) {
@@ -163,9 +164,9 @@ int GetLastNumSent(std::string base_dir,
 
 
 
-int GetMcNumLines(std::string base_dir, int numparam){
-	std::string mcfname = base_dir;
-	mcfname.append("/mc");
+int GetMcNumLines(boost::filesystem::path base_dir, int numparam){
+	boost::filesystem::path mcfname = base_dir;
+	mcfname /= "mc";
   
   std::ifstream fin(mcfname.c_str());
   

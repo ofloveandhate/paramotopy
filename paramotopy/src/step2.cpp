@@ -32,11 +32,11 @@ int main(int argc, char* argv[]){
 	
 	
 	
-	std::string called_dir = stackoverflow_getcwd();
-	std::string homedir = getenv("HOME");
+	boost::filesystem::path called_dir = boost::filesystem::current_path();
+	boost::filesystem::path homedir = getenv("HOME");
 	
 
-	std::string filename, location;
+	boost::filesystem::path filename, location;
 	
 
 	
@@ -56,18 +56,14 @@ int main(int argc, char* argv[]){
     //
     //////////////////
 	
-	for (int ii = 0; ii < argc; ++ii){
-		commandss << argv[ii] << " ";  //put the argv on the commandss, so that can convert appropriate types (integers, etc)
-	}
-	
 	if ( (argc!=1) && (numprocs>1)){
-	  std::string blank;
-	  commandss >> blank;  // name of program, */step2
-	  commandss >> filename;  // name of input file to paramotopy
-	  commandss >> location;
+	  std::string progname;
+		progname = argv[0];
+		filename = argv[1];
+		location = argv[2];
+		commandss << argv[3]; // convert this number
 		commandss >> steptwomode;
 		commandss.clear(); commandss.str("");
-
 	}
 	else{
 	  // didn't provide filename or any arguments ...
@@ -103,8 +99,8 @@ int main(int argc, char* argv[]){
 	
 	
 	//instantiate the settings
-	std::string settingsfilename = location;
-	settingsfilename.append("/prefs.xml");
+	boost::filesystem::path settingsfilename = location;
+	settingsfilename /= "prefs.xml";
 	if (!boost::filesystem::exists(settingsfilename)) {
 	  std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! id:" << myid << std::endl;
 	  exit(-219);
@@ -141,20 +137,20 @@ int main(int argc, char* argv[]){
 	
 	
 	
-	std::string base_dir=make_base_dir_name(filename);  //
+	boost::filesystem::path base_dir = make_base_dir_name(boost::filesystem::path(filename));  //
 	
 	
 
 
 	
-	std::string timingfolder = location;
-	timingfolder.append("/timing");
+	boost::filesystem::path timingfolder = location;
+	timingfolder /= "timing";
 #ifdef timingstep2
 	if (myid==0) {
 		if (boost::filesystem::exists(timingfolder)){
 			boost::filesystem::remove_all(timingfolder);
 		}
-		mkdirunix(timingfolder.c_str());
+		boost::filesystem::create_directories(timingfolder);
 	}
 #endif
 	

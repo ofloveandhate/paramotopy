@@ -105,7 +105,7 @@ private:
 	
 	int numparam;		 ///< number of parameters in problem
 	
-	std::string filename;  ///< filename for problem
+	boost::filesystem::path filename;  ///< filename for problem
 	
 	int standardstep2;  ///< switch for total degree vs. coeff. homotopy
 	
@@ -116,10 +116,10 @@ private:
 	int current_absolute_index;  ///< the current absolute index.  
 	
 	
-	std::string lastoutfilename;  ///< name of the progress file
-	std::string tmpfolder; ///< where the temp files at?
-	std::string called_dir;  ///< where was I when I was instantiated?
-	std::string homedir; ///< where is $(HOME)?  
+	boost::filesystem::path lastoutfilename;  ///< name of the progress file
+	boost::filesystem::path tmpfolder; ///< where the temp files at?
+	boost::filesystem::path called_dir;  ///< where was I when I was instantiated?
+	boost::filesystem::path homedir; ///< where is $(HOME)?  
 	
 	std::ofstream mc_out_stream;  ///< parameter point out file
 	std::ifstream mc_in_stream; ///< parameter point in file

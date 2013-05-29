@@ -41,17 +41,23 @@ class setting {
 	
 public:
 	
-  /** \param filenumber - deprecated ? */ 
+  /** deprecated ? */ 
 	int filenumber;
-  /** \param doubvalue - The value of the double value to store. */
+  /** The value of the double value to store. */
 	double doubvalue;
-  /** \param intvalue - The value of the int value to store. */
+  /** The value of the int value to store. */
 	int intvalue;
-  /** \param strvalue - The value of the string value to store. */
+  /** The value of the string value to store. */
 	std::string strvalue;
-  /** \param type - Integer to indicate the type of setting.  
-      0 for string, 1 for inter, 2 for double. */
-	int type; //0 string 1 integer 2 double
+  
+	/** a path value . */
+	boost::filesystem::path pathvalue;
+	
+	
+	
+	/** \Integer to indicate the type of setting.
+	 0 for string, 1 for inter, 2 for double. */
+	int type; //0 string 1 integer 2 double 3 for path
 	
 	
 	
@@ -73,7 +79,12 @@ public:
 	setting(double newValue){
 		doubvalue = newValue;
 		type = 2;};
-  /** \return string - Returns the type of the setting as a string. "0", "1", or "2". */
+	
+	setting(boost::filesystem::path newValue){
+		pathvalue = newValue;
+		type = 3;};
+	
+  /** \return string - Returns the type of the setting as a string. */
 	std::string typestr(){
 		std::stringstream ss;
 		ss << type;
@@ -95,7 +106,9 @@ public:
 				ss << doubvalue;
 				val = ss.str();
 				break;
-				
+			case 3:
+				val = pathvalue.string();
+				break;
 			default:
 				val = "badtype";
 				break;
@@ -139,34 +152,34 @@ public:
   /** Save the xml file to the hard disk.
       \param pFilename - The file to where the xml file is to be saved. */
 	
-  void save(std::string save_filename);
+  void save(boost::filesystem::path save_filename);
   /** Save the xml file to the hard disk.  This function uses the boost library directory and path structures.
       \param speciallocation - The file to where the xml file is to be saved. 
   */
-  void save(boost::filesystem::path speciallocation);
-	
+
 	
 	/** find existing preferences file, based on input
    \param pFilename - The preference file name. 
 	 \return int found_a_file whether found a file to load or not.  0 if no file, even default.  1 if found desired file.  2 if found defaults.
 	 \return bool load_filename the string which is the name of the file. */
 	
-	int check_for_existing_prefs_auto(std::string & load_filename, const char* pFilename);
+	int check_for_existing_prefs_auto(boost::filesystem::path & load_filename,
+																		boost::filesystem::path pFilename);
 	
 	/** get the name of the default paramotopy settings xml file
 		
 	 */
-	std::string default_name();
+	boost::filesystem::path default_name();
 	
 	/**
 	 gets ~/.paramotopy/prefsfilename.xml
 	 */
-	std::string make_settings_name(std::string basename);
+	boost::filesystem::path make_settings_name(boost::filesystem::path basename);
 	
 	/**
 	 sets the .filename field to whatever you put in
 	 */
-	void set_name(std::string newfilename){
+	void set_name(boost::filesystem::path newfilename){
 		this->filename = newfilename;
 	};
 	
@@ -177,14 +190,14 @@ public:
 	
   /** Load the xml preference file.
    \param pFilename - The preference file name. */
-  void load(const char* pFilename);
+  void load(boost::filesystem::path pFilename);
   /** Load the xml preference file with the current saved filename. */
-  void load() {load(this->filename.c_str());};
+  void load() {load(this->filename);};
   
 	
 	ProgSettings() {};
   /** \param tempfilename - Set the filename data member to tempfilename. */ 
-  ProgSettings(std::string tempfilename) {filename = tempfilename;};
+  ProgSettings(boost::filesystem::path tempfilename) {filename = tempfilename;};
   /** Default Deconstructor. */
   ~ProgSettings() {};
   
@@ -212,6 +225,17 @@ public:
   void setValue(std::string categoryName, std::string settingName, int settingValue){
     settings[categoryName][settingName] = setting(settingValue);}
   
+	
+	void setValue(std::string categoryName, std::string settingName, boost::filesystem::path settingValue){
+    settings[categoryName][settingName] = setting(settingValue);}
+  /** A function to set the value of a given category and setting.
+	 \param categoryName - The category name in which to search for the settingName.
+	 \param settingName - The setting name in which to store settingValue.
+	 \param settingValue - The value to store as an int.
+	 */
+	
+	
+	 
   // main program settings, parallelism
   /** Get the parallel setting. */
   void GetParallel();
@@ -256,8 +280,10 @@ public:
   // which files to save
   /** Set the files from the bertini ouptut to save. */
   void SetSaveFiles();
-  /** \param datafilename - Determine if datafilename is to be saved or not. */
-  void GetIndividualFileSave(std::string datafilename);
+	
+//  /** \param datafilename - Determine if datafilename is to be saved or not. */
+//  void GetIndividualFileSave(std::string datafilename);
+	
   /** ? ? */
   bool CheckPrevSetFiles();
   
@@ -367,7 +393,7 @@ public:
 	
 private:
   /** The name of the preferences file */
-  std::string filename;  
+  boost::filesystem::path filename;  
   /** Set the required values. */
   bool setRequiredValues();
   /** Test if a category of category_name has a setting of setting_name.

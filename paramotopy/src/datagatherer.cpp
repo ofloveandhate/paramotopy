@@ -6,12 +6,16 @@
 
 
 //constructs a file name for reading/writing
-std::string datagatherer::MakeTargetFilename(std::string filename){
-  std::stringstream ss;
-  ss << this->DataCollectedbase_dir
-	<< filename
-	<< this->slavemap[filename].filecount;
-  return ss.str();
+boost::filesystem::path datagatherer::MakeTargetFilename(std::string filename)
+{
+	boost::filesystem::path tmppath = this->DataCollectedbase_dir;
+	tmppath /= filename;
+	
+	
+	std::stringstream ss;
+	ss << this->slavemap[filename].filecount;
+	tmppath += ss.str();
+  return tmppath;
 }
 
 
@@ -19,7 +23,7 @@ std::string datagatherer::MakeTargetFilename(std::string filename){
 void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 															runinfo & paramotopy_info,
 															int myid,
-															std::string called_dir){
+															boost::filesystem::path called_dir){
 	
 	
 	
@@ -46,10 +50,17 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 	
 	
 	//make data file location
+	this->DataCollectedbase_dir = called_dir;
+	this->DataCollectedbase_dir/= paramotopy_info.location;
+	this->DataCollectedbase_dir/= "step2/DataCollected/c";
+	
+	
 	std::stringstream myss;
-	myss << called_dir << "/" << paramotopy_info.location << "/step2/DataCollected/c" << myid << "/";
-	this->DataCollectedbase_dir = myss.str();//specific to this worker, as based on myid
+	myss << myid;
+	this->DataCollectedbase_dir += myss.str();
 	myss.clear(); myss.str("");
+	
+
 	
 	
 	if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue==0){
@@ -67,6 +78,8 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 	
 }
 
+								 
+								 
 bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 																						ProgSettings & paramotopy_settings,
 																						timer & process_timer){
@@ -75,7 +88,7 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 
 	// Collect the Data
 	std::map< std::string, fileinfo> ::iterator iter;
-	for (iter = this->slavemap.begin(); iter!= this->slavemap.end();++iter){
+	for (iter = this->slavemap.begin(); iter!= this->slavemap.end(); ++iter){
 
 	  //get data from file
 #ifdef timingstep2
@@ -142,7 +155,8 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 
 void datagatherer::AppendOnlyPosReal(std::string orig_filename,
 																		 double *current_params,
-																		 ProgSettings & paramotopy_settings){
+																		 ProgSettings & paramotopy_settings)
+{
 	//this function will operate on any *_solutions file
 	
 	
@@ -288,29 +302,28 @@ void datagatherer::WriteAllData(){
 }
 
 void datagatherer::WriteData(std::string outstring,
-														 std::string target_file){
+														 boost::filesystem::path target_file)
+{
 	
 	
   std::ofstream fout;
   // test if file target file is open
   
-  struct stat filestatus;
   
-  if (stat( target_file.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
-//    std::cout << "file " << target_file << "already found, opening for append" << std::endl;
-    fout.open(target_file.c_str(),std::ios::app);
+  if (boost::filesystem::exists(target_file)){  // if it can see the 'finished' file
+    fout.open(target_file.string().c_str(),std::ios::app);
     
   }
   else{
-//    std::cout << "file " << target_file << "not found, opening fresh" << std::endl;
-    fout.open(target_file.c_str());
+
+    fout.open(target_file.string().c_str());
     for (int ii = 0; ii < int(this->ParamNames.size());++ii){
       fout << this->ParamNames[ii] << (ii != int(this->ParamNames.size())-1? " ": "\n");
     }
   }
   
   if (!fout.is_open()) {
-    std::cerr << "failed to open target dataout file '" << target_file << "'\n";
+    std::cerr << "failed to open target dataout file '" << target_file.string() << "'\n";
     exit(-41);
   }
   
@@ -325,25 +338,19 @@ void datagatherer::WriteData(std::string outstring,
 
 
 
-bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails, std::vector< point > & successful_resolves){
-	
-	
-	
-	//a sanity check
-	if (this->run_to_analyze=="") {
-		std::cerr << "run_to_analyze not set yet :(" << std::endl;
-		return false;
-	}
-	
+bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails,
+																			std::vector< point > & successful_resolves)
+{
+//TODO:  add proper sanity check
 	
 	
 	GetFilesToParse(this->run_to_analyze, this->gather_savefiles, this->gather_parser_indices);  //in para_aux_funcs
 	//sets the gather_savefiles and gather_parser_indices, based on the c1 folder
 	
-	std::vector< std::string > folders_with_data = GetFoldersForData(run_to_analyze.string());
+	std::vector< boost::filesystem::path > folders_with_data = GetFoldersForData(run_to_analyze);
 	
 	for (int ii=0;ii<int(gather_savefiles.size());++ii){
-		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze.string(), gather_parser_indices[ii], false);
+		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze, gather_parser_indices[ii], false);
 	}
 	
 	//at this point, we should have the run_to_analyze/gathered_data/finalized folder, which will contain exactly one file for each of the user-specified saved files, in order, with all the data for the run.  just need to parse it.
@@ -400,7 +407,8 @@ std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > 
 
 
 ////gather the data from a completed, gathered, finalized step2, to memory.
-std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesystem::path folder_with_data){
+std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesystem::path folder_with_data)
+{
 	
 	
 	std::map <std::string, std::vector< point > > temp_point_storage;
@@ -470,7 +478,7 @@ std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesyste
 void datagatherer::GatherDataFromMenu(){
 	
 	boost::filesystem::path run_to_analyze = datagatherer::GetAvailableRuns();
-	if (run_to_analyze=="") {
+	if (run_to_analyze.string()=="") {
 		return;
 	}
 	
@@ -485,12 +493,13 @@ void datagatherer::GatherDataFromMenu(){
 	GetFilesToParse(run_to_analyze, this->gather_savefiles, this->gather_parser_indices);  //in para_aux_funcs
 	//sets the gather_savefiles and gather_parser_indices, based on the c1 folder
 	
-	std::vector< std::string > folders_with_data = GetFoldersForData(run_to_analyze.string());
+	std::vector< boost::filesystem::path > folders_with_data = GetFoldersForData(run_to_analyze);
 	
 	for (int ii=0;ii<int(gather_savefiles.size());++ii){
 		std::cout << "collecting " << gather_savefiles[ii] << std::endl;
 		double t1 = omp_get_wtime();
-		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze.string(), gather_parser_indices[ii], true);
+		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze,
+																			 gather_parser_indices[ii], true);
 		std::cout << "sorting " << gather_savefiles[ii] << " took " << omp_get_wtime()-t1 << " seconds." << std::endl;
 	}
 	
@@ -503,23 +512,26 @@ void datagatherer::GatherDataFromMenu(){
 
 
 
-void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector < std::string > folders_with_data, std::string run_to_analyze, int parser_index, bool mergefailed){
+void datagatherer::CollectSpecificFiles(std::string file_to_gather,
+																				std::vector < boost::filesystem::path > folders_with_data,
+																				boost::filesystem::path run_to_analyze, int parser_index, bool mergefailed)
+{
 	
 	
 	//now need to merge-sort method of gathering data, since the data is distributed in a collection of folders and files, in monotone order.  we will do this in files, since the data may be larger than available ram.
-	std::string output_folder_name = "unset_folder_name";
+	boost::filesystem::path output_folder_name = "unset_folder_name";
 	int output_folder_index = -1;
 	
-	std::string base_output_folder_name = run_to_analyze;
-	base_output_folder_name.append("/gathered_data");
+	boost::filesystem::path base_output_folder_name = run_to_analyze;
+	base_output_folder_name /= "gathered_data";
 	boost::filesystem::create_directory(base_output_folder_name);
 	
 	
 	
 	std::vector< bool> current_folders_are_basic, next_folders_are_basic;
 	
-	std::vector< std::string > next_folders = folders_with_data; // seed
-	std::vector< std::string > current_folders;
+	std::vector< boost::filesystem::path > next_folders = folders_with_data; // seed
+	std::vector< boost::filesystem::path > current_folders;
 	
 	for (int ii=0; ii<int(folders_with_data.size()); ++ii) {
 		next_folders_are_basic.push_back(true);
@@ -569,7 +581,7 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather, std::vector 
 		level++;
 	}
 	
-	std::string source_folder;
+	boost::filesystem::path source_folder;
 	source_folder = next_folders[0]; // set this for finalizing.
 	bool source_folder_is_basic = next_folders_are_basic[0];
 	
@@ -599,14 +611,14 @@ std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 		return successful_resolves;
 	}
 	
-	std::string resolved_file_name;
+	std::string resolved_file_name; // read from a file, and converted into boost::filesystem::path
 	
 	std::ifstream sourcefile(filetoopen.string().c_str());
 	getline(sourcefile,resolved_file_name);
 	sourcefile.close();
 	
 	
-	filetoopen = resolved_file_name;
+	filetoopen = resolved_file_name;  // convert to boost::filesystem::path
 	
 
 	if (!boost::filesystem::exists(filetoopen)) {
@@ -706,7 +718,11 @@ void datagatherer::WriteUnsuccessfulResolves(std::map< int, point> successful_re
 }
 
 
-void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string source_folder,std::string base_output_folder_name, int parser_index, bool mergefailed){
+void datagatherer::finalize_run_to_file(std::string file_to_gather,
+																				boost::filesystem::path source_folder,
+																				boost::filesystem::path base_output_folder_name,
+																				int parser_index, bool mergefailed)
+{
 	
 	
 	boost::filesystem::path output_file_name = base_output_folder_name;
@@ -724,10 +740,10 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 	
 	std::string expression = "^";  //specify beginning of string
 	expression.append(file_to_gather);
-	std::vector < std::string > filelist = FindFiles(source_folder, expression);  //this function is in para_aux_funcs
+	std::vector < boost::filesystem::path > filelist = FindFiles(source_folder, expression);  //this function is in para_aux_funcs
 	
 	
-	std::ofstream output_file(output_file_name.string().c_str());
+	std::ofstream output_file(output_file_name.c_str());
 	std::string tmpstr;
 	
 	
@@ -798,7 +814,10 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather, std::string 
 
 
 
-void datagatherer::CheckForResolvedFailedPoint(std::string file_to_gather,int next_index,std::string & next_data,std::map< int, point> successful_resolves){
+void datagatherer::CheckForResolvedFailedPoint(std::string file_to_gather,
+																							 int next_index,std::string & next_data,
+																							 std::map< int, point> successful_resolves)
+{
 	
 	// attempt to find point with the same index.
 	if (successful_resolves.find(next_index) ==successful_resolves.end()) {
@@ -866,14 +885,14 @@ boost::filesystem::path datagatherer::GetAvailableRuns(){
 
 
 
-void datagatherer::MergeFolders(std::string file_to_gather, std::string left_folder, std::string right_folder, std::string output_folder_name, int parser_index){
+void datagatherer::MergeFolders(std::string file_to_gather, boost::filesystem::path left_folder,
+																boost::filesystem::path right_folder, boost::filesystem::path output_folder_name, int parser_index)
+{
 	
 	std::stringstream converter;
 	
-	std::string output_file_name = output_folder_name;
-	output_file_name.append("/");
-	output_file_name.append(file_to_gather);
-	output_file_name.append("0");
+	boost::filesystem::path output_file_name = output_folder_name;
+	output_file_name /= file_to_gather += "0";
 	
 	//std::cout << "opening file " << output_file_name << " to write data" << std::endl; //remove me
 	std::ofstream outputfile(output_file_name.c_str());
@@ -893,16 +912,16 @@ void datagatherer::MergeFolders(std::string file_to_gather, std::string left_fol
 	
 	std::string output_buffer;
 	
-	std::vector < std::string > filelist_left  = FindFiles(left_folder,  expression);  //this function is in para_aux_funcs
-	std::vector < std::string > filelist_right = FindFiles(right_folder, expression);  //this function is in para_aux_funcs
+	std::vector < boost::filesystem::path > filelist_left  = FindFiles(left_folder,  expression);  //this function is in para_aux_funcs
+	std::vector < boost::filesystem::path > filelist_right = FindFiles(right_folder, expression);  //this function is in para_aux_funcs
 	
 	
 	if (filelist_left.size()==0) {
-		std::cerr << "folder to merge '" << left_folder << "' had no data files!" << std::endl;
+		std::cerr << "folder to merge '" << left_folder.string() << "' had no data files!" << std::endl;
 		return;
 	}
 	if (filelist_right.size()==0) {
-		std::cerr << "folder to merge '" << right_folder << "' had no data files!" << std::endl;
+		std::cerr << "folder to merge '" << right_folder.string() << "' had no data files!" << std::endl;
 		return;
 	}
 	
@@ -1065,7 +1084,10 @@ void datagatherer::MergeFolders(std::string file_to_gather, std::string left_fol
 
 
 
-void datagatherer::rest_of_files(std::ifstream & datafile, std::string & output_buffer, std::ofstream & outputfile, std::vector < std::string > filelist, int file_index, int parser_index){
+void datagatherer::rest_of_files(std::ifstream & datafile, std::string & output_buffer,
+																 std::ofstream & outputfile, std::vector < boost::filesystem::path > filelist,
+																 int file_index, int parser_index)
+{
 	std::string tmpstr;
 	std::stringstream converter;
 	std::string next_data = "";
@@ -1116,7 +1138,7 @@ void datagatherer::rest_of_files(std::ifstream & datafile, std::string & output_
 }
 
 
-bool datagatherer::endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < std::string > filelist){
+bool datagatherer::endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < boost::filesystem::path > filelist){
 	std::string tmpstr;
 	datafile.close();
 	file_index++;
@@ -1343,14 +1365,16 @@ std::string datagatherer::ParseFailedPaths(std::ifstream & fin){
 
 
 //used to control the output folder name for data gathering
-void datagatherer::IncrementOutputFolder(std::string & output_folder_name, std::string base_output_folder_name, int & output_folder_index){
+void datagatherer::IncrementOutputFolder(boost::filesystem::path & output_folder_name,
+																				 boost::filesystem::path base_output_folder_name, int & output_folder_index)
+{
 	std::stringstream converter;
 	
 	output_folder_index = (output_folder_index+1);  //will start with 1 (since index starts at 0, and increment at start...);
 	output_folder_name = base_output_folder_name;
-	output_folder_name.append("/tmp");
+	output_folder_name /= "tmp";
 	converter << output_folder_index;
-	output_folder_name.append(converter.str());
+	output_folder_name += converter.str();
 	
 	
 	
@@ -1360,26 +1384,26 @@ void datagatherer::IncrementOutputFolder(std::string & output_folder_name, std::
 
 
 
-std::vector< std::string > datagatherer::GetFoldersForData(std::string dir){
+std::vector< boost::filesystem::path > datagatherer::GetFoldersForData(boost::filesystem::path dir){
 	
-	std::vector< std::string > foldervector;
+	std::vector< boost::filesystem::path > foldervector;
 	
 	
 	//read in folder file.
-	std::string foldername = dir;
-	foldername.append("/folders");
+	boost::filesystem::path foldername = dir;
+	foldername /= "folders";
 	std::ifstream folderstream;
 	folderstream.open(foldername.c_str());
 	
 	if (!folderstream.is_open()) {
-		std::cerr << "failed to open file to read folders " << foldername << std::endl;
+		std::cerr << "failed to open file to read folders " << foldername.string() << std::endl;
 	}
 	else{
 		std::string tmpstr;
 		
 		
 		while (getline(folderstream,tmpstr)) {
-			foldervector.push_back(tmpstr);
+			foldervector.push_back(boost::filesystem::path(tmpstr));
 		}
 		folderstream.close();
 	}

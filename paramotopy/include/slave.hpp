@@ -106,15 +106,15 @@ private:
 	ProgSettings paramotopy_settings; ///< the ProgSettings for this process
 	
 	
-	std::string filename;			///< the filename for the problem
+	boost::filesystem::path filename;			///< the filename for the problem
 	int numfilesatatime;			///< the expected number of files per send
 	int numfilesatatime_orig; ///< the expected number of files per send
-	std::string called_dir;   ///< where was I instantiated?
-	std::string homedir;      ///< where is $(HOME)?
+	boost::filesystem::path called_dir;   ///< where was I instantiated?
+	boost::filesystem::path homedir;      ///< where is $(HOME)?
 	
-	std::string workingfolder;  ///< where should I go to perform work?
+	boost::filesystem::path workingfolder;  ///< where should I go to perform work?
 	
-	std::string tmpfolder;			///< the basis for workingfolder
+	boost::filesystem::path tmpfolder;			///< the basis for workingfolder
 	
 	
 	

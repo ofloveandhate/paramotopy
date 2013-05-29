@@ -107,7 +107,7 @@ std::string replace_tilde_with_home(std::string workwithme);
     \param expression - The expression for which to search.
     \return vector<string> - A vector of strings that stores the found directories.
  */
-std::vector<std::string> FindFiles(std::string dir, std::string expression);
+std::vector<boost::filesystem::path> FindFiles(boost::filesystem::path dir, std::string expression);
 
 /**
    Searches a directory for all files fitting a regular expression. 
@@ -115,7 +115,7 @@ std::vector<std::string> FindFiles(std::string dir, std::string expression);
    \param expression - The expression for which to search.
    \return vector<path> - A vector of boost style paths that stores the files found.
  */
-std::vector<boost::filesystem::path> FindDirectories(std::string dir, std::string expression);
+std::vector<boost::filesystem::path> FindDirectories(boost::filesystem::path, std::string expression);
 
 /** 
     Get alphnumeric input from the user with spaces.
@@ -178,7 +178,7 @@ int get_int_choice(std::string display_string,int min_value,int max_value);
     \param filename - The paramotopy input filename.
     \return string - A string of the format "bfiles_filename", where filename is the string value of filename.
 */
-std::string make_base_dir_name(std::string filename);
+boost::filesystem::path make_base_dir_name(boost::filesystem::path filename);
 
 
 
@@ -195,14 +195,10 @@ int ParamotopyMainMenu();
 std::string stackoverflow_getcwd();
 
 
-/** Make a directory.
- \param mydir - The directory to make.
-*/
-void mkdirunix(std::string mydir);
-
 
 void safe_chdir(std::string desired_directory);
 
+std::string convert_spaces_to_escaped(std::string workwithme);
 
 #endif
 

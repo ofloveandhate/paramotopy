@@ -68,13 +68,13 @@ public:
 	
 	//this may well be changed/ renamed/ deleted
   /**  The current working directory ? as we move in the directory structure. */
-  std::string location;
+  boost::filesystem::path location;
 	
 	/** bfiles_filename */
-  std::string fundamental_dir;
+  boost::filesystem::path fundamental_dir;
 	
   /** The bfiles_filename base directory. */
-  std::string base_dir;
+  boost::filesystem::path base_dir;
   
   /** The run folder. */
   int run_number;
@@ -84,11 +84,12 @@ public:
   time_t updated;
   
   /** A string that stores the entire paramotopy input file in memory.  */
-  std::string paramotopy_file;
+	std::string paramotopy_file;
+	
   /** The paramotopy input file name. */
-  std::string inputfilename;
+	boost::filesystem::path inputfilename;
   /** The directory prefix.  */
-  std::string prefix;
+  boost::filesystem::path prefix;
   
   /** Indicates during the step 2 runs to do step2 or pathfailure bertini settings. */
   int steptwomode;// indicates to step2 whether to use step2 or pathfailure bertini settings.
@@ -169,7 +170,7 @@ public:
   /** Get the name of the paramotopy input file with the supplied filename.
       \param suppliedfilename - The supplied filename.
    */
-  void GetInputFileName(std::string suppliedfilename);
+  void GetInputFileName(boost::filesystem::path suppliedfilename);
   
 
   /** Make the base directory name.*/
@@ -177,10 +178,10 @@ public:
   
   /** Make the step 1 directory. */
   void mkdirstep1(){
-    std::string tempstr = base_dir;
-    mkdirunix(tempstr);
-    tempstr.append("/step1");
-    mkdirunix(tempstr);
+		boost::filesystem::path tempstr = base_dir;
+    boost::filesystem::create_directories(tempstr);
+    tempstr /= "step1";
+    boost::filesystem::create_directories(tempstr);
   };
   
   /** Clear all of the vectors that hold information for the current paramotopy run. */
@@ -198,7 +199,7 @@ public:
   void ParseData();
   /** Parse data during the step2 run.
    \param dir - the base directory in comparison to the directory paramotopy was initially called.  */
-  void ParseData(std::string dir);
+  void ParseData(boost::filesystem::path dir);
   
   /** Parse the paramotopy input file and store values into memory.
       \param fin - The input filestream that contains the paramotopy input file.
@@ -273,9 +274,9 @@ public:
 	
 	
   /** Write the original paramotopy file in the bfiles_filename/run# folder. */
-  void WriteOriginalParamotopy(std::string dir);
+  void WriteOriginalParamotopy(boost::filesystem::path dir);
   /** Write a modified paramotopy file in the corresponding iteration folder used in the path failure analysis. */
-  void WriteModifiedParamotopy(std::string dir, int iteration);
+  void WriteModifiedParamotopy(boost::filesystem::path dir, int iteration);
   /** Write the random values to a file. ? ? */
   void WriteRandomValues();
   
@@ -307,13 +308,13 @@ public:
   /** Load the paramotopy input file.
    \param filename - The filename to load. 
   */
-  void load(std::string filename);
+  void load(boost::filesystem::path filename);
   /**  Get the xml information of the current run.
    \param filename - The xml file name.
    \param run - The run number.
    \param wheninitiated - Time the run began.
    \param whenupdated - Time of the last update of the run. */
-  void get_run_xml(std::string filename, int & run, time_t  & wheninitiated, time_t & whenupdated);
+  void get_run_xml(boost::filesystem::path filename, int & run, time_t  & wheninitiated, time_t & whenupdated);
   /** Set the last updated time for the run and save to the xml file.  */
   void UpdateAndSave();
   
@@ -331,24 +332,33 @@ public:
   boost::filesystem::path GetAvailableRuns();
   
   /** Not used in runinfo.cpp ? */
-  void CollectSpecificFiles(std::string file_to_gather, std::vector < std::string > folders_with_data,
-			    std::string run_to_analyze, int parser_index, bool mergefailed);
+  void CollectSpecificFiles(boost::filesystem::path file_to_gather,
+														std::vector < boost::filesystem::path > folders_with_data,
+														boost::filesystem::path run_to_analyze,
+														int parser_index, bool mergefailed);
+	
   /** Not used in runinfo.cpp ?  */
-  std::vector< std::string > GetFoldersForData(std::string dir);
+  std::vector< boost::filesystem::path > GetFoldersForData(boost::filesystem::path dir);
   /** Not used in runinfo.cpp ?  */
-  void IncrementOutputFolder(std::string & output_folder_name, std::string base_output_folder_name, int & output_folder_index);
+  void IncrementOutputFolder(boost::filesystem::path & output_folder_name,
+														 boost::filesystem::path base_output_folder_name,
+														 int & output_folder_index);
   /** Not used in runinfo.cpp  */
   void MergeFolders(std::string file_to_gather, std::string left_folder, 
 		    std::string right_folder, std::string output_folder_name, int parser_index);
   /** Not used in runinfo.cpp */
-  void finalize_run_to_file(std::string file_to_gather, std::string source_folder,
-			    std::string base_output_folder_name, int parser_index, bool mergefailed);
+  void finalize_run_to_file(boost::filesystem::path file_to_gather,
+														boost::filesystem::path source_folder,
+														boost::filesystem::path base_output_folder_name,
+														int parser_index, bool mergefailed);
   
   /** Not used in runinfo.cpp */
   void rest_of_files(std::ifstream & datafile, std::string & output_buffer, 
-		     std::ofstream & outputfile, std::vector < std::string > filelist, int file_index, int parser_index);
+		     std::ofstream & outputfile, std::vector < boost::filesystem::path > filelist,
+										 int file_index, int parser_index);
   /** Not used in runinfo.cpp */
-bool endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < std::string > filelist);
+	
+bool endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < boost::filesystem::path > filelist);
   
   ///function for parsing ***_solutions files, as output from bertini.
   /** Not used in runinfo.cpp */

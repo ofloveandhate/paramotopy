@@ -5,13 +5,16 @@
 void CallBertiniStep1(ProgSettings paramotopy_settings, 
 					  runinfo paramotopy_info){
 	
-	std::string startingfolder = stackoverflow_getcwd();  //get the current directory
-	std::stringstream command;
-	std::stringstream runfolder;
-	runfolder << paramotopy_info.location << "/step1";
-
-	chdir(runfolder.str().c_str());
+	boost::filesystem::path startingfolder = boost::filesystem::current_path();//stackoverflow_getcwd();  //get the current directory
 	
+	boost::filesystem::path runfolder;
+	runfolder = paramotopy_info.location;
+	runfolder /= "step1";
+
+	chdir(runfolder.c_str());
+	
+	
+	std::stringstream command;
 	if (paramotopy_settings.settings["parallelism"]["parallel"].intvalue==1) {
 		command << paramotopy_settings.settings["parallelism"]["architecture"].value() << " ";
 		if (paramotopy_settings.settings["parallelism"]["usemachine"].intvalue==1){
@@ -57,8 +60,8 @@ void WriteStep1(ProgSettings paramotopy_settings,
 	
 
 
-	std::string fname2 = paramotopy_info.location;
-	fname2.append("/step1/input");
+	boost::filesystem::path fname2 = paramotopy_info.location;
+	fname2 /= "step1/input";
 	
 	// open a file output stream to the input file used by bertini for step 1
 	std::ofstream fout(fname2.c_str());
