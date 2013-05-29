@@ -62,7 +62,7 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_s
  * \param start MUTABLE String containing the start file
  * \param startfilename The name of the start file. This is a user-set name.
  */
-int GetStart(std::string dir,
+int GetStart(boost::filesystem::path dir,
 	     std::string & start,
 	     std::string startfilename);
 
@@ -72,7 +72,7 @@ int GetStart(std::string dir,
  * \param lastnumsent Mutable vector in which to place the lastnumsent info read in by this function
  * \param numprocs Number of processors in this attempt.
  */
-int GetLastNumSent(std::string base_dir,
+int GetLastNumSent(boost::filesystem::path base_dir,
 					std::vector< int > & lastnumsent,
 					int numprocs);
 
@@ -138,7 +138,7 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
  * \param numparam Number of parameters in the problem.  Deprecated?
  * \return terminationint  - The number of parameter points in the file.  Note that this could acceptably be smaller than the actual number, but not larger.
  */
-int GetMcNumLines(std::string base_dir, int numparam);
+int GetMcNumLines(boost::filesystem::path base_dir, int numparam);
 
 
 #endif

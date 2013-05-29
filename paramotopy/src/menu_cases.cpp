@@ -41,9 +41,16 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 	
   mpicommand << paramotopy_settings.settings["parallelism"]["architecture"].value() << " -n ";
   mpicommand << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
-  mpicommand << paramotopy_settings.settings["system"]["step2location"].value() << "/step2 ";
-  mpicommand << paramotopy_info.inputfilename << " ";
-  mpicommand << paramotopy_info.location << " ";
+	
+	
+
+	boost::filesystem::path steptwopath = paramotopy_settings.settings["system"]["step2location"].pathvalue;
+	steptwopath /= "step2";
+	
+	mpicommand << convert_spaces_to_escaped(steptwopath.string()) << " ";
+	
+  mpicommand << convert_spaces_to_escaped(paramotopy_info.inputfilename.string()) << " ";
+  mpicommand << convert_spaces_to_escaped(paramotopy_info.location.string()) << " ";
 	mpicommand << paramotopy_info.steptwomode << " ";
 
   if (paramotopy_settings.settings["system"]["stifle"].intvalue==1){
@@ -76,13 +83,13 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	
 
 	
-	std::string settings_filename = paramotopy_info.location;
-	settings_filename.append("/prefs.xml");
+	boost::filesystem::path settings_filename = paramotopy_info.location;
+	settings_filename /= "prefs.xml";
 	paramotopy_settings.save(settings_filename);
   
   //check if folder exists already.  if it does, prompt user
-  boost::filesystem::path step2path(paramotopy_info.location);
-  step2path /= ("step2");  //concatenation in boost
+  boost::filesystem::path step2path = paramotopy_info.location;
+  step2path /= "step2";  //concatenation in boost
   
   if (boost::filesystem::exists(step2path)){  // if it can see the current run's step2 folder
     if (get_int_choice("found previous step2 folder.  remove, or bail out?\n0) bail out\n1) remove and continue\n: ",0,1)==1){
@@ -105,9 +112,8 @@ void steptwo_case(ProgSettings paramotopy_settings,
   
 	
   //write a file containing the random values.
-  std::string randpointfilename;
-  randpointfilename = paramotopy_info.location;
-  randpointfilename.append("/randstart");
+  boost::filesystem::path randpointfilename = paramotopy_info.location;
+  randpointfilename /= "randstart";
   std::ofstream fout;
   fout.open(randpointfilename.c_str());
   fout.precision(16);

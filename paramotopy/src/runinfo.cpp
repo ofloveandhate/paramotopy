@@ -67,36 +67,36 @@ void runinfo::GetOriginalParamotopy(){
 //writes the original paramotopy input file, in its entirety, to the current run folder.
 //
 //assumes that you are in the original directory
-void runinfo::WriteOriginalParamotopy(std::string dir){
+void runinfo::WriteOriginalParamotopy(boost::filesystem::path dir){
 	
-	std::string filetoopen = dir;
+	boost::filesystem::path filetoopen = dir;
+	filetoopen /= "paramotopy_input_file";
 	
 	std::ofstream fout;
-	filetoopen.append("/paramotopy_input_file");
 	fout.open(filetoopen.c_str());
 	if (!fout.is_open()) {
-		std::cerr << "writing paramotopy file " << filetoopen << " failed." << std::endl;
+		std::cerr << "writing paramotopy file " << filetoopen.string() << " failed." << std::endl;
 	}
 	fout << this->paramotopy_file;
 	fout.close();
 	
 	
 	filetoopen = dir;
-	filetoopen.append("/inputfilename");
+	filetoopen /= "inputfilename";
 	fout.open(filetoopen.c_str());
 	if (!fout.is_open()) {
-		std::cerr << "writing inputfilename file " << filetoopen << " failed." << std::endl;
+		std::cerr << "writing inputfilename file " << filetoopen.string() << " failed." << std::endl;
 	}
-	fout << this->inputfilename;
+	fout << this->inputfilename.string();
 	fout.close();
 	return;
 }
 
 
 //this function writes a modified paramotopy file, derived from the original, which is used in step2 failure analysis, to make the input file use a program-generated user-defined file of parameter points, which consist of the failed points.
-void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
+void runinfo::WriteModifiedParamotopy(boost::filesystem::path dir, int iteration){
 	
-	std::string filetoopen = dir;
+	boost::filesystem::path filetoopen = dir;
 	std::stringstream paramotopy_file_str;
 	
 	paramotopy_file_str << this->numfunct << " " << this->numvargroup << " " << this->numparam << " " << this->numconsts << "\n";
@@ -126,7 +126,7 @@ void runinfo::WriteModifiedParamotopy(std::string dir, int iteration){
 	
 	
 	std::ofstream fout;
-	filetoopen.append("/paramotopy_input_file");
+	filetoopen /= "paramotopy_input_file";
 	fout.open(filetoopen.c_str());
 	fout << paramotopy_file_str.str();
 	fout.close();
@@ -140,30 +140,15 @@ void runinfo::make_base_dir_name(){
 	//todo:  rewrite this using boost
 	
 	
-	this->base_dir = "";  //reset
-	
-	std::string remainder = this->inputfilename;
-	size_t found;
-	found = remainder.find('/');
-	while (found!=std::string::npos) {  //if found the delimiter '/'
-		
-	  this->base_dir.append(remainder.substr(0,found+1));  //
-	  remainder = remainder.substr(found+1,remainder.length()-found);    // the remainder of the path.  will scan later.
-	  found = remainder.find('/');                             // get the next indicator of the '/' delimiter.
-	  
-	  
-	  
-	}// re:while
-	
-	base_dir.append("bfiles_");
-	base_dir.append(remainder);
+	this->base_dir = "bfiles_";
+	base_dir += this->inputfilename.filename();
 	
 	fundamental_dir = base_dir;
 	
 	
 	boost::filesystem::path prefix_path(inputfilename);
 	
-	prefix = prefix_path.root_name().string();
+	prefix = prefix_path.root_name();
 	//std::cout << "prefix" << prefix << "\n";
 	return;
 }
@@ -314,13 +299,13 @@ void runinfo::GetInputFileName(){
   while (!finfound) {
     
     std::cout << "Enter the input file's name.       (% cancels when applicable)\n: ";
-    filename = getAlphaNumeric();
+    filename = getAlphaNumeric_WithSpaces();
     
 		size_t found=filename.find('%');
     if (found!=std::string::npos) {
       if ( (int(found) == 0) && boost::filesystem::exists(this->inputfilename)) { // if already have a good one, and user wants to bail out.
 				std::cout << "canceling load.\n" << std::endl;
-				filename = this->inputfilename;
+				filename = this->inputfilename.string();
 				break;
       }
 		}
@@ -340,13 +325,13 @@ void runinfo::GetInputFileName(){
   return;
 }
 
-void runinfo::GetInputFileName(std::string suppliedfilename){
+void runinfo::GetInputFileName(boost::filesystem::path suppliedfilename){
 
   if (boost::filesystem::exists(suppliedfilename)){  // if it can see the 'finished' file
-    inputfilename = suppliedfilename;
+    this->inputfilename = suppliedfilename;
   }
   else{
-    std::cout << "Unable to find file of supplied name.\n";
+    std::cout << "Unable to find file of supplied name (" << suppliedfilename << ").\n";
     runinfo::GetInputFileName();
   }
   runinfo::make_base_dir_name();
@@ -360,8 +345,8 @@ void runinfo::WriteRandomValues(){
   std::ofstream fout;
   fout.precision(16);
   
-  std::string randpointfilename = base_dir;
-  randpointfilename.append("/randompoints_step1");
+  boost::filesystem::path randpointfilename = base_dir;
+  randpointfilename /= "randompoints_step1";
   fout.open(randpointfilename.c_str());
   
   if (!fout.is_open()) {
@@ -382,7 +367,7 @@ void runinfo::SaveRandom(){
   std::string randpointfilename;
   std::cout << "Enter the filename you want to save the random start points to : ";
   
-  randpointfilename = getAlphaNumeric();
+  randpointfilename = getAlphaNumeric_WithSpaces();
   
   std::ofstream fout;
   fout.precision(16);
@@ -409,14 +394,14 @@ void runinfo::LoadRandom(){
   while ( !fin.is_open() ) {
     std::cout << "Enter the filename of the random points you"
 	      << " want to load (% to cancel): ";
-    randfilename = getAlphaNumeric();
+    randfilename = getAlphaNumeric_WithSpaces();
     
     size_t found=randfilename.find('%');
     if (found!=std::string::npos) {
       if ( int(found) == 0) {
-	std::cout << "canceling load.\n" << std::endl;
-	cancelthis = 1;
-	break;
+				std::cout << "canceling load.\n" << std::endl;
+				cancelthis = 1;
+				break;
       }
       
     }
@@ -462,12 +447,12 @@ bool runinfo::GetPrevRandom(){
   bool loadedrandom = false;
   RandomValues.clear();
   
-  std::string randomfilename = base_dir;
+  boost::filesystem::path randomfilename = base_dir;
   
-  randomfilename.append("/randompoints_step1");
+  randomfilename /= "randompoints_step1";
   
-  struct stat filestatus;
-  if (stat(randomfilename.c_str(),&filestatus)==0) {
+
+  if (boost::filesystem::exists(randomfilename)) {
     
     
     std::ifstream fin;
@@ -592,7 +577,7 @@ void runinfo::CopyUserDefinedFile(){
     
     
     boost::filesystem::path fileloc(this->base_dir);
-    mkdirunix(fileloc.string().c_str());
+    boost::filesystem::create_directories(fileloc);
     fileloc /= "mc";
     
     boost::filesystem::path mcfile(this->mcfname);
@@ -618,10 +603,10 @@ void runinfo::CopyUserDefinedFile(){
 }
 
 //this is the function to be called in step2.
-void runinfo::ParseData(std::string dir){
+void runinfo::ParseData(boost::filesystem::path dir){
   runinfo::make_base_dir_name();
-  std::string filetoopen = dir;
-  filetoopen.append("/paramotopy_input_file");
+  boost::filesystem::path filetoopen = dir;
+  filetoopen /= "paramotopy_input_file";
   
   std::ifstream fin;
   fin.open(filetoopen.c_str());
@@ -823,8 +808,8 @@ void runinfo::GetRandomValues(){
   
   std::stringstream myss;
   std::ifstream fin;
-  std::string randfilename = this->location;
-  randfilename.append("/randstart");
+  boost::filesystem::path randfilename = this->location;
+  randfilename /= "randstart";
   fin.open(randfilename.c_str());
   
   if (!fin.is_open()) {
@@ -1293,11 +1278,11 @@ void runinfo::DisplayAllValues(){
 bool runinfo::test_if_finished(){
   bool finished = false;
   
-  std::string finishedfile = this->base_dir;
-  finishedfile.append("/step2finished");
-  struct stat filestatus;
+  boost::filesystem::path finishedfile = this->base_dir;
+  finishedfile /= "step2finished";
+
   
-  if (stat( finishedfile.c_str(), &filestatus ) ==0){  // if it can see the 'finished' file
+  if (boost::filesystem::exists(finishedfile) ){  // if it can see the 'finished' file
     finished = true;
   }
   return finished;
@@ -1328,7 +1313,7 @@ void runinfo::UpdateAndSave(){
 void runinfo::SetBaseDirZero(){
   
   base_dir = fundamental_dir;
-  base_dir.append("/run0");
+  base_dir /= "run0";
   
   run_number = 0;
   initiated = time(0);
@@ -1369,8 +1354,8 @@ void runinfo::SetBaseDirManual(std::vector< boost::filesystem::path > found_runs
     base_dir = found_runs[choice].string();
     std::cout << "loading old directory " << base_dir << "\n";
     
-    std::string fname = base_dir;
-    fname.append("/info.xml");
+    boost::filesystem::path fname = base_dir;
+    fname /= "info.xml";
     runinfo::load(fname);//gets the run number, initiation date, and last time updated.
     made_new_folder = false;
   }
@@ -1410,12 +1395,12 @@ void runinfo::SetBaseDirNew(std::vector< boost::filesystem::path> found_runs){
   updated = time(0);
   
   base_dir = fundamental_dir;
-  base_dir.append("/run");
+  base_dir /= "run";
   std::stringstream ss;
   ss << run_number;
-  base_dir.append(ss.str());
+  base_dir += ss.str();
   
-  mkdirunix(base_dir);
+  boost::filesystem::create_directories(base_dir);
   runinfo::save();
   
   made_new_folder = true;
@@ -1428,7 +1413,7 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
   //get highest number, increment, set base dir and stuff
   
   time_t most_recent = -1;
-  std::string tmpdir = "";
+  boost::filesystem::path tmpdir;
   time_t wheninitiated, whenupdated;
   int tmprun;
   int runindex = 0;
@@ -1436,8 +1421,8 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
   std::cout << "\n   name                date modified\n\n";
   
   for (int ii=0; ii<int(found_runs.size()); ++ii) {
-    tmpdir = found_runs[ii].string();
-    tmpdir.append("/info.xml");
+    tmpdir = found_runs[ii];
+    tmpdir /= "info.xml";
     get_run_xml(tmpdir,tmprun,wheninitiated,whenupdated);
     
     std::cout << found_runs[ii].string();
@@ -1453,11 +1438,11 @@ void runinfo::SetBaseDirMostRecent(std::vector< boost::filesystem::path> found_r
   }
   
   std::cout << std::endl;
-  tmpdir  = found_runs[runindex].string();
+  tmpdir  = found_runs[runindex];
   
   base_dir = tmpdir;
   
-  tmpdir.append("/info.xml");
+  tmpdir /= "info.xml";
   runinfo::load(tmpdir);
   
   return;
@@ -1571,17 +1556,17 @@ void runinfo::save(){
   
   doc->LinkEndChild( root );
 	
-  mkdirunix(base_dir);
+  boost::filesystem::create_directories(base_dir);
   
-  std::string filename = base_dir;
-  filename.append("/info.xml");
+  boost::filesystem::path filename = base_dir;
+  filename /= "info.xml";
   //save it
   if(doc->SaveFile(filename.c_str())){
     
   }
   else{
     //couldn't save for some reason.  this may be a problem on queued systems?
-    std::cout << "run info *failed* to save to " << 	filename << "!\n";
+    std::cout << "run info *failed* to save to " << 	filename.string() << "!\n";
   };
   
   
@@ -1589,7 +1574,7 @@ void runinfo::save(){
 }
 
 
-void runinfo::load(std::string filename){
+void runinfo::load(boost::filesystem::path filename){
   int tmp_run=0;
   time_t tmp_initiated=-2, tmp_updated=-1;
   
@@ -1603,9 +1588,9 @@ void runinfo::load(std::string filename){
 
 
 //returns via reference the run number, time initiated, and time updated, of a run.
-void runinfo::get_run_xml(std::string filename, int & run, time_t  & wheninitiated, time_t & whenupdated){
+void runinfo::get_run_xml(boost::filesystem::path filename, int & run, time_t  & wheninitiated, time_t & whenupdated){
 	
-  TiXmlDocument* doc = new TiXmlDocument(filename);
+  TiXmlDocument* doc = new TiXmlDocument(filename.string());
   
   bool doc_loaded = doc->LoadFile();
   if (!doc_loaded){

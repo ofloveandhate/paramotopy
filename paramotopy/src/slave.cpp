@@ -900,24 +900,27 @@ void slave_process::SetWorkingFolder(){
 	
 	
 	
-	std::stringstream tmpss;
+	boost::filesystem::path tmppath;
 	
 	if (paramotopy_settings.settings["files"]["customtmplocation"].intvalue==1){
-		tmpss << paramotopy_settings.settings["files"]["tempfilelocation"].value();
+		tmppath = paramotopy_settings.settings["files"]["tempfilelocation"].pathvalue;
 	}
 	else {
-		tmpss << called_dir;
+		tmppath = called_dir;
 	}
 	
-	tmpss << "/bfiles_"
-				<< paramotopy_info.inputfilename
-				<< "/tmpstep2";
+	tmppath /= "bfiles_";
+	tmppath += paramotopy_info.inputfilename;
+	tmppath /= "tmpstep2";
 	
-	this->tmpfolder = tmpss.str();
+	this->tmpfolder = tmppath;
 	
-	tmpss << "/work" << myid;
+	tmppath /= "work";
+	std::stringstream converter;
+	converter << myid;
+	tmppath += converter.str();
 	
-	this->workingfolder = tmpss.str();
+	this->workingfolder = tmppath;
 
 }
 
@@ -930,7 +933,7 @@ void slave_process::PurgeWorkingFolder(){
 
 
 void slave_process::MoveToWorkingFolder(){
-	mkdirunix(workingfolder.c_str());
+	boost::filesystem::create_directories(this->workingfolder);
 	safe_chdir(this->workingfolder.c_str());
 	
 	this->in_working_folder = true;
@@ -973,12 +976,12 @@ void slave_process::ReadyCheck()
 		reported_errors.push_back("not in working folder");
 	}
 	
-	if (filename.size()==0) {
+	if (filename.string().size()==0) {
 		reported_errors.push_back("no filename");
 		its_all_good = false;
 	}
 	
-	if (tmpfolder.size()==0) {
+	if (tmpfolder.string().size()==0) {
 		reported_errors.push_back("no tmpfolder");
 		its_all_good = false;
 	}

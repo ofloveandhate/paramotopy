@@ -76,7 +76,7 @@ bool timer::write_timing_data(const boost::filesystem::path folder_to_write_to, 
 		file_to_write_to += converter.str();
 	}
 	
-	std::ofstream fout(file_to_write_to.string().c_str());
+	std::ofstream fout(file_to_write_to.c_str());
 	if (!fout.is_open()) {
 		std::cerr << "failed to open " << file_to_write_to.string() << " to write timing data" << std::endl;
 		return false;

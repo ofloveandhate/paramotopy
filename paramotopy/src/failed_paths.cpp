@@ -20,8 +20,8 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
   failinfo::find_failed_paths(paramotopy_info,0,0);
   initial_fails[0] = this->master_fails;   //seed the data
   
-  std::string makeme = paramotopy_info.base_dir;
-  makeme.append("/failure_analysis");
+  boost::filesystem::path makeme = paramotopy_info.base_dir;
+  makeme /= "failure_analysis";
   boost::filesystem::create_directory(makeme);
   
   
@@ -29,19 +29,20 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
   
   paramotopy_settings.set_path_failure_settings();//sets the current settings from the base settings.
   std::cout << "current iteration " << current_iteration << std::endl;
-  
+  std::cout << "\nCurrently " << this->totalfails << " points with path failures.\n";
   std::stringstream menu;
   menu << "\n\nPath Failure Menu:\n\n"
 	<< "1) ReRun Failed Paths\n"
 	<< "2) Clear Failed Path Data (start over)\n"
 	<< "3) Change path failure settings (resets tolerance tightening)\n"
+	<< "4) Report failed paths to screen\n"
 	<< "*\n"
 	<< "0) Go Back\n"
 	<< "\n: ";
   int choice = -1001;
   while (choice!=0) {
     paramotopy_settings.DisplayCurrentSettings("PathFailure");
-    choice = get_int_choice(menu.str(),0,3);
+    choice = get_int_choice(menu.str(),0,4);
     
     switch (choice) {
 			case 0:
@@ -66,6 +67,10 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 				paramotopy_settings.set_path_failure_settings();//sets the current settings from the base
 				break;
 				
+			case 4:
+				failinfo::report_failed_paths(paramotopy_info);
+				break;
+				
 			default:
 				
 				break;
@@ -84,8 +89,8 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 
 void failinfo::StartOver(runinfo & paramotopy_info){
 	
-  std::string dirtosearch = paramotopy_info.base_dir;
-  dirtosearch.append("/failure_analysis");
+  boost::filesystem::path dirtosearch = paramotopy_info.base_dir;
+  dirtosearch /= "failure_analysis";
   std::vector< boost::filesystem::path > found_runs = FindDirectories(dirtosearch, "^pass");
   
   for (int ii = 0; ii<int(found_runs.size()); ++ii) {
@@ -108,7 +113,7 @@ void failinfo::StartOver(runinfo & paramotopy_info){
   
   failinfo::write_successful_resolves(paramotopy_info);
   
-  failinfo::report_failed_paths(paramotopy_info);
+  
   
   paramotopy_info.GetPrevRandom();
   
@@ -128,16 +133,16 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
   
 	
   //first, we need to set current folder number
-  std::string dirtosearch = paramotopy_info.base_dir;
+  boost::filesystem::path dirtosearch = paramotopy_info.base_dir;
   std::vector< boost::filesystem::path > failure_paths = FindDirectories(dirtosearch,"^failure_analysis");
   if (failure_paths.size()==0) {
     this->current_iteration=0;
-    //		failinfo::set_location_fail(paramotopy_info);
+//		failinfo::set_location_fail(paramotopy_info);
     failinfo::write_successful_resolves(paramotopy_info);
     paramotopy_info.location = paramotopy_info.base_dir;
   }
   else{
-    dirtosearch.append("/failure_analysis");
+    dirtosearch /= "failure_analysis";
     
     std::vector< boost::filesystem::path > found_runs = FindDirectories(dirtosearch, "^pass"); // carat means beginning is `pass'
     int tmpiteration;
@@ -151,8 +156,8 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
       int highestiteration = -1;
       for (int ii = 0; ii<int(found_runs.size()); ++ii) {
 				std::cout << "found " << found_runs[ii].string() << std::endl;
-				std::string tmppath = found_runs[ii].string();
-				tmppath.append("/info");
+				boost::filesystem::path tmppath = found_runs[ii];
+				tmppath /= "info";
 				std::ifstream fin(tmppath.c_str());
 				std::string tmpstr;
 				getline(fin,tmpstr);
@@ -164,7 +169,7 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 				
 				
 				if (!TestIfFinished(found_runs[ii])){
-					std::cout << "removing folder " << found_runs[ii].string() << " because was not finished..." << std::endl;
+					std::cout << "removing folder " << found_runs[ii] << " because was not finished..." << std::endl;
 					boost::filesystem::remove_all(found_runs[ii]);
 					continue;
 				}
@@ -204,8 +209,6 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
 	
 //  failinfo::report_restored_data();
   
-  // report them to the screen.
-  failinfo::report_failed_paths(paramotopy_info);
   
   return;
 }
@@ -241,13 +244,14 @@ void failinfo::report_restored_data(){
 
 void failinfo::make_master_from_recovered(std::map< int, point > successful_resolves){
 	
-  std::cout << "successful_resolves has " << successful_resolves.size() << " elements." << std::endl;
+//  std::cout << "successful_resolves has " << successful_resolves.size() << " elements." << std::endl;
   
   std::map< int, point >::iterator iter;
-  std::vector< point > tmpcrap;  //this really needs to be rewritten to be memory efficient.
+  std::vector< point > tmpcrap;
+//TODO:  this really needs to be rewritten to be memory efficient.
   for (iter=successful_resolves.begin(); iter!= successful_resolves.end(); iter++) {
     
-    std::cout << iter->first << std::endl;
+//    std::cout << iter->first << std::endl;
     
     tmpcrap.push_back(iter->second);
     
@@ -267,13 +271,13 @@ void failinfo::set_location_fail(runinfo & paramotopy_info){
   
   
   paramotopy_info.location = paramotopy_info.base_dir;
-  paramotopy_info.location.append("/failure_analysis/pass");
+  paramotopy_info.location /= "failure_analysis/pass";
   std::stringstream ss;
   ss << (this->current_iteration);
-  paramotopy_info.location.append(ss.str());
+  paramotopy_info.location += ss.str();
   
-  std::cout << "setting location fail " << paramotopy_info.location << std::endl;
-  boost::filesystem::create_directory(paramotopy_info.location);
+//  std::cout << "setting location fail " << paramotopy_info.location.string() << std::endl;
+//  boost::filesystem::create_directory(paramotopy_info.location);
   
   return;
 }
@@ -298,9 +302,10 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     std::cout << "analyzing failed paths, iteration " << mm+1 << " of " << paramotopy_settings.settings["PathFailure"]["maxautoiterations"].intvalue << "\n";
     
     failinfo::set_location_fail(paramotopy_info);
-    
-    std::string openme = paramotopy_info.location;
-    openme.append("/info");
+    boost::filesystem::create_directory(paramotopy_info.location);
+		
+    boost::filesystem::path openme = paramotopy_info.location;
+    openme /= "info";
     std::ofstream fout(openme.c_str());
     fout << this->current_iteration;
     fout.close();
@@ -317,8 +322,8 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     
     
     //do a new step 1 solve (is actually a step 2 solve, to new random points)
-    std::string makeme = paramotopy_info.location;
-    mkdirunix(makeme.append("/step1"));
+    boost::filesystem::path makeme = paramotopy_info.location;
+    boost::filesystem::create_directories(makeme/="step1");
     
     if (paramotopy_settings.settings["PathFailure"]["newrandommethod"].intvalue==1) {
       std::cout << "doing new step one\n";
@@ -332,10 +337,10 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     //run a step2 on the failed points.
     
     
-    std::string previous_start_file = "";
+		std::string previous_start_file = "";
     if (paramotopy_settings.settings["PathFailure"]["newrandommethod"].intvalue==1) {
       previous_start_file = paramotopy_settings.settings["mode"]["startfilename"].value();
-      paramotopy_settings.setValue("mode","startfilename","nonsingular_solutions");
+      paramotopy_settings.setValue("mode","startfilename",std::string("nonsingular_solutions"));
     }
     
     int terminationint = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam);
@@ -378,7 +383,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
     
     //recall the old values for a couple of settings
     if (paramotopy_settings.settings["PathFailure"]["newrandommethod"].intvalue==1) {
-      paramotopy_settings.setValue("mode","startfilename",previous_start_file);
+      paramotopy_settings.setValue("mode","startfilename",std::string(previous_start_file));
     }
     
 		paramotopy_settings.setValue("mode","main_mode",previous_mainmode);
@@ -434,7 +439,7 @@ void failinfo::write_successful_resolves(runinfo paramotopy_info){
   outputfile << master_fails.size() << "\n";
   for (int ii = 0; ii<int( master_fails.size() ); ++ii) {
     outputfile << master_fails[ii].index << " " << master_fails[ii].collected_data.size() << "\n";
-    std::cout << master_fails[ii].index << " " << master_fails[ii].collected_data.size() << std::endl;
+//    std::cout << master_fails[ii].index << " " << master_fails[ii].collected_data.size() << std::endl;
     
     
     if ( int(master_fails[ii].collected_data.size())>0){
@@ -605,14 +610,18 @@ void failinfo::report_failed_paths(runinfo paramotopy_info){
 
 
 
-void failinfo::copy_step_one(std::string from_dir, std::string to_dir, int iteration, std::string startfilename){
+void failinfo::copy_step_one(boost::filesystem::path from_dir, boost::filesystem::path to_dir,
+														 int iteration, std::string startfilename){
   
   std::string tmpstr;
-  std::string from_file = from_dir, to_file = to_dir;
-  from_file.append("/step1/");
-  from_file.append(startfilename);
-  to_file.append("/step1/");
-  to_file.append(startfilename);
+  boost::filesystem::path from_file = from_dir;
+	
+  from_file /= "step1";
+  from_file /= startfilename;
+	
+	boost::filesystem::path to_file = to_dir;
+  to_file /= "step1";
+  to_file /= startfilename;
   
   std::ifstream fin(from_file.c_str());
   if (!fin.is_open()) {
@@ -663,10 +672,10 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
   paramotopy_info.RandomValues = new_random_values;
   
   
-  std::string bertinifilename = paramotopy_info.location;
-  bertinifilename.append("/step1");
-  mkdirunix(bertinifilename);
-  bertinifilename.append("/input");
+  boost::filesystem::path bertinifilename = paramotopy_info.location;
+  bertinifilename /= "step1";
+	boost::filesystem::create_directories(bertinifilename);
+  bertinifilename /= "input";
   std::ofstream fout;
   fout.open(bertinifilename.c_str());
   if (!fout.is_open()) {
@@ -676,7 +685,8 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
   fout.close();
   
   bertinifilename = paramotopy_info.location;
-  bertinifilename.append("/step1/start");
+  bertinifilename /= "step1";
+	bertinifilename /= "start";
   fout.open(bertinifilename.c_str());
   if (!fout.is_open()) {
     std::cerr << "writing step1(2) start file for failed paths FAILED to open\n";
@@ -689,7 +699,7 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
   int previous_num_procs = paramotopy_settings.settings["parallelism"]["numprocs"].intvalue;
   // here put code for turning on/off parsing
   if (num_paths_to_track < previous_num_procs) {
-    paramotopy_settings.setValue("parallelism","numprocs",num_paths_to_track);
+    paramotopy_settings.setValue("parallelism","numprocs",num_paths_to_track+1);
   }
   
   
@@ -722,20 +732,25 @@ std::string failinfo::new_step_one(ProgSettings & paramotopy_settings,runinfo & 
 //writes the failed points and indices to two separate files in location.
 void failinfo::write_failed_paths(runinfo paramotopy_info, int iteration){
 	
-  std::stringstream ss;
-  ss << paramotopy_info.location << "/mc";
-  struct stat filestatus;
-  
-  if (stat(ss.str().c_str(), &filestatus)==0) {
-    remove(ss.str().c_str());
-//TODO:  this uses old c way of removing a file.  need to change to using boost.
+
+
+	boost::filesystem::path mcfilename = paramotopy_info.location;
+	mcfilename /= "mc";
+	
+  if (boost::filesystem::exists(mcfilename)) {
+    boost::filesystem::remove(mcfilename);
   }
   
   std::cout << "writing " << initial_fails[current_iteration].size() << " points to mc file" << std::endl;
   
   
   std::ofstream fout;
-  fout.open(ss.str().c_str());
+  fout.open(mcfilename.c_str());
+	if (!fout.is_open()) {
+		std::cerr << "failed to open " << mcfilename << " to write mc file.  cannot continue." << std::endl;
+		exit(451);
+	}
+	
   fout.precision(16);
   fout << initial_fails[current_iteration].size() << "\n";
   for (int ii = 0; ii < int(initial_fails[current_iteration].size()); ++ii) {
@@ -744,14 +759,13 @@ void failinfo::write_failed_paths(runinfo paramotopy_info, int iteration){
     }
     fout << "\n";
   }
-  
   fout.close();
   
-  ss.clear();
-  ss.str("");
+
   
-  ss << paramotopy_info.location << "/fail_indices";
-  fout.open(ss.str().c_str());
+  boost::filesystem::path failname = paramotopy_info.location;
+	failname /= "fail_indices";
+  fout.open(failname.c_str());
   for (int ii = 0; ii < totalfails; ++ii) {
     fout << initial_fails[current_iteration][ii].index << "\n";
   }
@@ -911,19 +925,19 @@ int failinfo::find_failed_paths(runinfo paramotopy_info, int temporal_flag, int 
 
 
 
-void failinfo::get_folders_for_fail(std::string dir){
+void failinfo::get_folders_for_fail(boost::filesystem::path dir){
 	
   foldervector.clear();
   
   
   //read in folder file.
-  std::string foldername = dir;
-  foldername.append("/folders");
+  boost::filesystem::path foldername = dir;
+  foldername /= "folders";
   std::ifstream folderstream;
   folderstream.open(foldername.c_str());
   
   if (!folderstream.is_open()) {
-    std::cerr << "failed to open file to read folders " << foldername << std::endl;
+    std::cerr << "failed to open file to read folders " << foldername.string() << std::endl;
   }
   else{
     std::string tmpstr;

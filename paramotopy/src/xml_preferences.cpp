@@ -1,12 +1,12 @@
 #include "xml_preferences.hpp"
 
 //NUMPOSSIBLE_SAVEFILES is set in xml_preferences.hpp
-const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] = 
+const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] =
 { "real_solutions", "nonsingular_solutions", "singular_solutions", "raw_data", "raw_solutions","main_data","midpath_data"   };
 
 
 //NUMMANDATORY_SAVEFILES is set in xml_preferences.hpp
-const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] = 
+const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] =
 { "failed_paths" };
 
 
@@ -127,17 +127,17 @@ void ProgSettings::set_path_failure_settings_from_steptwo(){
   for (iter=settings["step2bertini"].begin(); iter != settings["step2bertini"].end(); iter++){
     std::string setting_name = (*iter).first;
     switch (settings["step2bertini"][setting_name].type) {
-    case 0:
-      setValue("PathFailureBertiniBase",setting_name,settings["step2bertini"][setting_name].value());
-      break;
-    case 1:
-      setValue("PathFailureBertiniBase",setting_name,settings["step2bertini"][setting_name].intvalue);
-      break;
-    case 2:
-      setValue("PathFailureBertiniBase",setting_name,settings["step2bertini"][setting_name].doubvalue);
-      break;
-    default:
-      break;
+			case 0:
+				setValue("PathFailureBertiniBase",setting_name,settings["step2bertini"][setting_name].value());
+				break;
+			case 1:
+				setValue("PathFailureBertiniBase",setting_name,settings["step2bertini"][setting_name].intvalue);
+				break;
+			case 2:
+				setValue("PathFailureBertiniBase",setting_name,settings["step2bertini"][setting_name].doubvalue);
+				break;
+			default:
+				break;
     }
   }
 	
@@ -154,17 +154,17 @@ void ProgSettings::set_path_failure_settings(){
   for (iter=settings["PathFailureBertiniBase"].begin(); iter != settings["PathFailureBertiniBase"].end(); iter++){
     std::string setting_name = (*iter).first;
     switch (settings["PathFailureBertiniBase"][setting_name].type) {
-    case 0:
-      setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].value());
-      break;
-    case 1:
-      setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].intvalue);
-      break;
-    case 2:
-      setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].doubvalue);
-      break;
-    default:
-      break;
+			case 0:
+				setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].value());
+				break;
+			case 1:
+				setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].intvalue);
+				break;
+			case 2:
+				setValue("PathFailureBertiniCurrent",setting_name,settings["PathFailureBertiniBase"][setting_name].doubvalue);
+				break;
+			default:
+				break;
     }
   }
   
@@ -189,7 +189,7 @@ void ProgSettings::default_main_values(){
   
 	setValue("files","writemeshtomc",int(0));
 	setValue("files","customtmplocation",0);
-	setValue("files","tempfilelocation",".");
+	setValue("files","tempfilelocation",boost::filesystem::path("."));
 	setValue("files","newfilethreshold",67108864);
 	
 	setValue("system","buffersize",65536);
@@ -201,9 +201,9 @@ void ProgSettings::default_main_values(){
 	
 	for (int j = 0; j < NUMPOSSIBLE_SAVEFILES;++j){
 		setValue("SaveFiles",possible_savefiles[j],0);
-//		if (settings["SaveFiles"][possible_savefiles[j]].intvalue != 1){//!FilePrefVector[j]
-//			std::cout << j+1 << ") " << possible_savefiles[j] << "\n";
-//		}
+		//		if (settings["SaveFiles"][possible_savefiles[j]].intvalue != 1){//!FilePrefVector[j]
+		//			std::cout << j+1 << ") " << possible_savefiles[j] << "\n";
+		//		}
 	}
 	
 	setValue("SaveFiles","nonsingular_solutions",1);
@@ -212,7 +212,7 @@ void ProgSettings::default_main_values(){
 	
 	setValue("parallelism","usemachine",int(0));
 	setValue("parallelism","parallel",int(1));
-	setValue("parallelism","architecture","mpiexec");
+	setValue("parallelism","architecture",std::string("mpiexec"));
 	setValue("parallelism","numprocs",int(2));
 	setValue("parallelism","numfilesatatime",100);
 	
@@ -221,7 +221,7 @@ void ProgSettings::default_main_values(){
   setValue("files","deletetmpfilesatend",1);
 	
 	setValue("mode","main_mode",0);
-	setValue("mode","startfilename","nonsingular_solutions");
+	setValue("mode","startfilename",std::string("nonsingular_solutions"));
   setValue("mode","standardstep2",1); // do a parameter homotopy from a start file by default
   return;
 }
@@ -457,24 +457,24 @@ void ProgSettings::GetProgramLocationManual(std::string program_name, std::strin
   
   boost::filesystem::path final_path = boost::filesystem::canonical(boost::filesystem::absolute(path_to_detect));
   
-  setValue(category_name,setting_name,final_path.string());
+  setValue(category_name,setting_name,final_path);
   
   std::cout << program_name << " location set to " << final_path.string() << std::endl;
   return;
 }
 
-//locates the step2program.
+//locates the .
 void ProgSettings::FindProgram(std::string program_name, std::string category_name, std::string setting_name){
 	
   bool found_program = false;
   
   
   if (haveSetting(category_name,setting_name)) {
-    boost::filesystem::path stored_location(settings[category_name][setting_name].value());
+    boost::filesystem::path stored_location(settings[category_name][setting_name].pathvalue);
     stored_location /= program_name;
     if (boost::filesystem::exists(stored_location)){
       stored_location = boost::filesystem::canonical(boost::filesystem::absolute(stored_location));
-      setValue(category_name,setting_name,stored_location.parent_path().string());
+      setValue(category_name,setting_name,stored_location.parent_path());
       found_program = true;
     }
     
@@ -487,7 +487,7 @@ void ProgSettings::FindProgram(std::string program_name, std::string category_na
     
     if (boost::filesystem::exists(here)){  // if have the step2 program in current directory, set location of it to here.
       here = boost::filesystem::absolute(here);
-      setValue(category_name,setting_name,here.parent_path().string());
+      setValue(category_name,setting_name,here.parent_path());
       found_program = true;
     }
     else{  //if step2 is not in the current directory, then scan the path for it.
@@ -495,34 +495,34 @@ void ProgSettings::FindProgram(std::string program_name, std::string category_na
       char * temp_path;
       temp_path = getenv ("PATH");
       if (temp_path!=NULL){
-	std::string path = std::string(temp_path);
-	//have the path variable.  will scan for the mystep2 program.
-	
-	
+				std::string path = std::string(temp_path);
+				//have the path variable.  will scan for the mystep2 program.
 				
-	size_t found;
-	found = path.find(':');
-	while (found!=std::string::npos) {  //if found the delimiter ':'
-	  boost::filesystem::path path_to_detect(path.substr(0,found));  //the part of the path to scan for mystep2
-	  path = path.substr(found+1,path.length()-found);    // the remainder of the path.  will scan later.
-	  found = path.find(':');                             // get the next indicator of the ':' delimiter.
-	  path_to_detect /= program_name;
-	  if (boost::filesystem::exists(path_to_detect)){
-	    //found the mystep2 program!
-	    
-	    setValue(category_name,setting_name,path_to_detect.parent_path().string());
-	    found_program = true;
-	    break;
-	    
-	  }
-	  else{
-	    //did not find it yet...
-	  }
-	}// re:while
+				
+				
+				size_t found;
+				found = path.find(':');
+				while (found!=std::string::npos) {  //if found the delimiter ':'
+					boost::filesystem::path path_to_detect(path.substr(0,found));  //the part of the path to scan for mystep2
+					path = path.substr(found+1,path.length()-found);    // the remainder of the path.  will scan later.
+					found = path.find(':');                             // get the next indicator of the ':' delimiter.
+					path_to_detect /= program_name;
+					if (boost::filesystem::exists(path_to_detect)){
+						//found the mystep2 program!
+						
+						setValue(category_name,setting_name,path_to_detect.parent_path());
+						found_program = true;
+						break;
+						
+					}
+					else{
+						//did not find it yet...
+					}
+				}// re:while
       }//re: if temp_path!=null
       else{ //the path variable was null.  WTF?
-	std::cerr << "unable to scan $PATH for step2.\n";
-	
+				std::cerr << "unable to scan $PATH for step2.\n";
+				
       }
     }
   }
@@ -540,13 +540,13 @@ void ProgSettings::FindProgram(std::string program_name, std::string category_na
       temp_path = boost::filesystem::path(path_to_detect);
       temp_path /= program_name;
     }
-    setValue(category_name,setting_name,path_to_detect);
+    setValue(category_name,setting_name,boost::filesystem::path(path_to_detect) );
   }
   
   
-  boost::filesystem::path final_path = boost::filesystem::canonical(boost::filesystem::absolute(settings[category_name][setting_name].value()));
+  boost::filesystem::path final_path = boost::filesystem::canonical(boost::filesystem::absolute(settings[category_name][setting_name].pathvalue));
   
-  setValue(category_name,setting_name,final_path.string());
+  setValue(category_name,setting_name,final_path);
   
   return;
 }//    re: find_program
@@ -606,7 +606,7 @@ bool ProgSettings::CheckPrevSetFiles(){
 //void ProgSettings::GetIndividualFileSave(std::string datafilename){
 //  std::stringstream ss;
 //  ss << "Would you like to save data contained in files named '" << datafilename << "'?\n0 no, 1 yes\n:";
-//  setValue("SaveFiles",datafilename, get_int_choice(ss.str(),0,1));	
+//  setValue("SaveFiles",datafilename, get_int_choice(ss.str(),0,1));
 //}
 
 
@@ -623,38 +623,35 @@ bool ProgSettings::CheckPrevSetFiles(){
 
 
 //the main function to save the preferences to a xml file.
-void ProgSettings::save(std::string save_filename){
+void ProgSettings::save(boost::filesystem::path save_filename){
   
-  TiXmlDocument* doc = new TiXmlDocument;  
-  TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );  
+  TiXmlDocument* doc = new TiXmlDocument;
+  TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
   
   doc->LinkEndChild( decl );
   
-  TiXmlElement * root = new TiXmlElement("paramotopy_preferences");  
+  TiXmlElement * root = new TiXmlElement("paramotopy_preferences");
   categorymap::iterator iter;
   
   //save each catergory
   for (iter=settings.begin(); iter!= settings.end(); iter++) {
     ProgSettings::SaveCategoryToXml( (*iter).first , (*iter).second ,root);
-  } 
+  }
   
   //wrap it up
-  doc->LinkEndChild( root ); 
+  doc->LinkEndChild( root );
   
   //save it
-  if(doc->SaveFile(save_filename)){  //filename is a data member of ProgSettings class
+  if(doc->SaveFile(save_filename.string())){  //filename is a data member of ProgSettings class
     //		std::cout << "preferences saved\n";
   }
   else{
     //couldn't save for some reason.  this may be a problem on queued systems?
-    std::cout << "preferences *failed* to save to " << 	save_filename << "!\n";
-  };  
+    std::cout << "preferences *failed* to save to " << 	save_filename.string() << "!\n";
+  };
   
 }
 
-void ProgSettings::save(boost::filesystem::path speciallocation){
-  ProgSettings::save(speciallocation.string());
-}
 
 
 //saves one category of settings to the xml file.  returns to calling function save() for next category or finalization.
@@ -667,7 +664,7 @@ int ProgSettings::SaveCategoryToXml(std::string catname, settingmap curr_setting
   std::stringstream ss;
   
   
-  TiXmlElement * category_name = new TiXmlElement( catname.c_str() );  
+  TiXmlElement * category_name = new TiXmlElement( catname.c_str() );
   
   settingmap::iterator iter;
   for (iter=curr_settings.begin(); iter != curr_settings.end(); iter++){
@@ -687,16 +684,16 @@ int ProgSettings::SaveCategoryToXml(std::string catname, settingmap curr_setting
     TiXmlElement* name_elmnt = new TiXmlElement("name");
     name_elmnt->LinkEndChild(setting_name);
     TiXmlElement* value_elmnt = new TiXmlElement("value");
-    value_elmnt->LinkEndChild(setting_value);	
+    value_elmnt->LinkEndChild(setting_value);
     TiXmlElement* type_elmnt = new TiXmlElement("type");
     type_elmnt->LinkEndChild(setting_type);
     
-    setting_elmnt->LinkEndChild(name_elmnt ); 
-    setting_elmnt->LinkEndChild(value_elmnt ); 
+    setting_elmnt->LinkEndChild(name_elmnt );
+    setting_elmnt->LinkEndChild(value_elmnt );
     setting_elmnt->LinkEndChild( type_elmnt);
     
     
-    category_name->LinkEndChild(setting_elmnt); 
+    category_name->LinkEndChild(setting_elmnt);
     
     
   }
@@ -707,9 +704,9 @@ int ProgSettings::SaveCategoryToXml(std::string catname, settingmap curr_setting
 
 
 
-int ProgSettings::check_for_existing_prefs_auto(std::string & load_filename, const char* pFilename){
+int ProgSettings::check_for_existing_prefs_auto(boost::filesystem::path & load_filename, boost::filesystem::path pFilename){
 	
-
+	
 	int found_a_file;
 	if (boost::filesystem::exists(pFilename)) {
 		load_filename = pFilename;
@@ -732,43 +729,43 @@ int ProgSettings::check_for_existing_prefs_auto(std::string & load_filename, con
 	
 }
 
-	
-		
-std::string ProgSettings::default_name(){
+
+
+boost::filesystem::path ProgSettings::default_name(){
 	boost::filesystem::path defaultsettings(getenv("HOME"));
 	defaultsettings /= ".paramotopy/defaultprefs.xml";
-	return defaultsettings.string();
+	return defaultsettings;
 }
 
 
-std::string ProgSettings::make_settings_name(std::string newfilename){
+boost::filesystem::path ProgSettings::make_settings_name(boost::filesystem::path newfilename){
 	
-	std::string settingsfilename = getenv("HOME");
-	settingsfilename.append("/.paramotopy/");
-	settingsfilename.append(newfilename);
-	settingsfilename.append("prefs.xml");
+	boost::filesystem::path settingsfilename(getenv("HOME"));
+	settingsfilename /= ".paramotopy/";
+	settingsfilename /= newfilename;
+	settingsfilename += "prefs.xml";
 	return settingsfilename;
 }
 
 
 void ProgSettings::load_interactive(){
-		
-	std::string load_filename;
+	
+	boost::filesystem::path load_filename;
 	
 	boost::filesystem::path source_folder = getenv("HOME");
 	source_folder /= ".paramotopy";
 	
 	std::string expression = "prefs.xml\\z";  //specify beginning of string
 	expression.append("");
-	std::vector < std::string > filelist = FindFiles(source_folder.string(), expression);  //this function is in para_aux_funcs
-
+	std::vector < boost::filesystem::path > filelist = FindFiles(source_folder, expression);  //this function is in para_aux_funcs
+	
 	
 	std::stringstream menu;
   int choice = -1;
 	
 	menu << "found these preferences file:\n-----------------\n0) current (no change)\n";
 	for (int ii=0; ii<int(filelist.size()); ii++) {
-		boost::filesystem::path temppath(filelist[ii]);
+		boost::filesystem::path temppath = filelist[ii];
 		
 		menu << ii+1 << ") " << temppath.filename() << std::endl;
 	}
@@ -780,33 +777,33 @@ void ProgSettings::load_interactive(){
 			//do nothing, not loading.
 			break;
 			
-
+			
 		default:
 			// load the user's choice.
-			ProgSettings::load(filelist[choice-1].c_str());
+			ProgSettings::load(filelist[choice-1].string().c_str());
 			break;
 	}
 	
 	
 	
-
 	
 	
-
+	
+	
 	
 }
 
 //attempts to open the pFilename.  if cannot, checks for required values.  also goes through reset if xml file is broken.
-void ProgSettings::load(const char* pFilename){
-
-//	this->filename = pFilename;
+void ProgSettings::load(boost::filesystem::path pFilename){
+	
+	//	this->filename = pFilename;
   bool changesmade=false, load_defaults = false, doc_loaded = false;
   
   //clear the old settings from memory.
-//TODO: change this to an iterator operation
+	//TODO: change this to an iterator operation
 	
-//	this->settings.clear();
-//	
+	//	this->settings.clear();
+	//
   settings["parallelism"].clear();
   settings["step1bertini"].clear();
   settings["step2bertini"].clear();
@@ -814,17 +811,17 @@ void ProgSettings::load(const char* pFilename){
   settings["SaveFiles"].clear();
   settings["files"].clear();
 	settings["system"].clear();
-
 	
-	std::string load_filename;
+	
+	boost::filesystem::path load_filename;
 	int found_a_file = check_for_existing_prefs_auto(load_filename, pFilename);//set the value of load_filename
 	//returns 0 if neither desired nor default file is found.
 	// 1 if the desired file is found
 	// 2 if only default is found, instead of desired.
 	
 	
-	if (this->filename.size()==0) {
-//		std::cout << "changing filename" << std::endl;
+	if (this->filename.string().size()==0) { // unset
+		//		std::cout << "changing filename" << std::endl;
 		this->filename = load_filename;
 	}
 	
@@ -833,10 +830,10 @@ void ProgSettings::load(const char* pFilename){
 	}
 	
 	if (found_a_file>0){
-		std::cout << "loading preferences from " << load_filename << "\n";
-		TiXmlDocument* doc = new TiXmlDocument(load_filename.c_str());
+		std::cout << "loading preferences from " << load_filename.string() << "\n";
+		TiXmlDocument* doc = new TiXmlDocument(load_filename.string().c_str());
 		doc_loaded = doc->LoadFile();
-
+		
 		
 		if (!doc_loaded) {
 			changesmade = true;
@@ -848,7 +845,7 @@ void ProgSettings::load(const char* pFilename){
 			TiXmlElement* pElem;
 			TiXmlHandle hRoot(0);
 			
-
+			
 			pElem=hDoc.FirstChildElement().Element();
 			// should always have a valid root but handle gracefully if it doesn't
 			
@@ -858,7 +855,7 @@ void ProgSettings::load(const char* pFilename){
 				changesmade=true;
 			}
 			else{
-				std::string main_name =pElem->Value();  //unused?
+				std::string main_name =pElem->Value(); 
 				
 				hRoot=TiXmlHandle(pElem);  // the handle for the data we will be reading
 				
@@ -919,7 +916,7 @@ void ProgSettings::load(const char* pFilename){
 }
 
 //for reading individual settings categories from the xml file.
-int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){ 
+int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
 	
   std::stringstream ss;
   int type;
@@ -928,59 +925,63 @@ int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
   
   TiXmlElement* pElem=hRoot.FirstChild( catname.c_str() ).FirstChild().Element();
   for( pElem; pElem; pElem=pElem->NextSiblingElement())
-    {
-      TiXmlHandle setting_handle(pElem);  //get the handle for the setting
-      
-      
-      TiXmlElement* qElem = setting_handle.FirstChild("name").Element();  //read the name
-      const char *nameText=qElem->GetText();
-      
-      qElem = setting_handle.FirstChild("value").Element();  //read the value
-      const char *valueText=qElem->GetText();
-      
-      qElem = setting_handle.FirstChild("type").Element();  //read the type
-      const char *typeText=qElem->GetText();
-      
-      
-      if (nameText && valueText && typeText)
-	{ //setting is ok.  set the setting.
-	  
-	  
-	  ss << typeText;
-	  ss >> type;
-	  ss.clear();
-	  ss.str("");
-	  
-	  //according to type integer (0=string, 1=integer, 2=double), store in the setting map
-	  switch (type) {
-	  case 0: //string
-	    ProgSettings::setValue(catname,nameText,valueText);
-	    break;
-	    
-	  case 1: //integer
-	    ss << valueText;
-	    ss >> intvalue;
-	    ss.clear();
-	    ss.str("");
-	    ProgSettings::setValue(catname,nameText,intvalue);
-	    break;
-	    
-	  case 2: //double
-	    ss << valueText;
-	    ss >> doubvalue;
-	    ss.clear();
-	    ss.str("");
-	    ProgSettings::setValue(catname,nameText,doubvalue);
-	    break;
-	    
-	  default:
-	    std::cout << "bad type set somehow, from xml prefs file.\n"
-				<< "cat: " << catname << " name: " << nameText << " type: " << type << std::endl;
-	    break;
-	  }
-	  
+	{
+		TiXmlHandle setting_handle(pElem);  //get the handle for the setting
+		
+		
+		TiXmlElement* qElem = setting_handle.FirstChild("name").Element();  //read the name
+		const char *nameText=qElem->GetText();
+		
+		qElem = setting_handle.FirstChild("value").Element();  //read the value
+		const char *valueText=qElem->GetText();
+		
+		qElem = setting_handle.FirstChild("type").Element();  //read the type
+		const char *typeText=qElem->GetText();
+		
+		
+		if (nameText && valueText && typeText)
+		{ //setting is ok.  set the setting.
+			
+			
+			ss << typeText;
+			ss >> type;
+			ss.clear();
+			ss.str("");
+			
+			//according to type integer (0=string, 1=integer, 2=double), store in the setting map
+			switch (type) {
+				case 0: //string
+					ProgSettings::setValue(catname,nameText,std::string(valueText));
+					break;
+					
+				case 1: //integer
+					ss << valueText;
+					ss >> intvalue;
+					ss.clear();
+					ss.str("");
+					ProgSettings::setValue(catname,nameText,intvalue);
+					break;
+					
+				case 2: //double
+					ss << valueText;
+					ss >> doubvalue;
+					ss.clear();
+					ss.str("");
+					ProgSettings::setValue(catname,nameText,doubvalue);
+					break;
+					
+				case 3: //boost::filesystem::path
+					ProgSettings::setValue(catname,nameText,boost::filesystem::path(valueText));
+					break;
+					
+				default:
+					std::cout << "bad type set somehow, from xml prefs file.\n"
+					<< "cat: " << catname << " name: " << nameText << " type: " << type << std::endl;
+					break;
+			}
+			
+		}
 	}
-    }
   
   return 0;
 }
@@ -1255,28 +1256,28 @@ void ProgSettings::MainMenu(){
   std::stringstream menu;
   int choice = -1;
   menu << "\n\n\nPreferences Main Menu:\n\n"
-       << "1) Bertini settings\n"
-			 << "2) Solver Modes\n"
-       << "3) Path failure resolution\n"
-       << "4) Parallelism\n"
-       << "5) Set files to save\n"
-			 << "6) System Settings\n"
-			 << "7) File IO\n"
-			 << "8) MetaSettings\n"
-       << "*\n0) return to paramotopy\n"
-       << "\n: ";
+	<< "1) Bertini settings\n"
+	<< "2) Solver Modes\n"
+	<< "3) Path failure resolution\n"
+	<< "4) Parallelism\n"
+	<< "5) Set files to save\n"
+	<< "6) System Settings\n"
+	<< "7) File IO\n"
+	<< "8) MetaSettings\n"
+	<< "*\n0) return to paramotopy\n"
+	<< "\n: ";
   
 	
   while (choice!=0) {
     choice = get_int_choice(menu.str(),0,8);
     
     switch (choice) {
-			case 0:	
+			case 0:
 				break;
 				
 			case 1:
-					ProgSettings::BertiniMenu();
-					break;
+				ProgSettings::BertiniMenu();
+				break;
 				
 			case 2:
 				ProgSettings::SolverModeMenu();
@@ -1306,12 +1307,12 @@ void ProgSettings::MainMenu(){
 			case 8:
 				ProgSettings::MetaSettingsMenu();
 				break;
-					
+				
 			default:
 				std::cout << "somehow an unacceptable entry submitted to MainMenu :(\n";
 				break;
     }
-//    ProgSettings::save();
+		//    ProgSettings::save();
   }
   return;
 }
@@ -1393,7 +1394,7 @@ void ProgSettings::SolverModeMenu(){
 				ProgSettings::SetStandardStep2();
 				break;
 				
-			
+				
 			case 3:
 				ProgSettings::GetStartFileName();
 				break;
@@ -1412,114 +1413,114 @@ void ProgSettings::SolverModeMenu(){
 
 
 void ProgSettings::SearchMenu(){
-
-std::stringstream menu;
-int choice=-10;
 	
-while (choice!=0) {
+	std::stringstream menu;
+	int choice=-10;
 	
-	
-	int upper_limit = 1;
-	menu << "\n\nSearch Settings:\n\n";
-	
-	
-	
-	
-	if (this->settings["mode"]["main_mode"].intvalue==1) {
-		menu
-		<< "1) Turn Search Mode Off.\n"
-		<< "2) Max num searches\t\t" << settings["mode"]["search_iterations"].value() << "\n"
-		<< "3) Desired number solutions\t" << settings["mode"]["search_desirednumber"].value() << "\n"
-		<< "4) Submode -- thresholding for number of posreal\n";
-		upper_limit = 4;
+	while (choice!=0) {
 		
-		if (this->settings["mode"]["search_submode"].intvalue==1) {
+		
+		int upper_limit = 1;
+		menu << "\n\nSearch Settings:\n\n";
+		
+		
+		
+		
+		if (this->settings["mode"]["main_mode"].intvalue==1) {
 			menu
-			<< "5) Threshold number for number of posreal solutions at a point\t"
-			<< this->settings["mode"]["search_numposrealthreshold_lower"].intvalue
-			<< " <= numsolns <= ";
+			<< "1) Turn Search Mode Off.\n"
+			<< "2) Max num searches\t\t" << settings["mode"]["search_iterations"].value() << "\n"
+			<< "3) Desired number solutions\t" << settings["mode"]["search_desirednumber"].value() << "\n"
+			<< "4) Submode -- thresholding for number of posreal\n";
+			upper_limit = 4;
 			
-			if (this->settings["mode"]["search_numposrealthreshold_upper"].intvalue==-1) {
-				menu << "inf";}
-			else{
-				menu << this->settings["mode"]["search_numposrealthreshold_upper"].intvalue;
+			if (this->settings["mode"]["search_submode"].intvalue==1) {
+				menu
+				<< "5) Threshold number for number of posreal solutions at a point\t"
+				<< this->settings["mode"]["search_numposrealthreshold_lower"].intvalue
+				<< " <= numsolns <= ";
+				
+				if (this->settings["mode"]["search_numposrealthreshold_upper"].intvalue==-1) {
+					menu << "inf";}
+				else{
+					menu << this->settings["mode"]["search_numposrealthreshold_upper"].intvalue;
+				}
+				menu << "\n";
+				upper_limit = 5;
 			}
-			menu << "\n";
-			upper_limit = 5;
+			
 		}
+		else{
+			menu
+			<< "1) Turn Search Mode On.\n";
+		}
+		
+		
+		menu << "*\n"
+		<< "0) go back\n"
+		<< "\n: ";
+		
+		
+		ProgSettings::DisplayCurrentSettings("mode");
+		choice = get_int_choice(menu.str(),0,upper_limit);
+		
+		switch (choice) {
+			case 0:
 				
-	}
-	else{
-		menu
-		<< "1) Turn Search Mode On.\n";
-	}
-	
-	
-	menu << "*\n"
-	<< "0) go back\n"
-	<< "\n: ";
-	
-	
-	ProgSettings::DisplayCurrentSettings("mode");
-	choice = get_int_choice(menu.str(),0,upper_limit);
-	
-	switch (choice) {
-		case 0:
-			
-			break;
-			
-			
-		case 1:
-			if (this->settings["mode"]["main_mode"].intvalue==1) {
-				setValue("mode","main_mode",0);
-			}
-			else{
-				setValue("mode","main_mode",1);
+				break;
 				
-				if (this->settings["mode"].find("search_iterations") == settings["mode"].end() )
-					// search in cat name for setting of cat name
-				{ // if fail to find a setting of the name in the category.
-					ProgSettings::SetSearchIterations();
+				
+			case 1:
+				if (this->settings["mode"]["main_mode"].intvalue==1) {
+					setValue("mode","main_mode",0);
 				}
-				
-				if (this->settings["mode"].find("search_desirednumber") == settings["mode"].end() )
-					// search in cat name for setting of cat name
-				{ // if fail to find a setting of the name in the category.
-					ProgSettings::SetSearchDesiredNumber();
+				else{
+					setValue("mode","main_mode",1);
+					
+					if (this->settings["mode"].find("search_iterations") == settings["mode"].end() )
+						// search in cat name for setting of cat name
+					{ // if fail to find a setting of the name in the category.
+						ProgSettings::SetSearchIterations();
+					}
+					
+					if (this->settings["mode"].find("search_desirednumber") == settings["mode"].end() )
+						// search in cat name for setting of cat name
+					{ // if fail to find a setting of the name in the category.
+						ProgSettings::SetSearchDesiredNumber();
+					}
+					
+					
 				}
+				ProgSettings::save();
+				break;
 				
 				
-			}
-			ProgSettings::save();
-			break;
-			
-			
-		case 2:
-			ProgSettings::SetSearchIterations();
-			break;
-			
-		case 3:
-			ProgSettings::SetSearchDesiredNumber();
-			break;
-			
-			
-		case 4:
-			ProgSettings::SetSearchSubmode();
-			break;
-			
-		case 5:
-			ProgSettings::SetSearchPosRealThresh();
-			break;
-			
-			
-		default:
-			std::cout << "somehow an unacceptable entry submitted to SearchMenu\n";
-			//seriously, how did you get here?
-			break;
+			case 2:
+				ProgSettings::SetSearchIterations();
+				break;
+				
+			case 3:
+				ProgSettings::SetSearchDesiredNumber();
+				break;
+				
+				
+			case 4:
+				ProgSettings::SetSearchSubmode();
+				break;
+				
+			case 5:
+				ProgSettings::SetSearchPosRealThresh();
+				break;
+				
+				
+			default:
+				std::cout << "somehow an unacceptable entry submitted to SearchMenu\n";
+				//seriously, how did you get here?
+				break;
+		}
 	}
-}
-return;
-
+	return;
+	
 }
 
 void ProgSettings::SystemMenu(){
@@ -1527,42 +1528,42 @@ void ProgSettings::SystemMenu(){
   int choice=-10;
   
   menu << "\n\nSystem Settings:\n\n"
-			 << "1) Stifle Step2 Output\n"
-			 << "2) Change Buffer Size\n"
-       << "3) Set location of bertini executable\n"
-       << "4) Set location of step2 executable\n"
-       
-       << "*\n"
-       << "0) go back\n"
-       << "\n: ";
+	<< "1) Stifle Step2 Output\n"
+	<< "2) Change Buffer Size\n"
+	<< "3) Set location of bertini executable\n"
+	<< "4) Set location of step2 executable\n"
+	
+	<< "*\n"
+	<< "0) go back\n"
+	<< "\n: ";
   while (choice!=0) {
 		
 		ProgSettings::DisplayCurrentSettings("system");
     choice = get_int_choice(menu.str(),0,4);
     
     switch (choice) {
-    case 0:
-      
-      break;
-      
+			case 0:
+				
+				break;
+				
 			case 1:
 				ProgSettings::GetStifle();
 				break;
-
+				
 			case 2:
 				ProgSettings::GetBufferSize();
 				break;
-					
+				
 			case 3:
 				ProgSettings::GetProgramLocationManual("bertini","system","bertinilocation");
 				break;
-					
+				
 			case 4:
 				ProgSettings::GetProgramLocationManual("step2","system","step2location");
 				break;
 				
-
-
+				
+				
 			default:
 				std::cout << "somehow an unacceptable entry submitted to SystemMenu\n";
 				//seriously, how did you get here?
@@ -1573,7 +1574,7 @@ void ProgSettings::SystemMenu(){
 }
 
 void ProgSettings::FileMenu(){
-
+	
 	std::stringstream menu;
 	int choice = -10;
 	menu << "\n\nFiles, &c:\n\n"
@@ -1583,7 +1584,7 @@ void ProgSettings::FileMenu(){
 	<< "4) Max data file Size / New file threshold\n"
 	<< "5) Deletion of temp files at end of run\n"
 	<< "6) Generation of mc mesh file for non-user-def runs\n"
-
+	
 	<< "*\n"
 	<< "0) go back\n"
 	<< "\n: ";
@@ -1596,7 +1597,7 @@ void ProgSettings::FileMenu(){
     switch (choice) {
 			case 0:
 				break;
-							
+				
 			case 1:
 				ProgSettings::GetDataFolderMethod();
 				break;
@@ -1604,13 +1605,13 @@ void ProgSettings::FileMenu(){
 			case 2:
 				ProgSettings::GetNewRandomAtNewFolder();
 				break;
-
+				
 				
 			case 3:
 				ProgSettings::GetTemporaryFileLocation();
 				break;
 				
-
+				
 			case 4:
 				ProgSettings::GetNewFileThresh();
 				break;
@@ -1628,7 +1629,7 @@ void ProgSettings::FileMenu(){
 				break;
 		}
 	}
-		
+	
 	
 }
 
@@ -1640,48 +1641,48 @@ void ProgSettings::ParallelismMenu(){
   int choice = -10;
   
   menu << "\n\nParallelism:\n\n"
-       << "1) Switch Parallel On/Off, and consequential others\n"
-       << "2) Number of Files to send to workers at a time\n"
-       << "3) Machinefile\n"
-       << "4) Architecture / calling\n"
-       << "5) Number of processors used\n"
-       << "*\n"
-       << "0) go back\n"
-       << "\n: ";
+	<< "1) Switch Parallel On/Off, and consequential others\n"
+	<< "2) Number of Files to send to workers at a time\n"
+	<< "3) Machinefile\n"
+	<< "4) Architecture / calling\n"
+	<< "5) Number of processors used\n"
+	<< "*\n"
+	<< "0) go back\n"
+	<< "\n: ";
   
   while (choice!=0) {
     ProgSettings::DisplayCurrentSettings("parallelism");
     choice = get_int_choice(menu.str(),0,5);
     
     switch (choice) {
-    case 0:
-			
-      break;
-      
-    case 1:
-      ProgSettings::GetParallel();
-      break;
-      
-    case 2:
-      ProgSettings::GetNumFilesTime();
-      break;
-      
-    case 3:
-      ProgSettings::GetMachineFile();
-      break;
-      
-    case 4:
-      ProgSettings::GetArchitecture();
-      break;
-      
-    case 5:
-      ProgSettings::GetNumProcs();
-      break;
-      
-          
-    default:
-      std::cout << "somehow an unacceptable entry submitted :(\n";
-      break;
+			case 0:
+				
+				break;
+				
+			case 1:
+				ProgSettings::GetParallel();
+				break;
+				
+			case 2:
+				ProgSettings::GetNumFilesTime();
+				break;
+				
+			case 3:
+				ProgSettings::GetMachineFile();
+				break;
+				
+			case 4:
+				ProgSettings::GetArchitecture();
+				break;
+				
+			case 5:
+				ProgSettings::GetNumProcs();
+				break;
+				
+				
+			default:
+				std::cout << "somehow an unacceptable entry submitted :(\n";
+				break;
     }
   }//while
   return;
@@ -1692,10 +1693,10 @@ void ProgSettings::StepOneMenu(){
   std::stringstream menu;
   
   menu << "\n\nStep1 Settings:\n\n"
-       << "1) Change Setting\n"
-       << "2) Remove Setting\n"
-       << "3) Add Setting\n"
-       << "4) Reset to Default Settings\n"
+	<< "1) Change Setting\n"
+	<< "2) Remove Setting\n"
+	<< "3) Add Setting\n"
+	<< "4) Reset to Default Settings\n"
 	<< "*\n"
 	<< "0) Go Back\n"
 	<< "\n: ";
@@ -1706,31 +1707,31 @@ void ProgSettings::StepOneMenu(){
 	  choice = get_int_choice(menu.str(),0,4);
 	  
 	  switch (choice) {
-	  case 0:
-	    break;
-	    
-	  case 1:
-	    ProgSettings::ChangeSetting("step1bertini");
-	    break;
-	    
-	  case 2:
-	    ProgSettings::RemoveSetting("step1bertini");
-	    break;
-	    
-	  case 3:
-	    ProgSettings::AddSetting("step1bertini");
-	    break;
-	    
-	  case 4:
-	    settings["step1bertini"].clear();
-	    ProgSettings::default_basic_bertini_values_stepone();
-	    break;
-	    
-	  default:
-	    std::cout << "somehow an unacceptable entry submitted :(\n";
-	    break;
+			case 0:
+				break;
+				
+			case 1:
+				ProgSettings::ChangeSetting("step1bertini");
+				break;
+				
+			case 2:
+				ProgSettings::RemoveSetting("step1bertini");
+				break;
+				
+			case 3:
+				ProgSettings::AddSetting("step1bertini");
+				break;
+				
+			case 4:
+				settings["step1bertini"].clear();
+				ProgSettings::default_basic_bertini_values_stepone();
+				break;
+				
+			default:
+				std::cout << "somehow an unacceptable entry submitted :(\n";
+				break;
 	  }
-//	  ProgSettings::save();
+		//	  ProgSettings::save();
 	}
 	
 	
@@ -1743,14 +1744,14 @@ void ProgSettings::StepTwoMenu(){
   
   std::stringstream menu;
   menu << "\n\nBasic Step2 Settings:\n\n"
-    
-       << "1) Change Setting\n"
-       << "2) Remove Setting\n"
-       << "3) Add Setting\n"
-       << "4) Reset to Default Settings\n"
-       << "*\n"
-       << "0) Go Back\n"
-       << "\n: ";
+	
+	<< "1) Change Setting\n"
+	<< "2) Remove Setting\n"
+	<< "3) Add Setting\n"
+	<< "4) Reset to Default Settings\n"
+	<< "*\n"
+	<< "0) Go Back\n"
+	<< "\n: ";
   int choice = -1001;
   while (choice!=0) {
     ProgSettings::DisplayCurrentSettings("step2bertini");
@@ -1758,33 +1759,33 @@ void ProgSettings::StepTwoMenu(){
     choice = get_int_choice(menu.str(),0,4);
     
     switch (choice) {
-    case 0:
-      break;
-      
-    case 1:
-      ProgSettings::ChangeSetting("step2bertini");
-      break;
-      
-    case 2:
-      ProgSettings::RemoveSetting("step2bertini");
-      break;
-      
-    case 3:
-      ProgSettings::AddSetting("step2bertini");
-      break;
-      
-    case 4:
-      settings["step2bertini"].clear();
-      ProgSettings::default_basic_bertini_values_steptwo();
-      break;
-      
-    default:
-      std::cout << "somehow an unacceptable entry submitted :(\n";
-      break;
+			case 0:
+				break;
+				
+			case 1:
+				ProgSettings::ChangeSetting("step2bertini");
+				break;
+				
+			case 2:
+				ProgSettings::RemoveSetting("step2bertini");
+				break;
+				
+			case 3:
+				ProgSettings::AddSetting("step2bertini");
+				break;
+				
+			case 4:
+				settings["step2bertini"].clear();
+				ProgSettings::default_basic_bertini_values_steptwo();
+				break;
+				
+			default:
+				std::cout << "somehow an unacceptable entry submitted :(\n";
+				break;
     }
-//    ProgSettings::save();
+		//    ProgSettings::save();
   }
-  return;	
+  return;
 }
 
 
@@ -1849,28 +1850,28 @@ void ProgSettings::SaveFilesMenu(){
 	
   std::stringstream menu;
   menu << "\n\nFiles to Save:\n\n"
-       << "1) Change Files to Save\n"
-       << "*\n"
-       << "0) Go Back\n"
-       << "\n: ";
+	<< "1) Change Files to Save\n"
+	<< "*\n"
+	<< "0) Go Back\n"
+	<< "\n: ";
   int choice = -1001;
   while (choice!=0) {
     ProgSettings::DisplayCurrentSettings("SaveFiles");
     choice = get_int_choice(menu.str(),0,1);
     switch (choice) {
-    case 0:
-      break;
-      
-    case 1:
-      ProgSettings::SetSaveFiles();
-      break;
-      
-    default:
-      break;
+			case 0:
+				break;
+				
+			case 1:
+				ProgSettings::SetSaveFiles();
+				break;
+				
+			default:
+				break;
     }
   }
   
-
+	
   return;
 }
 
@@ -1897,10 +1898,10 @@ void ProgSettings::MetaSettingsMenu(){
 				break;
 				
 			case 2:
-					ProgSettings::save(ProgSettings::default_name());
+				ProgSettings::save(ProgSettings::default_name());
 				break;
-			
-		
+				
+				
 			default:
 				break;
     }
@@ -2173,10 +2174,10 @@ void ProgSettings::GetTemporaryFileLocation(){
       found=tmplocation.find('%');
       if ( (int(found)==0) ) {
 				setValue("files","customtmplocation",0);
-				setValue("files","tempfilelocation",".");
+				setValue("files","tempfilelocation",boost::filesystem::path("."));
       }
       else{
-				setValue("files","tempfilelocation",tmplocation);
+				setValue("files","tempfilelocation",boost::filesystem::path(tmplocation));
       }
     }
     
@@ -2185,7 +2186,7 @@ void ProgSettings::GetTemporaryFileLocation(){
   }
   else {
     setValue("files","customtmplocation",0);
-    setValue("files","tempfilelocation",".");
+    setValue("files","tempfilelocation",boost::filesystem::path("."));
   }
   
   
@@ -2226,7 +2227,7 @@ void ProgSettings::SetSearchDesiredNumber()
 	
 	setValue("mode","search_desirednumber",choice);
 	
-
+	
 	ProgSettings::save();
 	
 }
@@ -2249,8 +2250,8 @@ void ProgSettings::SetSearchIterations(){
 		default:
 			setValue("mode","search_iterations",int(choice));
 			break;
-		
-
+			
+			
   }
 	ProgSettings::save();
 	
@@ -2271,7 +2272,7 @@ void ProgSettings::SetSearchSubmode()
 	
   choice = get_int_choice(menu.str(),0,1);
 	setValue("mode","search_submode",choice);
-
+	
 	
 	if (this->settings["mode"].find("search_numposrealthreshold_lower") == settings["mode"].end() ||
 			this->settings["mode"].find("search_numposrealthreshold_upper") == settings["mode"].end())
@@ -2374,9 +2375,9 @@ void ProgSettings::SetStandardStep2(){
   int choice = -10;
   std::stringstream menu;
   menu << "Which method for the Step 2 run?\n\n"
-			 << "0) Total Degree Step 2\n"
-       << "1) Standard Step 2\n"
-       << ": ";
+	<< "0) Total Degree Step 2\n"
+	<< "1) Standard Step 2\n"
+	<< ": ";
   choice = get_int_choice(menu.str(),0,1);
   setValue("mode", "standardstep2", choice);
   ProgSettings::save();
@@ -2387,11 +2388,11 @@ void ProgSettings::GetDataFolderMethod(){
   int choice = -10;
   std::stringstream menu;
   menu << "\n\n"
-       << "What to do at startup for folders?\n\n"
-       << "1) Use most recently used folder\n"
-       << "2) Make new folder\n"
-       << "3) Prompt if found previous folder\n"
-       << "\n: ";
+	<< "What to do at startup for folders?\n\n"
+	<< "1) Use most recently used folder\n"
+	<< "2) Make new folder\n"
+	<< "3) Prompt if found previous folder\n"
+	<< "\n: ";
   
   choice = get_int_choice(menu.str(),1,3);
   setValue("files","previousdatamethod",choice);
@@ -2404,22 +2405,22 @@ void ProgSettings::GetStartFileName(){
   int choice = -10;
   std::stringstream menu;
   menu << "\n\n"
-       << "Which file to use for the start for step2?\n\n"
-       << "1) nonsingular_solutions\n"
-       << "2) finite_solutions\n"
-       << "\n: ";
+	<< "Which file to use for the start for step2?\n\n"
+	<< "1) nonsingular_solutions\n"
+	<< "2) finite_solutions\n"
+	<< "\n: ";
 	
   choice = get_int_choice(menu.str(),1,2);
   switch (choice) {
-  case 1:
-    setValue("mode","startfilename","nonsingular_solutions");
-    break;
-  case 2:
-    setValue("mode","startfilename","finite_solutions");
-    break;
-  default:
-    
-    break;
+		case 1:
+			setValue("mode","startfilename",std::string("nonsingular_solutions"));
+			break;
+		case 2:
+			setValue("mode","startfilename",std::string("finite_solutions"));
+			break;
+		default:
+			
+			break;
   }
   
   ProgSettings::save();
@@ -2433,11 +2434,11 @@ void ProgSettings::GetNewRandomAtNewFolder(){
   int choice = -11;
   std::stringstream menu;
   menu << "\n\n"
-       << "If you make a new folder with program running do you want\n"
-       << "to automatically create new random values, or keep previous?\n"
-       << "0) no  (keep old)\n"
-       << "1) yes (make new)\n"
-       << "\n: ";
+	<< "If you make a new folder with program running do you want\n"
+	<< "to automatically create new random values, or keep previous?\n"
+	<< "0) no  (keep old)\n"
+	<< "1) yes (make new)\n"
+	<< "\n: ";
   
   choice = get_int_choice(menu.str(),0,1);
   
