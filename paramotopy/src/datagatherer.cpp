@@ -95,21 +95,20 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 	  process_timer.press_start("read");
 #endif
 	  
-		if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==1 && iter->first.compare(this->real_filename)==0) { //1: continuous loop for search
-
-			datagatherer::AppendOnlyPosReal(iter->first, // the file name
-																			current_params,
-																			paramotopy_settings);
-			
-			
-		}
-		else {//0: basic mode
-			
-			datagatherer::AppendData(iter->first, // the file name
-															 current_params);
-			
-		}
-		
+	  if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==1 && iter->first.compare(this->real_filename)==0) { //1: continuous loop for search
+	    
+	    datagatherer::AppendOnlyPosReal(iter->first, // the file name
+					    current_params,
+					    paramotopy_settings);
+	    
+	    
+	  }
+	  else {//0: basic mode
+	    
+	    datagatherer::AppendData(iter->first, // the file name
+				     current_params);	    
+	  }
+	  
 	  
 	  
 #ifdef timingstep2
@@ -119,16 +118,16 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 	  
 	  //if big enough
 	  if ( int(iter->second.runningfile.size()) > this->buffersize){
-			
+	    
 	    
 	    iter->second.filesize += int(iter->second.runningfile.size());
-
+	    
 #ifdef timingstep2
 	    process_timer.press_start("write");
 #endif
-			
-			datagatherer::WriteData(iter->second.runningfile,
-															datagatherer::MakeTargetFilename(iter->first));
+	    
+	    datagatherer::WriteData(iter->second.runningfile,
+				    datagatherer::MakeTargetFilename(iter->first));
 	    
 #ifdef timingstep2
 	    process_timer.add_time("write");
@@ -157,10 +156,10 @@ void datagatherer::AppendOnlyPosReal(std::string orig_filename,
 																		 double *current_params,
 																		 ProgSettings & paramotopy_settings)
 {
-	//this function will operate on any *_solutions file
+  //this function will operate on any *_solutions file
 	
 	
-	std::string cline = "";
+  std::string cline = "";
   std::stringstream outstring;
 	
 	
@@ -173,84 +172,84 @@ void datagatherer::AppendOnlyPosReal(std::string orig_filename,
     MPI_Abort(MPI_COMM_WORLD,-42);
   }
   
-	std::vector< std::vector < std::pair< std::string, std::string > > > solutions_this_point = datagatherer::ParseSolutionsFile_ActualSolutions(fin);
-	fin.close();
+  std::vector< std::vector < std::pair< std::string, std::string > > > solutions_this_point = datagatherer::ParseSolutionsFile_ActualSolutions(fin);
+  fin.close();
+  
+  //now have the solutions in numerical form!
+  
 	
-	//now have the solutions in numerical form!
-	
-	
-	//the search condition goes here.
-	int tmp_num_found_solns = 0;
-	std::stringstream converter, current_point_data;
-	for (int ii=0; ii<int(solutions_this_point.size()); ++ii) {
+  //the search condition goes here.
+  int tmp_num_found_solns = 0;
+  std::stringstream converter, current_point_data;
+  for (int ii=0; ii<int(solutions_this_point.size()); ++ii) {
 		
-		
+    
 		int is_soln = 1;
 		for (int jj=0; (jj<this->numvariables) && (is_soln); ++jj) {
-			double comparitor_real, comparitor_imag;
-			converter << solutions_this_point[ii][jj].first << solutions_this_point[ii][jj].second;
-			converter >> comparitor_real >> comparitor_imag;
-			converter.clear(); converter.str("");
-			
-			
-			if (comparitor_real<0 || fabs(comparitor_imag)>1e-8 ) {
-				is_soln = 0;
-			}
-			
+		  double comparitor_real, comparitor_imag;
+		  converter << solutions_this_point[ii][jj].first << solutions_this_point[ii][jj].second;
+		  converter >> comparitor_real >> comparitor_imag;
+		  converter.clear(); converter.str("");
+		  
+		  
+		  if (comparitor_real<0 || fabs(comparitor_imag)>1e-8 ) {
+		    is_soln = 0;
+		  }
+		  
 		}
 		
-
+		
 		if (is_soln==1) {
-			for (int jj=0; jj<this->numvariables; ++jj) {
-				current_point_data << solutions_this_point[ii][jj].first << " " << solutions_this_point[ii][jj].second << "\n";
-			}
-			current_point_data << "\n";
-			tmp_num_found_solns++;
+		  for (int jj=0; jj<this->numvariables; ++jj) {
+		    current_point_data << solutions_this_point[ii][jj].first << " " << solutions_this_point[ii][jj].second << "\n";
+		  }
+		  current_point_data << "\n";
+		  tmp_num_found_solns++;
 		}
 		
-		
-		
-	}
-	
-	bool meets_upper_thresh;
-	
-	if (paramotopy_settings.settings["mode"]["search_numposrealthreshold_upper"].intvalue==-1){
-		meets_upper_thresh = true;
-	}
-	else{
-		meets_upper_thresh = (tmp_num_found_solns<=paramotopy_settings.settings["mode"]["search_numposrealthreshold_upper"].intvalue);
-	}
-		
-		
-	bool meets_lower_thresh = (tmp_num_found_solns>=paramotopy_settings.settings["mode"]["search_numposrealthreshold_lower"].intvalue);
-	
-	if (meets_lower_thresh && meets_upper_thresh) {
-		
-		outstring << current_params[2*int(ParamNames.size())] << "\n";
-		
-		for (int ii = 0; ii < int(ParamNames.size());++ii){
-			outstring.precision(16);
-			outstring  << current_params[2*ii] << " ";
-			outstring.precision(16);
-			outstring << current_params[2*ii+1] << " ";
-		}
-		outstring << "\n";
-		
-		outstring << tmp_num_found_solns << "\n\n";
-		outstring << current_point_data.str();
-		
-		slavemap[orig_filename].num_found_solns = tmp_num_found_solns;
-		slavemap[orig_filename].runningfile.append(outstring.str());
 		
 		
   }
+  
+  bool meets_upper_thresh;
+  
+  if (paramotopy_settings.settings["mode"]["search_numposrealthreshold_upper"].intvalue==-1){
+    meets_upper_thresh = true;
+  }
+  else{
+    meets_upper_thresh = (tmp_num_found_solns<=paramotopy_settings.settings["mode"]["search_numposrealthreshold_upper"].intvalue);
+  }
+  
+		
+  bool meets_lower_thresh = (tmp_num_found_solns>=paramotopy_settings.settings["mode"]["search_numposrealthreshold_lower"].intvalue);
+  
+  if (meets_lower_thresh && meets_upper_thresh) {
+    
+    outstring << current_params[2*int(ParamNames.size())] << "\n";
+    
+    for (int ii = 0; ii < int(ParamNames.size());++ii){
+      outstring.precision(16);
+      outstring  << current_params[2*ii] << " ";
+      outstring.precision(16);
+      outstring << current_params[2*ii+1] << " ";
+    }
+    outstring << "\n";
+    
+    outstring << tmp_num_found_solns << "\n\n";
+    outstring << current_point_data.str();
+    
+    slavemap[orig_filename].num_found_solns = tmp_num_found_solns;
+    slavemap[orig_filename].runningfile.append(outstring.str());
+    
+    
+  }
   else
-	{
-		slavemap[orig_filename].num_found_solns = 0;
-	}
-	
-
-	
+    {
+      slavemap[orig_filename].num_found_solns = 0;
+    }
+  
+  
+  
 	
 }
 
@@ -337,7 +336,6 @@ void datagatherer::WriteData(std::string outstring,
 
 
 
-
 bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails,
 																			std::vector< point > & successful_resolves)
 {
@@ -360,10 +358,19 @@ bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails,
 	
 	std::vector < point > current_data = datagatherer::GatherFinalizedDataToMemory(folder_with_data);
 
+
+
 	successful_resolves = CompareInitial_Gathered(terminal_fails, current_data);
-	return true;
+
+
+
 	
+	
+	return true;
 }
+
+
+
 
 
 std::vector< point > datagatherer::CompareInitial_Gathered(std::vector< point > terminal_fails, std::vector< point > current_data)
@@ -499,8 +506,9 @@ void datagatherer::GatherDataFromMenu(){
 		std::cout << "collecting " << gather_savefiles[ii] << std::endl;
 		double t1 = omp_get_wtime();
 		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze,
-																			 gather_parser_indices[ii], true);
+						   gather_parser_indices[ii], true);
 		std::cout << "sorting " << gather_savefiles[ii] << " took " << omp_get_wtime()-t1 << " seconds." << std::endl;
+		
 	}
 	
 	
@@ -513,8 +521,8 @@ void datagatherer::GatherDataFromMenu(){
 
 
 void datagatherer::CollectSpecificFiles(std::string file_to_gather,
-																				std::vector < boost::filesystem::path > folders_with_data,
-																				boost::filesystem::path run_to_analyze, int parser_index, bool mergefailed)
+					std::vector < boost::filesystem::path > folders_with_data,
+					boost::filesystem::path run_to_analyze, int parser_index, bool mergefailed)
 {
 	
 	
@@ -719,11 +727,11 @@ void datagatherer::WriteUnsuccessfulResolves(std::map< int, point> successful_re
 
 
 void datagatherer::finalize_run_to_file(std::string file_to_gather,
-																				boost::filesystem::path source_folder,
-																				boost::filesystem::path base_output_folder_name,
-																				int parser_index, bool mergefailed)
+					boost::filesystem::path source_folder,
+					boost::filesystem::path base_output_folder_name,
+					int parser_index, bool mergefailed)
 {
-	
+  
 	
 	boost::filesystem::path output_file_name = base_output_folder_name;
 	output_file_name /= "finalized";
@@ -755,45 +763,104 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 	
 	std::map< int,  point > successful_resolves;
 	if (mergefailed) {
-		successful_resolves = datagatherer::ReadSuccessfulResolves();
-		datagatherer::WriteUnsuccessfulResolves(successful_resolves);
+	  successful_resolves = datagatherer::ReadSuccessfulResolves();
+	  datagatherer::WriteUnsuccessfulResolves(successful_resolves);
 	}
 	
 	bool passed_check = true;
 	
+
+	
+	
+
 	for (int ii=0; ii< int(filelist.size()); ++ii) {
-		std::ifstream sourcefile(filelist[ii].c_str());
-		
-		if (!sourcefile.is_open()) {
-			std::cerr << "error: " << filelist[ii] << " failed to open" << std::endl;
-		}
-		
-		getline(sourcefile,tmpstr);  //waste the parameter line
-		if (ii==0) {
-			output_file << tmpstr << "\n";
-		}
-		
-		
-		while (! (datagatherer::ReadPoint(sourcefile, next_index, next_data, parser_index))  ) {
-			
-			
-			//check the integrity of the data
-			if (next_index!=(previous_index+1)){
-				std::cerr << "index mismatch, filename " << file_to_gather	<< ", with indices " << previous_index << " & " << next_index << std::endl;
-				passed_check = false;
-			}
-			
-			if (mergefailed) {
-				datagatherer::CheckForResolvedFailedPoint(file_to_gather,next_index,next_data,successful_resolves);
-			}
-			
-			output_file << next_index << "\n" << next_data;
-			previous_index = next_index;
-			
-			
-		}
-		sourcefile.close();
-	}
+	
+	  // MEN addition
+	  // create a std::vector<int> lookupinfo where lookupinfo[i] = byte # of first location
+	  // to be used by the ReadPoint function, in the sense that ifstream.seekg(bytelocation) can be called
+	  // either in ReadPoint function, or beforehand, as the input file stream is passed by reference
+	  // to that particular function
+	  
+	  int bytecount = 0;
+	  std::vector<int> lookupinfo;
+	  
+	  std::ifstream sourcefile(filelist[ii].c_str());
+	  
+	  if (!sourcefile.is_open()) {
+	    std::cerr << "error: " << filelist[ii] << " failed to open" << std::endl;
+	  }
+	  
+	  getline(sourcefile,tmpstr);  // waste the parameter line
+	  if (ii==0) {
+	    output_file << tmpstr << "\n";
+	  }
+	  bytecount+=tmpstr.size() + 1; // + 1 for the new line char
+	  lookupinfo.push_back(bytecount); 
+	  
+	  while (! (datagatherer::ReadPoint(sourcefile, next_index, next_data, parser_index))  ) {
+	    
+	    bytecount+=next_data.size() + 1;  // + 1 for the new line char
+	    // take into account the number of bytes to write the line number
+
+	    std::stringstream ss_ni;
+	    ss_ni << next_index;
+	    bytecount+=ss_ni.str().size(); // do I need one more for new line ... we'll see . . . 
+
+	    lookupinfo.push_back(bytecount); // this assumes we have success in everything and no index mismatch
+	    
+	    //check the integrity of the data
+	    if (next_index!=(previous_index+1)){
+	      std::cerr << "index mismatch, filename " << file_to_gather	<< ", with indices " << previous_index << " & " << next_index << std::endl;
+	      passed_check = false;
+	    }
+	    
+	    if (mergefailed) {
+	      datagatherer::CheckForResolvedFailedPoint(file_to_gather,next_index,next_data,successful_resolves);
+	    }
+	    
+	    output_file << next_index << "\n" << next_data;
+	    previous_index = next_index;
+	  } // end while
+
+
+
+	  if (passed_check){ // this is just passed_check for the currentfile index (i.e. only nonsingular_solutions1 and not nonsingular_solutions2
+	    // note that the ^ regular expression is used, so in order to avoid finding this lookup table as a possible file that contains bertini output info sorted
+	    // the file should now be lookup_(filelist[ii].c_str()), i.e. like loopup_nonsingular_solutions0	    
+	    boost::filesystem::path output_lookup = base_output_folder_name;
+	    boost::filesystem::path filename = filelist[ii].filename();
+	    	    
+	    output_lookup /= "finalized";
+	    output_lookup /= "lookup_";
+	    output_lookup += filename;
+	    
+	    // write the lookup table file	    
+	    
+	    std::ofstream fout_lookup(output_lookup.c_str());
+	    for (int mm = 0; mm < lookupinfo.size(); ++mm){
+	      fout_lookup << lookupinfo[mm] << "\n";
+	    }
+	    fout_lookup.close();
+	    
+	  }
+	  else{
+
+	    // note that the ^ regular expression is used, so in order to avoid finding this lookup table as a possible file that contains bertini output info sorted             
+            // the file should now be lookup_(filelist[ii].c_str()), i.e. like loopup_nonsingular_solutions0                                                                      
+	    boost::filesystem::path output_lookup = base_output_folder_name;
+	    boost::filesystem::path filename = filelist[ii].filename();
+
+            output_lookup /= "finalized";
+            output_lookup /= "lookup_";
+            output_lookup += filename;
+	    // remove the lookup table file
+	    boost::filesystem::remove(output_lookup);
+
+	  }
+	  sourcefile.close();
+
+	  
+	} // end for
 	
 	
 	output_file.close();
@@ -801,11 +868,12 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 	std::cout << "done finalizing file " << file_to_gather << "." << std::endl;
 	
 	if (passed_check) {
-		std::cout << "passed integrity check for in-orderness of points." << std::endl;
+	  std::cout << "passed integrity check for in-orderness of points." << std::endl;
+
 	}
 	else{
-		std::cout << "failed integrity check.  one or more points were out of order or missing." << std::endl;
-		std::cout << "todo:  keep record of missing points" << std::endl; //remove me when completed
+	  std::cout << "failed integrity check.  one or more points were out of order or missing." << std::endl;
+	  std::cout << "todo:  keep record of missing points" << std::endl; //remove me when completed
 	}
 	
 	
@@ -813,10 +881,9 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 }
 
 
-
 void datagatherer::CheckForResolvedFailedPoint(std::string file_to_gather,
-																							 int next_index,std::string & next_data,
-																							 std::map< int, point> successful_resolves)
+					       int next_index,std::string & next_data,
+					       std::map< int, point> successful_resolves)
 {
 	
 	// attempt to find point with the same index.
