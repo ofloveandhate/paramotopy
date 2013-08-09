@@ -27,7 +27,7 @@
 #include <gmp.h>
 
 extern "C" {
-	#include "polysolve.h"
+	#include "bertini.h"
 }
 
 
