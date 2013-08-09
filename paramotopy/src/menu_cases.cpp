@@ -41,7 +41,9 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 	
   mpicommand << paramotopy_settings.settings["parallelism"]["architecture"].value() << " -n ";
   mpicommand << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
-	
+  std::stringstream addmachinecommand;
+  addmachinecommand << "-machinefile " << paramotopy_settings.settings["parallelism"]["machinefile"].value() << " ";
+  mpicommand << (paramotopy_settings.settings["parallelism"]["usemachine"].intvalue==1 ? addmachinecommand.str() : "");	
 	
 
 	boost::filesystem::path steptwopath = paramotopy_settings.settings["system"]["step2location"].pathvalue;
