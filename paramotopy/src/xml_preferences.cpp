@@ -1881,14 +1881,15 @@ void ProgSettings::MetaSettingsMenu(){
 	
 	std::stringstream menu;
   menu << "\n\nMeta Settings:\n\n"
-	<< "1) Load a set of settings\n"
-	<< "2) Save current settings as default\n"
+       << "1) Load a set of settings\n"
+       << "2) Save current settings as default\n"
+       << "3) Save the system settings to file\n"
 	<< "*\n"
 	<< "0) Go Back\n"
 	<< "\n: ";
   int choice = -1001;
   while (choice!=0) {
-    choice = get_int_choice(menu.str(),0,2);
+    choice = get_int_choice(menu.str(),0,3);
     switch (choice) {
 			case 0:
 				break;
@@ -1900,8 +1901,11 @@ void ProgSettings::MetaSettingsMenu(){
 			case 2:
 				ProgSettings::save(ProgSettings::default_name());
 				break;
-				
-				
+                        case 3:
+
+                                ProgSettings:save();
+			        std::cout << "Saved preferences to " << this->filename << "\n";
+			        break;
 			default:
 				break;
     }
