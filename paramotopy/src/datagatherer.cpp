@@ -504,10 +504,8 @@ void datagatherer::GatherDataFromMenu(){
 	
 	for (int ii=0;ii<int(gather_savefiles.size());++ii){
 		std::cout << "collecting " << gather_savefiles[ii] << std::endl;
-		double t1 = omp_get_wtime();
 		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze,
 						   gather_parser_indices[ii], true);
-		std::cout << "sorting " << gather_savefiles[ii] << " took " << omp_get_wtime()-t1 << " seconds." << std::endl;
 		
 	}
 	

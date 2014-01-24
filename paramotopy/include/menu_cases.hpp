@@ -12,7 +12,6 @@
 #include "step2readandwrite.hpp"
 #include "xml_preferences.hpp"
 #include "master.hpp"
-#include <omp.h>
 
 
 #ifndef __MENU_CASES__

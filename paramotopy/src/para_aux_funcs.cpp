@@ -310,7 +310,8 @@ std::string getAlphaNumeric(){
 bool parseInteger( std::string const& text, int& results )
 {
     std::istringstream parser( text );
-	return parser >> results;// >> std::ws && parser.peek() == EOF;
+	parser >> results;
+	return !(parser.fail());// >> std::ws && parser.peek() == EOF;
 }
 
 int getInteger()
