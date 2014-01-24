@@ -9,10 +9,10 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
-
+#include <chrono>
 
 #define BOOST_FILESYSTEM_VERSION 3
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -38,21 +38,25 @@ class timer_data{
 
 public:
 	
-	/** default constructor */
-	timer_data(){
-		num_calls_timed = 0;
-		elapsed_time = 0;
-	}
 	
 	
 	/** start time.  set by pushing start. */
-	double t1;
+	std::chrono::high_resolution_clock::time_point t1;
+	
 	/** total elapsed time so far.  incremented by adding time. */
-	double elapsed_time;
+	std::chrono::milliseconds elapsed_time;
+	
 	/** how many times this category has been timed. */
 	int num_calls_timed;
 	
 
+	
+	/** default constructor */
+	timer_data(){
+		num_calls_timed = 0;
+		elapsed_time = std::chrono::milliseconds(0);
+	}
+	
 	
 };
 

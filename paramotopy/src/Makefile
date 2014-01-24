@@ -8,7 +8,7 @@
 
 
 #User-set options.  cannot use some options on the cray.  
-OPT  := -Wall  -O3  -funroll-loops -fexpensive-optimizations  #-g 
+OPT  := -Wall -g # -O3  -funroll-loops #-fexpensive-optimizations  #-g 
 
 #use timing info for step 2?  YES, or NO (or anything other than YES really)
 TIMING := YES
@@ -27,9 +27,9 @@ INSTALLDIR=UNSETLOCATION
 
 ifeq (sam,$(MACHINENAME))
 	#sam (hopefully user independent)
-	MCC := mpic++ 
+	MCC := mpic++ -std=c++11
 	CC  := g++
-	MANDATORYOPT := -fopenmp
+	MANDATORYOPT :=
 	BOOSTLOC := /usr/local/boost/lib/
 	INCLUDE := -I../include -I/usr/local/boost/include 
 	BOOSTSUFFIX :=#no spaces
@@ -39,13 +39,13 @@ ifeq (sam,$(MACHINENAME))
 	
 else ifeq (MACBRAKE, $(MACHINENAME))
 	#dan brake's macintosh 
-	MCC := mpic++ -cxx=g++
+	MCC := mpic++ -cxx=g++ -std=c++11
 	CC  := g++
-	MANDATORYOPT := -fopenmp
-	BOOSTLOC := /usr/local/Cellar/boost/1.52.0/lib/
+	MANDATORYOPT :=
+	BOOSTLOC := /usr/local/Cellar/boost/1.54.0/lib/
 	INCLUDE := -I$(HOME)/bertini_source/include  -I../include -I/usr/local/Cellar/boost/1.52.0/include  -I/usr/local/gfortran/lib/gcc/x86_64-apple-darwin10/4.6.2/include/
 	BOOSTSUFFIX :=-mt#no spaces
-	BERTINILIB := $(HOME)/lib/libbertini.a #$(HOME)/lib/libbertini_opt_nog.a
+	BERTINILIB := $(HOME)/lib/libbertini_serial.a #$(HOME)/lib/libbertini_opt_nog.a
 	MPFRLOC :=#in path
 	INSTALLDIR:=~/bin
 

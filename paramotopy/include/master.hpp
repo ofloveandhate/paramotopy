@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iomanip>
-#include <omp.h>
 
 
 #ifndef __MASTER_H__

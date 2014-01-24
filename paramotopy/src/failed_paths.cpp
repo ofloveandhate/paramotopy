@@ -538,7 +538,7 @@ void failinfo::report_failed_paths(runinfo paramotopy_info){
   
   
   int premie = std::cout.precision();//for restoring at end of function
-  std::cout << setiosflags(std::ios::fixed | std::ios::showpoint);
+	std::cout << std::setiosflags(std::ios::fixed | std::ios::showpoint);
   std::cout.precision(3);
   std::cout << "the ";
   if (this->initial_fails[current_iteration].size()>30) {
