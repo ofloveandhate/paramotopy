@@ -781,13 +781,15 @@ void slave_process::WriteNumDotOut(double current_params[]){
   std::string convertmetochar;
   std::stringstream ss, writess;
   std::ofstream fout;
+	
   fout.open("num.out");
+	
   if (!fout.is_open()) {
     std::cerr << "failed to open num.out" << std::endl;
     exit(741);
   }
-  
-	
+	ss.precision(15);
+	fout.precision(15);
 	
   //write the first two lines
   writess << numdotout[0] << "\n" << numdotout[1] << "\n";
@@ -944,7 +946,7 @@ void slave_process::MoveToWorkingFolder(){
 
 void slave_process::GoCalledDir(){
 	safe_chdir(called_dir.c_str()); //used to move back to the starting directory to write the timing files.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
-//todo: make this chdir test for success.
+
 	this->in_working_folder = false;
 }
 

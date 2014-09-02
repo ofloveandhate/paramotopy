@@ -174,7 +174,9 @@ void runinfo::SetLocation(){
 std::string runinfo::WriteInputStepOne(ProgSettings paramotopy_settings){
   // Write the input section of the bertini step1 input file.
   std::stringstream inputfilestream;
-  
+  inputfilestream.precision(15);
+	
+	
   inputfilestream << "\nINPUT\n";
   runinfo::MakeVariableGroups(inputfilestream, paramotopy_settings);
   runinfo::MakeDeclareConstants(inputfilestream);
@@ -193,7 +195,7 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
   
   // Write the input portion of the step 2 bertini input file.
   std::stringstream inputfilestream;
-	
+	inputfilestream.precision(15);
 	
   inputfilestream << "\nINPUT\n\n";
   // Variable Group portion
@@ -242,9 +244,12 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
     }
     
     // Declare Functions
-    runinfo::MakeDeclareFunctions(inputfilestream);
-    runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, standardstep2);
+	  runinfo::MakeDeclareFunctions(inputfilestream);  // writes the line "function f1, f2, f3,....."
+	  runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, standardstep2); // actually write the values for here and rand
   
+	  
+	  
+	  
     //print the user-supplied custom stuffs.
     runinfo::MakeCustomLines(inputfilestream);
     
@@ -1003,7 +1008,7 @@ void runinfo::MakeCustomLines(std::stringstream & inputfilestream){
 
 void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > CurrentValues, std::stringstream & inputfilestream, bool standardstep2){
 	
-
+	
   if (standardstep2){
     for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
       inputfilestream << "rand"
@@ -1021,10 +1026,7 @@ void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > Current
 		      << "*I;\n";
     }
     
-    for (int ii = 0; ii < int(this->ConstantNames.size());++ii){
-      inputfilestream << this->ConstantNames[ii]
-		      << "\n";
-    }
+    
     
     for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
       inputfilestream << this->ParameterNames[ii]
@@ -1035,6 +1037,13 @@ void runinfo::MakeConstantsStep2(std::vector<std::pair<double, double> > Current
 		      << ";\n";
     }
     
+	  
+	  for (int ii = 0; ii < int(this->ConstantNames.size());++ii){
+		  inputfilestream << this->ConstantNames[ii]
+		  << "\n";
+	  }
+	  
+	  
   }
   else{
     for (int ii = 0; ii < int(this->ParameterNames.size()); ++ii){
@@ -1590,7 +1599,7 @@ void runinfo::load(boost::filesystem::path filename){
 //returns via reference the run number, time initiated, and time updated, of a run.
 void runinfo::get_run_xml(boost::filesystem::path filename, int & run, time_t  & wheninitiated, time_t & whenupdated){
 	
-  TiXmlDocument* doc = new TiXmlDocument(filename.string());
+  TiXmlDocument* doc = new TiXmlDocument(filename.string().c_str());
   
   bool doc_loaded = doc->LoadFile();
   if (!doc_loaded){

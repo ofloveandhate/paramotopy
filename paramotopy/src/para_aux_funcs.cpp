@@ -466,7 +466,15 @@ void safe_chdir(std::string desired_directory){
 	
 	success = chdir(desired_directory.c_str());
 	
-	
+	if (success == -1) {
+		
+		
+		std::string throwme = "failed to change directory to ";
+		throwme.append(desired_directory);
+		throwme.append(" giving error ");
+		throwme.append(strerror (errno));
+		throw std::runtime_error(throwme);
+	}
 //TODO: make this safe
 }
 

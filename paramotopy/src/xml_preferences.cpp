@@ -642,7 +642,7 @@ void ProgSettings::save(boost::filesystem::path save_filename){
 	doc->LinkEndChild( root );
 	
 	//save it
-	if(doc->SaveFile(save_filename.string())){  //filename is a data member of ProgSettings class
+	if(doc->SaveFile(save_filename.string().c_str())){  //filename is a data member of ProgSettings class
 												//		std::cout << "preferences saved\n";
 	}
 	else{
@@ -2163,10 +2163,10 @@ void ProgSettings::GetTemporaryFileLocation(){
 				std::string tmplocation;
 				std::cout << "where should the root directory for temp files be?\n: " << std::endl;
 				tmplocation = getAlphaNumeric();
-				setValue("files","tempfilelocation",tmplocation);
+				setValue("files","tempfilelocation",boost::filesystem::path(tmplocation));
 			}
 			else{
-				setValue("files","tempfilelocation",standard_places_to_look[choice].string());
+				setValue("files","tempfilelocation",standard_places_to_look[choice]);
 			}
 		}
 		else{//found none of the standard places to look
@@ -2192,7 +2192,7 @@ void ProgSettings::GetTemporaryFileLocation(){
 		setValue("files","tempfilelocation",boost::filesystem::path("."));
 	}
 	
-	
+	ProgSettings::save();
 	return;
 };
 
@@ -2202,6 +2202,7 @@ void ProgSettings::GetStifle(){
 	std::stringstream menustream;
 	
 	setValue("system","stifle",get_int_choice("Stifle step2 output (to /dev/null) ?\n0) No.\n1) Yes.\n:",0,1));
+	ProgSettings::save();
 	return;
 };
 
