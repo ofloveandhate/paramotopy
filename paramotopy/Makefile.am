@@ -1,11 +1,11 @@
-
+#use the local m4 folder.
+ACLOCAL_AMFLAGS = -I m4
 
 AM_YFLAGS = -d -p `basename $* | sed 's,y$$,,'`
 AM_LFLAGS = -s -P`basename $* | sed 's,l$$,,'` -olex.yy.c
 
-AM_CPPFLAGS = -Iinclude
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-ACLOCAL_AMFLAGS = -I m4
 
 #set up the empty variables
 bin_PROGRAMS =
