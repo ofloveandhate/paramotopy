@@ -21,15 +21,12 @@
  the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
  and denominator of the number.  I pass the input by casting via (char *)
  */
-extern "C" {
-	void computeNumDenom(char **numer, char **denom, char *s);
-}
+//extern "C" {
+//	void computeNumDenom(char **numer, char **denom, char *s);
+//}
 
-
-extern "C" {
-	int bertini_main(int argC, char *args[]);
-}
-
+//#include <bertini.h>
+//
 
 
 

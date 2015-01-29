@@ -26,9 +26,13 @@ args_splash[1] = const_cast<char *>("--version");
 
 	
  std::cout << "\n\nlinked library bertini:\n\n";
- bertini_main(2,args_splash);
- std::cout << "\n\nstand-alone bertini:\n\n";
- 
+	printf("\n   Bertini(TM) v%s", BERTINI_VERSION_STRING);
+	printf("\n   (%s)\n\n", BERTINI_DATE_STRING);
+	printf(" D.J. Bates, J.D. Hauenstein,\n A.J. Sommese, C.W. Wampler\n\n");
+	printf("(using GMP v%d.%d.%d, MPFR v%s)\n\n", __GNU_MP_VERSION, __GNU_MP_VERSION_MINOR, __GNU_MP_VERSION_PATCHLEVEL, mpfr_get_version());
+	
+	
+ std::cout << "\n\nstand-alone bertini splash screen:\n\n";
  
  std::stringstream command;
  command << bertinilocation << "/bertini --version" ;
@@ -507,6 +511,71 @@ std::string convert_spaces_to_escaped(std::string workwithme)
 
 
 
+int GetMcNumLines(boost::filesystem::path base_dir, int numparam){
+	boost::filesystem::path mcfname = base_dir;
+	mcfname /= "mc";
+	
+	std::ifstream fin(mcfname.c_str());
+	
+	if (!fin.is_open()){
+		std::cerr << "failed to open mc file to get line count" << std::endl;
+		exit(2132);
+	}
+	
+	std::string tmpstr;
+	std::getline(fin,tmpstr);
+	std::stringstream converter;
+	int terminationint;
+	converter << tmpstr;
+	converter >> terminationint;
+	fin.close();
+	
+	
+	return terminationint;
+	
+}
 
+
+
+
+
+int GetStart(boost::filesystem::path dir,
+			 std::string & start,
+			 std::string startfilename){
+	
+	
+	std::stringstream tempss;
+	
+	std::ifstream fin;
+	//get start file in memory
+	std::string copyme;
+	
+	boost::filesystem::path startstring=dir;
+	startstring /= "step1";
+	startstring /= startfilename;
+	fin.open(startstring.c_str());
+	
+	if (!fin.is_open()) {
+		std::cout << "failed to open specified solutions file: " << startstring <<"\n";
+		exit(721);
+	}
+	
+	getline(fin,copyme);
+	std::stringstream converter;
+	tempss << copyme << "\n";
+	converter << copyme;
+	int numsolutions;
+	converter >> numsolutions;
+	
+	while (!fin.eof()) {
+		getline(fin,copyme);
+		tempss << copyme << "\n";
+	}
+	fin.close();
+	//end get start in memory
+	start = tempss.str();
+	
+	return numsolutions;
+}
 
 

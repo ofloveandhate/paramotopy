@@ -27,18 +27,14 @@
  * \return numer the numerator
  * \return denom the denomenator
  */
-extern "C" {
-	void computeNumDenom(char **numer, char **denom, char *s);
-}
+//extern "C" {
+//	void computeNumDenom(char **numer, char **denom, char *s);
+//}
 
 #include "step2_funcs.hpp"
 #include "timing.hpp"
 
-#include <gmp.h>
-
-extern "C" {
-#include "bertini.h"
-}
+//#include <gmp.h>
 
 
 
@@ -55,15 +51,6 @@ void getTermination_OpenMC(std::ifstream & mc_in_stream,std::ofstream & mc_out_s
 
 
 
-/**
- * reads in the start file to memory
- * \param dir The directory in which to read the start file
- * \param start MUTABLE String containing the start file
- * \param startfilename The name of the start file. This is a user-set name.
- */
-int GetStart(boost::filesystem::path dir,
-	     std::string & start,
-	     std::string startfilename);
 
 /**
  * Deprecated.  Gets the highest index set on a previous attempt at the run.  
@@ -131,13 +118,7 @@ void WriteNumDotOut(std::vector<std::string> Numoutvector,
 		    int numparam,
 		    bool standardstep2);
 
-/**
- * Gets the number of lines in the mc file.  essentially reads the top line of the file.
- * \param base_dir The directory in which to look for the mcfile.
- * \param numparam Number of parameters in the problem.  Deprecated?
- * \return terminationint  - The number of parameter points in the file.  Note that this could acceptably be smaller than the actual number, but not larger.
- */
-int GetMcNumLines(boost::filesystem::path base_dir, int numparam);
+
 
 
 #endif

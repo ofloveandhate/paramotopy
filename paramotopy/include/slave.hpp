@@ -1,7 +1,14 @@
+
+
+
+
+#ifndef __SLAVE_H_INCLUDED__
+#define __SLAVE_H_INCLUDED__
+
 #include <mpi.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -10,11 +17,6 @@
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
-
-
-
-#ifndef __SLAVE_H_INCLUDED__
-#define __SLAVE_H_INCLUDED__
 
 
 #include "step1_funcs.hpp"
@@ -27,12 +29,19 @@
 
 
 // you must include gmp pour include polysolve.
-#include <gmp.h>
 
+#include <gmp.h>
 extern "C" {
-#include "bertini.h"
+	#include "bertini.h"
 }
 
+/*
+ the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
+ and denominator of the number.  I pass the input by casting via (char *)
+ */
+extern "C" {
+	void computeNumDenom(char **numer, char **denom, char *s);
+}
 
 
 /**

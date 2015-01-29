@@ -1,10 +1,17 @@
 
+
+
+#ifndef __PARA_AUX_H__
+#define __PARA_AUX_H__
+
+
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sstream>
 #include <fstream>
 #include <string>
@@ -28,9 +35,11 @@
 #include <boost/progress.hpp>
 #include <boost/regex.hpp>
 
+#include <gmp.h>
+extern "C"{
+	#include <bertini.h>
+}
 
-#ifndef __PARA_AUX_H__
-#define __PARA_AUX_H__
 
 #include "paramotopy_enum.hpp"
 #include "random.hpp"
@@ -39,9 +48,6 @@
 
 /** Function to call the bertini libraries. */
 
-extern "C" {
-	int bertini_main(int argC, char *args[]);
-}
 
 
 /**
@@ -199,6 +205,28 @@ std::string stackoverflow_getcwd();
 void safe_chdir(std::string desired_directory);
 
 std::string convert_spaces_to_escaped(std::string workwithme);
+
+
+/**
+ * Gets the number of lines in the mc file.  essentially reads the top line of the file.
+ * \param base_dir The directory in which to look for the mcfile.
+ * \param numparam Number of parameters in the problem.  Deprecated?
+ * \return terminationint  - The number of parameter points in the file.  Note that this could acceptably be smaller than the actual number, but not larger.
+ */
+int GetMcNumLines(boost::filesystem::path base_dir, int numparam);
+
+
+
+
+/**
+ * reads in the start file to memory
+ * \param dir The directory in which to read the start file
+ * \param start MUTABLE String containing the start file
+ * \param startfilename The name of the start file. This is a user-set name.
+ */
+int GetStart(boost::filesystem::path dir,
+			 std::string & start,
+			 std::string startfilename);
 
 #endif
 

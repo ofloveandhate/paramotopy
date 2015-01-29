@@ -27,7 +27,6 @@
 
 
 
-
 /**
  * calls bertini to run the step1 file.
  * \param paramotopy_settings the bertini and paramotopy settings object.  for writing the input file.
