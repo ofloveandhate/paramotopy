@@ -1,0 +1,8 @@
+#this is src/tinyxml/Makemodule.am
+
+noinst_LIBRARIES += libtinyxml.a
+
+libtinyxml_a_SOURCES = src/tinyxml/tinystr.cpp src/tinyxml/tinyxml.cpp src/tinyxml/tinyxmlerror.cpp src/tinyxml/tinyxmlparser.cpp include/tinystr.h include/tinyxml.h
+
+
+tinyxml_a_CXXFLAGS = -std=c++11
