@@ -1,0 +1,14 @@
+#this is src/step2/Makemodule.am
+
+bin_PROGRAMS += step2
+
+step2_SOURCES = src/step2/step2.cpp include/step2.hpp\
+src/step2/master.cpp include/master.hpp \
+src/step2/slave.cpp include/slave.hpp \
+src/step2/step2_funcs.cpp include/step2_funcs.hpp \
+src/step2/step2readandwrite.cpp include/step2readandwrite.hpp
+
+
+step2_LDADD = libtinyxml.a $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)  $(BOOST_CHRONO_LIB) $(BOOST_REGEX_LIB) $(BOOST_TIMER_LIB) $(MPI_CXXLDFLAGS)
+
+step2_CXXFLAGS = -std=c++11 $(BOOST_CPPFLAGS) $(MPI_CXXFLAGS)
