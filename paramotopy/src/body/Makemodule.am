@@ -15,8 +15,8 @@ src/body/random.cpp include/random.hpp \
 src/body/runinfo.cpp include/runinfo.hpp \
 src/body/timing.cpp include/timing.hpp \
 src/body/xml_preferences.cpp include/xml_preferences.hpp \
-src/body/step1_funcs.cpp include/step1_funcs.hpp
-
+src/body/step1_funcs.cpp include/step1_funcs.hpp \
+include/paramotopy_enum.hpp
 
 paramotopy_SOURCES += $(BODY_FILES)
 step2_SOURCES += $(BODY_FILES)

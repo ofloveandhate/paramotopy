@@ -22,8 +22,7 @@ AM_INIT_AUTOMAKE([1.13 subdir-objects])
 #the language for Paramotopy is C++
 AC_LANG([C++])
 
-#use the local m4 folder.
-ACLOCAL_AMFLAGS = -I m4
+
 
 #another directive to use the m4 folder
 AC_CONFIG_MACRO_DIR([m4])
@@ -33,6 +32,13 @@ AC_CONFIG_FILES([Makefile])
 
 #find the CC compiler
 AC_PROG_CXX
+
+
+#enable the creation of shared libraries
+AC_ENABLE_SHARED
+
+#enable the creation of static libraries
+AC_ENABLE_STATIC
 
 #set up for building libraries
 AC_PROG_LIBTOOL
@@ -49,11 +55,7 @@ AC_PROG_LN_S
 #find the command for making directories with their parents
 AC_PROG_MKDIR_P
 
-#enable the creation of shared libraries
-AC_ENABLE_SHARED
 
-#enable the creation of static libraries
-AC_ENABLE_STATIC
 
 #fire up libtool
 LT_INIT
@@ -88,7 +90,10 @@ AC_SEARCH_LIBS([__gmpz_init],[gmp], [],[
 	AC_MSG_ERROR([unable to find gmp])
 ])
 
-
+#find the math library
+AC_SEARCH_LIBS([cos], [m], [], [
+  AC_MSG_ERROR([unable to find the cos() function])
+  ])
 
 
 
@@ -101,7 +106,7 @@ AX_BOOST_TIMER
 
 
 
-
+AM_CONFIG_HEADER(config.h)
 
 #wrap it up.
 AC_OUTPUT
