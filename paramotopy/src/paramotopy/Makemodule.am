@@ -1,0 +1,11 @@
+#this is src/paramotopy/Makemodule.am
+
+bin_PROGRAMS += paramotopy
+
+paramotopy_SOURCES = \
+src/paramotopy/paramotopy.cpp include/paramotopy.hpp
+
+
+paramotopy_LDADD = libtinyxml.a $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)  $(BOOST_CHRONO_LIB) $(BOOST_REGEX_LIB) $(BOOST_TIMER_LIB) $(MPI_CXXLDFLAGS)
+
+paramotopy_CXXFLAGS = -std=c++11 $(BOOST_CPPFLAGS) $(MPI_CXXFLAGS)
