@@ -7,45 +7,6 @@
 
 
 
-int GetStart(boost::filesystem::path dir,
-						 std::string & start,
-						 std::string startfilename){
-  
-	
-  std::stringstream tempss;
-  
-  std::ifstream fin;
-  //get start file in memory
-  std::string copyme;
-	
-  boost::filesystem::path startstring=dir;
-  startstring /= "step1";
-	startstring /= startfilename;
-  fin.open(startstring.c_str());
-  
-  if (!fin.is_open()) {
-    std::cout << "failed to open specified solutions file: " << startstring <<"\n";
-    exit(721);
-  }
-  
-  getline(fin,copyme);
-  std::stringstream converter;
-  tempss << copyme << "\n";
-  converter << copyme;
-  int numsolutions;
-  converter >> numsolutions;
-  
-  while (!fin.eof()) {
-    getline(fin,copyme);
-    tempss << copyme << "\n";
-  }
-  fin.close();
-  //end get start in memory
-  start = tempss.str();
-  
-  return numsolutions;
-}
-
 
 
 
@@ -164,29 +125,7 @@ int GetLastNumSent(std::string base_dir,
 
 
 
-int GetMcNumLines(boost::filesystem::path base_dir, int numparam){
-	boost::filesystem::path mcfname = base_dir;
-	mcfname /= "mc";
-  
-  std::ifstream fin(mcfname.c_str());
-  
-  if (!fin.is_open()){
-    std::cerr << "failed to open mc file to get line count" << std::endl;
-    exit(2132);
-  }
-  
-  std::string tmpstr;
-  std::getline(fin,tmpstr);
-  std::stringstream converter;
-  int terminationint;
-  converter << tmpstr;
-  converter >> terminationint;
-  fin.close();
-  
-  
-  return terminationint;
-	
-}
+
 
 
 

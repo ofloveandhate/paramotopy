@@ -24,12 +24,11 @@
 
 #include "step1_funcs.hpp"
 
+//#include <gmp.h>
 #include <gmp.h>
-
 extern "C" {
 	#include "bertini.h"
 }
-
 
 /**
  * a wrapper around the parse_input() function from the bertini library.
@@ -72,15 +71,6 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CValues,
 		       ProgSettings paramotopy_settings,
 		       runinfo paramotopy_info);
 
-/**
- * creates the bertini input file for step2 IN FAILURE ANALYSIS MODE, and writes it to a string.
- * \param CValues current parameter values.
- * \param paramotopy_settings the bertini and paramotopy settings
- * \param paramotopy_info the parsed input file.
- */
-std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
-			   ProgSettings paramotopy_settings,
-			   runinfo paramotopy_info);
 
 
 

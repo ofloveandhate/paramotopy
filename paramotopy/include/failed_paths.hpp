@@ -148,10 +148,18 @@ private:
 
 
 
-// scans the data files for the failed paths
 
 
 
+/**
+ * creates the bertini input file for step2 IN FAILURE ANALYSIS MODE, and writes it to a string.
+ * \param CValues current parameter values.
+ * \param paramotopy_settings the bertini and paramotopy settings
+ * \param paramotopy_info the parsed input file.
+ */
+std::string WriteFailStep2(std::vector<std::pair<double, double> > CValues,
+						   ProgSettings paramotopy_settings,
+						   runinfo paramotopy_info);
 
 #endif
 

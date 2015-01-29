@@ -36,29 +36,7 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CurrentValues,
 }
 
 
-//creates a string containing the file for step2 input file. note that the specific points at which we solve are written to the num.out file by each worker, so this is only written once.  then the associated .out files are created in a step2.1 solve, and left intact for the step2.2 solves, of which there are many.
-std::string WriteFailStep2(std::vector<std::pair<double, double> > CurrentValues,
-			   ProgSettings paramotopy_settings,
-			   runinfo paramotopy_info){
-	
-  bool standardstep2;
-  int sstep2 = paramotopy_settings.settings["mode"]["standardstep2"].intvalue;
-  if (sstep2 == 0){
-    standardstep2 = false;
-  }
-  else{
-    standardstep2 = true;
-  }
 
-
-	std::stringstream inputstringstream;
-	
-	inputstringstream << paramotopy_settings.WriteConfigFail();
-	
-	inputstringstream << paramotopy_info.WriteInputStepTwo(CurrentValues, standardstep2);
-	
-	return inputstringstream.str();
-}
 
 
 
