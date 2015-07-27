@@ -191,7 +191,7 @@ std::string runinfo::WriteInputStepOne(ProgSettings paramotopy_settings){
 
 
 std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues,
-				       bool standardstep2){
+				       ProgSettings paramotopy_settings, bool failstep2){
   
   // Write the input portion of the step 2 bertini input file.
   std::stringstream inputfilestream;
@@ -199,13 +199,46 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
 	
   inputfilestream << "\nINPUT\n\n";
   // Variable Group portion
+
+  if ( paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 0) {
+    inputfilestream << "variable_group ";
+  }
+  else{
+  
+      if (failstep2){
+          if (paramotopy_settings.settings["PathFailureBertiniCurrent"]["USERHOMOTOPY"].value() == "2"){
+              inputfilestream << "variable_group ";
+          }
+          else{
+              inputfilestream << "variable ";
+          }
+          
+      }
+      else{
+          if ( paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "2"){
+              inputfilestream << "variable_group ";
+          }
+      
+          else{
+              inputfilestream << "variable ";
+          }
+        }
+  }
+
+
+  /*
   inputfilestream << "variable";
+
+  
   if (!standardstep2){
     inputfilestream << "_group ";
   }
   else{
     inputfilestream << " ";
   }
+  */
+
+
   for (int ii = 0; ii < int(VarGroups.size());++ii){
     inputfilestream << VarGroups[ii]
 		    << ( ii != numvargroup-1? ",":";\n\n" );
@@ -215,7 +248,7 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
   
   
   // constant portion for here and rand in the parameter homotopy
-  if (standardstep2){ // normal parameter run
+  if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 1){ // normal parameter run
 
 
     inputfilestream << "constant ";
@@ -245,7 +278,7 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
     
     // Declare Functions
 	  runinfo::MakeDeclareFunctions(inputfilestream);  // writes the line "function f1, f2, f3,....."
-	  runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, standardstep2); // actually write the values for here and rand
+	  runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, paramotopy_settings.settings["mode"]["standardstep2"].intvalue); // actually write the values for here and rand
   
 	  
 	  
@@ -275,7 +308,7 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
     runinfo::MakeDeclareFunctions(inputfilestream);
 
 
-    runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, standardstep2);
+    runinfo::MakeConstantsStep2(tmprandomvalues,inputfilestream, paramotopy_settings.settings["mode"]["standardstep2"].intvalue);
 
     //print the user-supplied custom stuffs.                                                           
     runinfo::MakeCustomLines(inputfilestream);
