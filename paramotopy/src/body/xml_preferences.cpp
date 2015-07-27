@@ -56,13 +56,31 @@ std::string ProgSettings::WriteConfigStepTwo(){
 	
 	for (iter=settings["step2bertini"].begin(); iter != settings["step2bertini"].end(); iter++){
 		std::string setting_name = (*iter).first;
+		
+		// convert setting_name to uppercase
+		for (int i = 0; i < setting_name.size(); ++i){
+		  setting_name[i] = toupper(setting_name[i]);
+		}
+
+		if (setting_name == "USERHOMOTOPY"){
+
+		  if (this->settings["mode"]["standardstep2"].intvalue==1){ // if not a standard step2, 
+		                                                            // performing regular bertini runs on each parameter point
+		    config << "USERHOMOTOPY: " << settings["step2bertini"][setting_name].value() << ";\n";
+		  }
+		  else{
+		    config << "USERHOMOTOPY: 0;\n";
+		  }
+
+		}
+		else{
+		
 		config << setting_name << ": "
-		<< settings["step2bertini"][setting_name].value() << ";\n";
+		       << settings["step2bertini"][setting_name].value() << ";\n";
+		}
+		
 	}
-	if (this->settings["mode"]["standardstep2"].intvalue==1){ // if not a standard step2, doing regular bertini runs on multiple
-															  // parameter points
-		config << "USERHOMOTOPY: 1;\n";
-	}
+
 	config << "END;\n\n";
 	
 	return config.str();
@@ -83,13 +101,30 @@ std::string ProgSettings::WriteConfigFail(){
 	
 	for (iter=settings["PathFailureBertiniCurrent"].begin(); iter != settings["PathFailureBertiniCurrent"].end(); iter++){
 		std::string setting_name = (*iter).first;
+		// convert setting_name to uppercase
+		for (int i = 0; i < setting_name.size(); ++i){
+		  setting_name[i] = toupper(setting_name[i]);
+		}		
+
+		if (setting_name == "USERHOMOTOPY"){
+
+		  if (this->settings["mode"]["standardstep2"].intvalue==1){ // if not a standard step2, 
+		                                                            // performing regular bertini runs on each parameter point
+		    config << "USERHOMOTOPY: " << settings["PathFailureBertiniCurrent"][setting_name].value() << ";\n";
+		  }
+		  else{
+		    config << "USERHOMOTOPY: 0;\n";
+		  }
+
+		}
+		else{
+		
 		config << setting_name << ": "
-		<< settings["PathFailureBertiniCurrent"][setting_name].value() << ";\n";
+		       << settings["PathFailureBertiniCurrent"][setting_name].value() << ";\n";
+		}
+		
 	}
-	if (this->settings["mode"]["standardstep2"].intvalue==1){ // if not a standard step2, doing regular bertini runs on multiple
-															  // parameter points
-		config << "USERHOMOTOPY: 1;\n";
-	}
+
 	config << "END;\n\n";
 	
 	return config.str();
@@ -248,6 +283,7 @@ void ProgSettings::default_basic_bertini_values_steptwo(){
 	setValue("step2bertini","TRACKTOLDURINGEG",1e-6);
 	setValue("step2bertini","FINALTOL",1e-11);
 	setValue("step2bertini","IMAGTHRESHOLD",1e-8);
+	setValue("setp2bertini", "USERHOMOTOPY", 2);
 	ProgSettings::save();
 	return;
 }
@@ -259,6 +295,7 @@ void ProgSettings::default_basic_bertini_values_pathfailure(){
 	setValue("PathFailureBertiniBase","TRACKTOLDURINGEG",1e-6);
 	setValue("PathFailureBertiniBase","FINALTOL",1e-11);
 	setValue("PathFailureBertiniBase","IMAGTHRESHOLD",1e-8);
+	setValue("PathFailureBertiniBase","USERHOMOTOPY", 2);
 	ProgSettings::save();
 	return;
 }
@@ -460,6 +497,7 @@ void ProgSettings::GetProgramLocationManual(std::string program_name, std::strin
 	setValue(category_name,setting_name,final_path);
 	
 	std::cout << program_name << " location set to " << final_path.string() << std::endl;
+    save();
 	return;
 }
 
@@ -548,6 +586,9 @@ void ProgSettings::FindProgram(std::string program_name, std::string category_na
 	
 	setValue(category_name,setting_name,final_path);
 	
+    
+    save();
+    
 	return;
 }//    re: find_program
 

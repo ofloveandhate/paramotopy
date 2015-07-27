@@ -34,36 +34,43 @@ void serial_case(ProgSettings paramotopy_settings, runinfo paramotopy_info_origi
 /////////////////////////////////
 
 void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
-  
 
-	
+
+
   std::stringstream mpicommand;
-	
-  mpicommand << paramotopy_settings.settings["parallelism"]["architecture"].value() << " -n ";
-  mpicommand << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
-  std::stringstream addmachinecommand;
-  addmachinecommand << "-machinefile " << paramotopy_settings.settings["parallelism"]["machinefile"].value() << " ";
-  mpicommand << (paramotopy_settings.settings["parallelism"]["usemachine"].intvalue==1 ? addmachinecommand.str() : "");	
-	
 
-	boost::filesystem::path steptwopath = paramotopy_settings.settings["system"]["step2location"].pathvalue;
-	steptwopath /= "step2";
-	
-	mpicommand << convert_spaces_to_escaped(steptwopath.string()) << " ";
-	
+  mpicommand << paramotopy_settings.settings["parallelism"]["architecture"].value() << " ";
+
+
+
+  if (paramotopy_settings.settings["parallelism"]["usemachine"].intvalue==1)
+    {
+      std::stringstream addmachinecommand;
+      addmachinecommand << "-machinefile " << getenv("HOME") << "/" << paramotopy_settings.settings["parallelism"]["machinefile"].value() << " ";
+      mpicommand << addmachinecommand.str();
+    }
+
+
+  mpicommand << " -n " << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
+
+  boost::filesystem::path steptwopath = paramotopy_settings.settings["system"]["step2location"].pathvalue;
+  steptwopath /= "step2";
+
+  mpicommand << convert_spaces_to_escaped(steptwopath.string()) << " ";
+
   mpicommand << convert_spaces_to_escaped(paramotopy_info.inputfilename.string()) << " ";
   mpicommand << convert_spaces_to_escaped(paramotopy_info.location.string()) << " ";
-	mpicommand << paramotopy_info.steptwomode << " ";
+  mpicommand << paramotopy_info.steptwomode << " ";
 
   if (paramotopy_settings.settings["system"]["stifle"].intvalue==1){
     mpicommand << " > /dev/null ";
   }
 
-  
+
   std::cout << "\n\n\n\n\n\n\n\n" << mpicommand.str() << "\n\n\n\n\n\n\n\n\n";
-  
+
   system(mpicommand.str().c_str());  //make the system call to bertini
-  
+
 }//re: parallel_case()
 
 

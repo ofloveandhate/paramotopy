@@ -68,10 +68,26 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 		this->standardstep2 = 0;
 	}
 	else{
-		this->real_filename = "real_solutions";
+	//	this->real_filename = "real_solutions";
 		this->standardstep2 = 1;
-	}
+        if (paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "2"){
+            this->real_filename = "real_finite_solutions";
+        }
+        else if ( paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "1"){
+            this->real_filename = "real_solutions";
+        }
+        else if ( paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "0"){
+            
+            this->real_filename = "real_finite_solutions";
+        }
+        else {
+            
+        this->real_filename = "real_solutions";
+        }
 	
+        
+        
+    }
 	
 	this->ParamNames = paramotopy_info.ParameterNames;
 	
@@ -81,8 +97,8 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 								 
 								 
 bool datagatherer::SlaveCollectAndWriteData(double current_params[],
-																						ProgSettings & paramotopy_settings,
-																						timer & process_timer){
+                                            ProgSettings & paramotopy_settings,
+                                            timer & process_timer){
   
 	
 
@@ -96,18 +112,28 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 #endif
 	  
 	  if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==1 && iter->first.compare(this->real_filename)==0) { //1: continuous loop for search
-	    
-	    datagatherer::AppendOnlyPosReal(iter->first, // the file name
-					    current_params,
-					    paramotopy_settings);
-	    
-	    
+
+          
+          
+	    datagatherer::AppendOnlyPosReal(
+                                        ( iter->first.compare("real_solutions")==0 ? this->real_filename : iter->first), // the file name
+                                        current_params,
+                                        paramotopy_settings);
+	    	    
 	  }
+        
 	  else {//0: basic mode
 	    
-	    datagatherer::AppendData(iter->first, // the file name
-				     current_params);	    
-	  }
+   
+          // make sure we use the right type of file name
+          // this changes dependent on the run type of bertini
+          // and correct filename will always be stored in real_filename
+          
+          
+          datagatherer::AppendData( (iter->first.compare("real_solutions")==0 ? this->real_filename : iter->first),
+                                   current_params);
+          
+      }
 	  
 	  
 	  
@@ -127,7 +153,8 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 #endif
 	    
 	    datagatherer::WriteData(iter->second.runningfile,
-				    datagatherer::MakeTargetFilename(iter->first));
+                                datagatherer::MakeTargetFilename( (iter->first.compare("real_solutions")==0 ? this->real_filename : iter->first ) ) );
+                                
 	    
 #ifdef timingstep2
 	    process_timer.add_time("write");
@@ -153,8 +180,8 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 
 
 void datagatherer::AppendOnlyPosReal(std::string orig_filename,
-																		 double *current_params,
-																		 ProgSettings & paramotopy_settings)
+                                    double *current_params,
+                                    ProgSettings & paramotopy_settings)
 {
   //this function will operate on any *_solutions file
 	
@@ -257,7 +284,7 @@ void datagatherer::AppendOnlyPosReal(std::string orig_filename,
 
 
 void datagatherer::AppendData(std::string orig_filename,
-															double *current_params){
+                              double *current_params){
   
 
   std::string cline = "";
@@ -265,6 +292,7 @@ void datagatherer::AppendData(std::string orig_filename,
   std::ifstream fin(orig_filename.c_str());
   
   if (!fin.is_open()) {
+      std::cerr << "in append data\n";
     std::cerr << "failed to open file '" << orig_filename << "' to read data" << std::endl;
     exit(-42);
   }
@@ -282,6 +310,9 @@ void datagatherer::AppendData(std::string orig_filename,
   }
   fin.close();
   
+    if (orig_filename.compare("real_finite_solutions")==0){
+        orig_filename = "real_solutions";
+    }
 	slavemap[orig_filename].num_found_solns = 0;
 	slavemap[orig_filename].runningfile.append(outstring.str());
 	
@@ -295,8 +326,8 @@ void datagatherer::WriteAllData(){
 	
 	for (iter=this->slavemap.begin(); iter!=this->slavemap.end(); iter++) {
 		datagatherer::WriteData(iter->second.runningfile,
-														datagatherer::MakeTargetFilename(iter->first));
-	}
+                                datagatherer::MakeTargetFilename( (iter->first.compare("real_solutions")==0?this->real_filename:iter->first)) );
+    }
 	
 }
 
