@@ -29,8 +29,8 @@ std::string WriteStep2(std::vector<std::pair<double, double> > CurrentValues,
 	std::stringstream inputstringstream;
 	inputstringstream << paramotopy_settings.WriteConfigStepTwo();
 	
-	inputstringstream << paramotopy_info.WriteInputStepTwo(CurrentValues,
-																												 paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 1);
+    inputstringstream << paramotopy_info.WriteInputStepTwo(CurrentValues, paramotopy_settings, false);
+//                                                           paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 1);
 	
 	return inputstringstream.str();
 }
