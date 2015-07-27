@@ -158,10 +158,12 @@ public:
       \param paramotopy_settings - The program settings to be used in the input file. */
   std::string WriteInputStepOne(ProgSettings paramotopy_settings);
   /** Write the bertini step 2 input file.
-      \param tmprandomvalues - The starting (?) random values of the input file. 
+      \param tmprandomvalues - The starting (?) random values of the input file.
+      \param paramotopy_settings - The program settings to be used in the input file. 
+      \param failstep2 -- Flag to indicate if writing an input file to conduct failed path analysis
    */
   std::string WriteInputStepTwo(std::vector<std::pair<double, double> > tmprandomvalues,
-				bool standardstep2);
+                                ProgSettings paramotopy_settings, bool failstep2);
   
   /** Get the original paramotopy input file. */
   void GetOriginalParamotopy();
