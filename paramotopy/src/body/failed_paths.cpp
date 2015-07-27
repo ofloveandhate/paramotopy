@@ -977,7 +977,7 @@ std::string WriteFailStep2(std::vector<std::pair<double, double> > CurrentValues
 	
 	inputstringstream << paramotopy_settings.WriteConfigFail();
 	
-	inputstringstream << paramotopy_info.WriteInputStepTwo(CurrentValues, standardstep2);
+	inputstringstream << paramotopy_info.WriteInputStepTwo(CurrentValues, paramotopy_settings, true);
 	
 	return inputstringstream.str();
 }
