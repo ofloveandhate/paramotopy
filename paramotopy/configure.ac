@@ -80,14 +80,16 @@ AC_SEARCH_LIBS([zero_dim_main],[bertini-serial], [],[
 ])
 
 
-# find mpfr
-AC_SEARCH_LIBS([mpfr_get_version],[mpfr], [],[
-	AC_MSG_ERROR([unable to find mpfr])
-])
+
 
 #find gmp
 AC_SEARCH_LIBS([__gmpz_init],[gmp], [],[
 	AC_MSG_ERROR([unable to find gmp])
+])
+
+# find mpfr
+AC_SEARCH_LIBS([mpfr_get_version],[mpfr], [],[
+	AC_MSG_ERROR([unable to find mpfr])
 ])
 
 #find the math library
