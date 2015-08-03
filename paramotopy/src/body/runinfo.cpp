@@ -212,7 +212,10 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
   if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 0 
                 || 
       paramotopy_settings.settings[relevant_category]["USERHOMOTOPY"].value() == "2")
+  {
     runinfo::MakeVariableGroups(inputfilestream, paramotopy_settings);
+    inputfilestream << "\n\n";
+  } 
   else
   {
     inputfilestream << "variable ";
