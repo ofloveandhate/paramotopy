@@ -283,7 +283,7 @@ void ProgSettings::default_basic_bertini_values_steptwo(){
 	setValue("step2bertini","TRACKTOLDURINGEG",1e-6);
 	setValue("step2bertini","FINALTOL",1e-11);
 	setValue("step2bertini","IMAGTHRESHOLD",1e-8);
-	setValue("setp2bertini", "USERHOMOTOPY", 2);
+	setValue("step2bertini", "USERHOMOTOPY", 2);
 	ProgSettings::save();
 	return;
 }
