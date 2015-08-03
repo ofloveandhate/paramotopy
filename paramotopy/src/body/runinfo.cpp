@@ -200,51 +200,28 @@ std::string runinfo::WriteInputStepTwo(std::vector<std::pair<double, double> > t
   inputfilestream << "\nINPUT\n\n";
   // Variable Group portion
 
-  if ( paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 0) {
-    inputfilestream << "variable_group ";
-  }
-  else{
-  
-      if (failstep2){
-          if (paramotopy_settings.settings["PathFailureBertiniCurrent"]["USERHOMOTOPY"].value() == "2"){
-              inputfilestream << "variable_group ";
-          }
-          else{
-              inputfilestream << "variable ";
-          }
-          
-      }
-      else{
-          if ( paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "2"){
-              inputfilestream << "variable_group ";
-          }
-      
-          else{
-              inputfilestream << "variable ";
-          }
-        }
-  }
+
+  std::string relevant_category;
+  if (failstep2)
+    relevant_category = "PathFailureBertiniCurrent";
+  else
+    relevant_category = "step2bertini";
 
 
-  /*
-  inputfilestream << "variable";
 
-  
-  if (!standardstep2){
-    inputfilestream << "_group ";
-  }
-  else{
-    inputfilestream << " ";
-  }
-  */
+  if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue == 0 
+                || 
+      paramotopy_settings.settings[relevant_category]["USERHOMOTOPY"].value() == "2")
+    runinfo::MakeVariableGroups(inputfilestream, paramotopy_settings);
+  else
+  {
+    inputfilestream << "variable ";
+    for (int ii = 0; ii < int(VarGroups.size());++ii){
+      inputfilestream << VarGroups[ii] << ( ii != numvargroup-1? ",":";\n\n" );
+    }
 
-
-  for (int ii = 0; ii < int(VarGroups.size());++ii){
-    inputfilestream << VarGroups[ii]
-		    << ( ii != numvargroup-1? ",":";\n\n" );
-    
-    
   }
+
   
   
   // constant portion for here and rand in the parameter homotopy
