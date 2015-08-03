@@ -861,7 +861,7 @@ void master_process::CleanupBasic(timer & process_timer){
 		MPI_Abort(MPI_COMM_WORLD, 778);
 	}
 	else{
-		std::cout << "number of workers is correct at cleanup" << std::endl;
+
 	}
 	
 	while (num_active_workers>0) {
@@ -1096,15 +1096,12 @@ void master_process::SendInput(timer & process_timer){
 
 void master_process::GetTerminationInt(){
 	
-	
-	boost::filesystem::path mcfname = paramotopy_info.location;
-	mcfname /= "mc";
 	if (!paramotopy_info.userdefined) {
 		index_conversion_vector.push_back(1);
 		for (int ii=1; ii<paramotopy_info.numparam; ++ii) {
 			index_conversion_vector.push_back(index_conversion_vector[ii-1]*paramotopy_info.NumMeshPoints[ii-1]);
 		}
-		
+
 		if (paramotopy_settings.settings["mode"]["main_mode"].intvalue==0) {
 			terminationint = index_conversion_vector[paramotopy_info.numparam-1]*paramotopy_info.NumMeshPoints[paramotopy_info.numparam-1];
 		}
@@ -1113,9 +1110,7 @@ void master_process::GetTerminationInt(){
 		}
 		
 	}
-	
 	else {
-		
 		terminationint = GetMcNumLines(paramotopy_info.location,paramotopy_info.numparam); // verified correct for both newline terminated and not newline terminated.  dab
 	}
 	
