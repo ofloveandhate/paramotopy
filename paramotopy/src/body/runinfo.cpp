@@ -1210,26 +1210,26 @@ void runinfo::MakeParameterNames(){
 
 void runinfo::DisplayAllValues(){
 	
-  std::cout << "nfunc " << numfunct << std::endl;
+  std::cout << "number of functions " << numfunct << std::endl;
   for (int ii=0; ii<numfunct; ++ii) {
     std::cout << Functions[ii] << std::endl;
   }
   
-  std::cout << "nvargrp " << numvargroup << std::endl;
+  std::cout << "number of variable groups " << numvargroup << std::endl;
   for (int ii=0; ii<numvargroup; ++ii) {
     std::cout << VarGroups[ii] << std::endl;
   }
   
-  std::cout << "nparam " << numparam << std::endl;
+  std::cout << "number of parameters " << numparam << std::endl;
   for (int ii=0; ii<numparam; ++ii) {
     std::cout << Parameters[ii] << std::endl;
   }
   for (int ii=0; ii<numparam; ++ii) {
-    std::cout << "name " << ParameterNames[ii] << std::endl;
+    std::cout << "parameter name " << ParameterNames[ii] << std::endl;
   }
   
   
-  std::cout << "nconst " << numconsts << std::endl;
+  std::cout << "number of constants " << numconsts << std::endl;
   for (int ii=0; ii<numconsts; ++ii) {
     std::cout  << ConstantNames[ii] << std::endl;
   }
@@ -1239,22 +1239,19 @@ void runinfo::DisplayAllValues(){
 	
 	
   
-  std::cout << "base_dir " << base_dir << " " 
-	    << "inputfilename " << inputfilename << "\n";
+  std::cout << "base directory " << base_dir << ", "
+	    << "input filename " << inputfilename << std::endl;
   
-  std::cout << "base_dir " << base_dir << " "
-	    << "inputfilename " << inputfilename << std::endl;
-  
-  std::cout << "nvar " << numvariables << std::endl;
+  std::cout << "number variables " << numvariables << std::endl;
   if (userdefined==1) {
-    std::cout << "userdefined, with mcfname: " << mcfname << std::endl;
+    std::cout << "parameter sample userdefined, with filename: " << mcfname << std::endl;
   }
   else{
-    std::cout << "computer-generated mesh." << std::endl;
+    std::cout << "using computer-generated parameter mesh." << std::endl;
   }
   
   if ( int(this->CustomLines.size()>0) ) {
-    std::cout << "custom lines: " << this->CustomLines << std::endl;
+    std::cout << "custom lines for input file: " << this->CustomLines << std::endl;
   }
   
   return;
