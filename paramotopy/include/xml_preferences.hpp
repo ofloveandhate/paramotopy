@@ -190,9 +190,15 @@ public:
 	
   /** Load the xml preference file.
    \param pFilename - The preference file name. */
-  void load(boost::filesystem::path pFilename);
+  void loadWithFailSafes(boost::filesystem::path pFilename);
+
+  /**
+  Load the xml preferences file, and exit if not possible.
+  */
+  void loadNoFailSafes(boost::filesystem::path pFilename);
+
   /** Load the xml preference file with the current saved filename. */
-  void load() {load(this->filename);};
+  void load() {loadWithFailSafes(this->filename);};
   
 	
 	ProgSettings() {};
