@@ -30,7 +30,11 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 	datagatherer slavegatherer;
 	datagatherer::slave_init();
 	
-	
+	std::string category;
+	if (paramotopy_info.steptwomode==2)
+		category = "step2bertini";
+	else
+		category = "PathFailureBertiniCurrent";
 
 	for (auto iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end(); ++iter){
 		if (iter->second.intvalue==1) {
@@ -40,7 +44,7 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 				{
 					tmpstr = "real_finite_solutions";
 				}
-				else if (paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "2" || paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "0")
+				else if (paramotopy_settings.settings[category]["USERHOMOTOPY"].value() == "2" || paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "0")
 				{
 					tmpstr = "real_finite_solutions";
 				}
