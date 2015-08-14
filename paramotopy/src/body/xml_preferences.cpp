@@ -1362,9 +1362,8 @@ void ProgSettings::MainMenu(){
 				std::cout << "somehow an unacceptable entry submitted to MainMenu :(\n";
 				break;
 		}
-		
-		ProgSettings::save();
 	}
+	ProgSettings::save();
 }
 
 

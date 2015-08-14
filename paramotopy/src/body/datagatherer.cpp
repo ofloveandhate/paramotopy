@@ -8,6 +8,12 @@
 //constructs a file name for reading/writing
 boost::filesystem::path datagatherer::MakeTargetFilename(std::string filename)
 {
+	if (slavemap.find(filename)==slavemap.end())
+	{
+		std::cout << "trying to MakeTargetFilename for filename not stored in the map of target file names: " << filename << std::endl;
+		exit(-12938);
+	}
+
 	boost::filesystem::path tmppath = this->DataCollectedbase_dir;
 	tmppath /= filename;
 	
@@ -117,8 +123,7 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
           // and correct filename will always be stored in real_filename
           
           
-          datagatherer::AppendData( iter->first,
-                                   current_params);
+          datagatherer::AppendData( iter->first, current_params);
           
       }
 	  
@@ -164,23 +169,28 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 
 
 
-void datagatherer::AppendOnlyPosReal(std::string orig_filename,
+void datagatherer::AppendOnlyPosReal(std::string source_filename,
                                     double *current_params,
                                     ProgSettings & paramotopy_settings)
 {
   //this function will operate on any *_solutions file
 	
-	
+	if (slavemap.find(source_filename)==slavemap.end())
+	{
+		std::cout << "trying to AppendOnlyPosReal for filename not stored in the map of target file names: " << source_filename << std::endl;
+		exit(-12938);
+	}
+
   std::string cline = "";
   std::stringstream outstring;
 	
 	
 	
 	
-  std::ifstream fin(orig_filename.c_str());
+  std::ifstream fin(source_filename.c_str());
   
   if (!fin.is_open()) {
-    std::cerr << "failed to open file '" << orig_filename << "' to read data" << std::endl;
+    std::cerr << "failed to open file '" << source_filename << "' to read data" << std::endl;
     MPI_Abort(MPI_COMM_WORLD,-42);
   }
   
@@ -250,14 +260,14 @@ void datagatherer::AppendOnlyPosReal(std::string orig_filename,
     outstring << tmp_num_found_solns << "\n\n";
     outstring << current_point_data.str();
     
-    slavemap[orig_filename].num_found_solns = tmp_num_found_solns;
-    slavemap[orig_filename].runningfile.append(outstring.str());
+    slavemap[source_filename].num_found_solns = tmp_num_found_solns;
+    slavemap[source_filename].runningfile.append(outstring.str());
     
     
   }
   else
     {
-      slavemap[orig_filename].num_found_solns = 0;
+      slavemap[source_filename].num_found_solns = 0;
     }
   
   
@@ -268,17 +278,22 @@ void datagatherer::AppendOnlyPosReal(std::string orig_filename,
 
 
 
-void datagatherer::AppendData(std::string orig_filename,
+void datagatherer::AppendData(std::string source_filename,
                               double *current_params){
   
+	if (slavemap.find(source_filename)==slavemap.end())
+	{
+		std::cout << "trying to AppendData for filename not stored in the map of target file names: " << source_filename << std::endl;
+		exit(-12938);
+	}
 
   std::string cline = "";
   std::stringstream outstring;
-  std::ifstream fin(orig_filename.c_str());
+  std::ifstream fin(source_filename.c_str());
   
   if (!fin.is_open()) {
       std::cerr << "in append data\n";
-    std::cerr << "failed to open file '" << orig_filename << "' to read data" << std::endl;
+    std::cerr << "failed to open file '" << source_filename << "' to read data" << std::endl;
     exit(-42);
   }
   
@@ -295,11 +310,7 @@ void datagatherer::AppendData(std::string orig_filename,
   }
   fin.close();
   
-    // if (orig_filename.compare("real_finite_solutions")==0){
-    //     orig_filename = "real_solutions";
-    // }
-	// slavemap[orig_filename].num_found_solns = 0;
-	slavemap[orig_filename].runningfile.append(outstring.str());
+	slavemap[source_filename].runningfile.append(outstring.str());
 	
 	
   return;
@@ -307,17 +318,16 @@ void datagatherer::AppendData(std::string orig_filename,
 
 void datagatherer::WriteAllData(){
 	
-	std::map<std::string, fileinfo>::iterator iter;
+
 	
-	for (iter=this->slavemap.begin(); iter!=this->slavemap.end(); iter++) {
+	for (auto iter=this->slavemap.begin(); iter!=this->slavemap.end(); iter++) {
 		datagatherer::WriteData(iter->second.runningfile,
-                                datagatherer::MakeTargetFilename( (iter->first.compare("real_solutions")==0?this->real_filename:iter->first)) );
+                                datagatherer::MakeTargetFilename(iter->first) );
     }
 	
 }
 
-void datagatherer::WriteData(std::string outstring,
-														 boost::filesystem::path target_file)
+void datagatherer::WriteData(std::string outstring, boost::filesystem::path target_file)
 {
 	
 	
