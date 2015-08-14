@@ -195,11 +195,11 @@ public:
 	/**
 	 * sorts the input file for positive real solutions
 	 * creates a string to append read-in data to the running file.
-	 * \param orig_filename Name of the data file to be read.
+	 * \param source_filename Name of the data file to be read.
 	 * \param current_parameter_values Current parameter values.
 	 * \param paramotopy_settings the settings structure, passed by reference
 	 */
-	void AppendOnlyPosReal(std::string orig_filename,
+	void AppendOnlyPosReal(std::string source_filename,
 												 double *current_params,
 												 ProgSettings & paramotopy_settings);
 	
@@ -208,10 +208,10 @@ public:
 	
 	/**
 	 * creates a string to append read-in data to the running file.
-	 * \param orig_filename Name of the data file to be read.
+	 * \param source_filename Name of the data file to be read.
 	 * \param current_parameter_values Current parameter values.
 	 */
-	void AppendData(std::string orig_filename,
+	void AppendData(std::string source_filename,
 									double *current_params);
 	
 	
