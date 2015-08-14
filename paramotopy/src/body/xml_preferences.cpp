@@ -1883,7 +1883,6 @@ void ProgSettings::PathFailureMenu(){
 				break;
 			case 9:
 				return;
-				break;
 			default:
 				break;
 		}
