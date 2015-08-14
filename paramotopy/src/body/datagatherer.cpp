@@ -658,6 +658,7 @@ std::map< int, point > datagatherer::ReadSuccessfulResolves(){
 	
 	std::map < std::string, int > parsermap;
 	parsermap["real_solutions"] = 1;
+	parsermap["real_finite_solutions"] = 1;
 	parsermap["nonsingular_solutions"] = 1;
 	parsermap["singular_solutions"] = 1;
 	parsermap["raw_data"] = -1;
