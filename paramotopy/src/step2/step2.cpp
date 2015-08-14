@@ -67,9 +67,8 @@ int main(int argc, char* argv[]){
 	}
 	else{
 	  // didn't provide filename or any arguments ...
-	  std::cerr << "Nothing passed as an argument ... \n"
-		    << "this should never pop up as this program is only "
-		    << " called from paramotopy...\n";
+	  std::cerr << "Insufficient, incorrect, or unparseable arguments... \n"
+		    << "step2 is intended to be automatically called from paramotopy...\n";
 	  MPI_Finalize();
 	  return 1;
 	}
