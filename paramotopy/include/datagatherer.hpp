@@ -137,7 +137,6 @@ public:
 	int myid;
 	std::string real_filename;
 	std::map< std::string, fileinfo> slavemap;  // a map between file names and fileinfo (as defined above)
-	int standardstep2;
 	
 	
 	int num_reals(){
@@ -147,7 +146,6 @@ public:
 	void slave_init(){
 		ParamNames.clear();
 		slavemap.clear();
-		this->standardstep2 = 0;
 		this->numfiles = 0;
 		this->buffersize = this->newfilethreshold = -1;
 		this->myid = -1;

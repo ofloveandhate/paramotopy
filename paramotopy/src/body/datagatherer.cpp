@@ -31,18 +31,27 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 	datagatherer::slave_init();
 	
 	
-	settingmap::iterator iter;
-	for (iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end(); ++iter){
+
+	for (auto iter=paramotopy_settings.settings["SaveFiles"].begin(); iter!=paramotopy_settings.settings["SaveFiles"].end(); ++iter){
 		if (iter->second.intvalue==1) {
 			std::string tmpstr = iter->first;
-			if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue==0 && tmpstr.compare("real_solutions") == 0){
-				tmpstr = "real_finite_solutions";
+			if (tmpstr.compare("real_solutions") == 0){
+				if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue==0)
+				{
+					tmpstr = "real_finite_solutions";
+				}
+				else if (paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "2" || paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "0")
+				{
+					tmpstr = "real_finite_solutions";
+				}
+				this->real_filename = tmpstr;		
 			}
+
 			datagatherer::add_file_to_save(tmpstr);
 		}
 	}
 	
-	
+
 	this->buffersize = paramotopy_settings.settings["system"]["buffersize"].intvalue;
 	this->newfilethreshold = paramotopy_settings.settings["files"]["newfilethreshold"].intvalue;
 	this->numvariables = paramotopy_info.numvariables;
@@ -63,32 +72,6 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 
 	
 	
-	if (paramotopy_settings.settings["mode"]["standardstep2"].intvalue==0){
-		this->real_filename =  "real_finite_solutions";
-		this->standardstep2 = 0;
-	}
-	else{
-	//	this->real_filename = "real_solutions";
-		this->standardstep2 = 1;
-        if (paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "2"){
-            this->real_filename = "real_finite_solutions";
-        }
-        else if ( paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "1"){
-            this->real_filename = "real_solutions";
-        }
-        else if ( paramotopy_settings.settings["step2bertini"]["USERHOMOTOPY"].value() == "0"){
-            
-            this->real_filename = "real_finite_solutions";
-        }
-        else {
-            
-        this->real_filename = "real_solutions";
-        }
-	
-        
-        
-    }
-	
 	this->ParamNames = paramotopy_info.ParameterNames;
 	
 	
@@ -102,9 +85,10 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
   
 	
 
+
+
 	// Collect the Data
-	std::map< std::string, fileinfo> ::iterator iter;
-	for (iter = this->slavemap.begin(); iter!= this->slavemap.end(); ++iter){
+	for (auto iter = this->slavemap.begin(); iter!= this->slavemap.end(); ++iter){
 
 	  //get data from file
 #ifdef timingstep2
@@ -115,8 +99,7 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 
           
           
-	    datagatherer::AppendOnlyPosReal(
-                                        ( iter->first.compare("real_solutions")==0 ? this->real_filename : iter->first), // the file name
+	    datagatherer::AppendOnlyPosReal(real_filename, // the file name
                                         current_params,
                                         paramotopy_settings);
 	    	    
@@ -130,7 +113,7 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
           // and correct filename will always be stored in real_filename
           
           
-          datagatherer::AppendData( (iter->first.compare("real_solutions")==0 ? this->real_filename : iter->first),
+          datagatherer::AppendData( iter->first,
                                    current_params);
           
       }
@@ -153,7 +136,7 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 #endif
 	    
 	    datagatherer::WriteData(iter->second.runningfile,
-                                datagatherer::MakeTargetFilename( (iter->first.compare("real_solutions")==0 ? this->real_filename : iter->first ) ) );
+                                datagatherer::MakeTargetFilename( iter->first ) );
                                 
 	    
 #ifdef timingstep2
@@ -168,8 +151,6 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 	  
 		
 	}
-	
-	
 	
 	return true;
 }
@@ -310,10 +291,10 @@ void datagatherer::AppendData(std::string orig_filename,
   }
   fin.close();
   
-    if (orig_filename.compare("real_finite_solutions")==0){
-        orig_filename = "real_solutions";
-    }
-	slavemap[orig_filename].num_found_solns = 0;
+    // if (orig_filename.compare("real_finite_solutions")==0){
+    //     orig_filename = "real_solutions";
+    // }
+	// slavemap[orig_filename].num_found_solns = 0;
 	slavemap[orig_filename].runningfile.append(outstring.str());
 	
 	

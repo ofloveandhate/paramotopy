@@ -51,7 +51,7 @@ int main(int argc, char* argv[]){
     //    should be done getting info from commandstring (argv):
     //
     //    filename
-		//		location
+	//	  location
     //    steptwomode
     //
     //////////////////
@@ -102,14 +102,14 @@ int main(int argc, char* argv[]){
 	boost::filesystem::path settingsfilename = location;
 	settingsfilename /= "prefs.xml";
 	if (!boost::filesystem::exists(settingsfilename)) {
-	  std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! id:" << myid << std::endl;
+	  std::cerr << "for some reason the prefs file " << settingsfilename << " does not exist! mpi process id:" << myid << std::endl;
 	  exit(-219);
 	}
 	ProgSettings paramotopy_settings(settingsfilename);
 #ifdef timingstep2
 	process_timer.press_start("read");
 #endif
-	paramotopy_settings.load();  // parse the settings xml file
+	paramotopy_settings.loadNoFailSafes(settingsfilename);  // parse the settings xml file
 #ifdef timingstep2
 	process_timer.add_time("read");
 #endif
@@ -132,15 +132,6 @@ int main(int argc, char* argv[]){
 	
 	
 	
-	
-	
-	
-	
-	
-	boost::filesystem::path base_dir = make_base_dir_name(boost::filesystem::path(filename));  //
-	
-	
-
 
 	
 	boost::filesystem::path timingfolder = location;
@@ -168,7 +159,7 @@ int main(int argc, char* argv[]){
 		master.master_main(paramotopy_settings, paramotopy_info, process_timer);
 	}
 	else{
-	  slave_process slave;
+	  	slave_process slave;
 		slave.slave_main(paramotopy_settings, paramotopy_info, process_timer);
 	}
 	

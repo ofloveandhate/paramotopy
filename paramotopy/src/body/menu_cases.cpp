@@ -95,6 +95,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	boost::filesystem::path settings_filename = paramotopy_info.location;
 	settings_filename /= "prefs.xml";
 	paramotopy_settings.save(settings_filename);
+  std::cout << "Saved settings to " << settings_filename << ".\n";
   
   //check if folder exists already.  if it does, prompt user
   boost::filesystem::path step2path = paramotopy_info.location;
