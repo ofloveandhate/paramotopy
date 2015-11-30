@@ -529,9 +529,16 @@ void datagatherer::GatherDataFromMenu(){
 	std::vector< boost::filesystem::path > folders_with_data = GetFoldersForData(run_to_analyze);
 	
 	for (int ii=0;ii<int(gather_savefiles.size());++ii){
-		std::cout << "collecting " << gather_savefiles[ii] << std::endl;
-		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze,
+		if (gather_parser_indices[ii] > 0)
+		{
+			std::cout << "collecting " << gather_savefiles[ii] << std::endl;
+			datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze,
 						   gather_parser_indices[ii], true);
+		}
+		else
+		{
+			std::cout << "gathering not enabled for " << gather_savefiles[ii] << std::endl;
+		}
 		
 	}
 	
@@ -1268,6 +1275,10 @@ bool datagatherer::ReadPoint(std::ifstream & fin, std::string & data, int parser
 		case 2:
 			data.append(datagatherer::ParseFailedPaths(fin));
 			break;
+		
+		case 3:
+			data.append(datagatherer::ParseRawSolutionsFile(fin));
+			break;
 			
 		default:
 			std::cerr << "invalid parser index " << parser_index << std::endl;  // this should never happen
@@ -1307,6 +1318,10 @@ bool datagatherer::ReadPoint(std::ifstream & fin, int & next_index, std::string 
 			
 		case 2:
 			data.append(datagatherer::ParseFailedPaths(fin));
+			break;
+		
+		case 3:
+			data.append(datagatherer::ParseRawSolutionsFile(fin));
 			break;
 			
 		default:
@@ -1425,6 +1440,52 @@ std::string datagatherer::ParseSolutionsFile(std::ifstream & fin){ //std::vector
 	return solutions_file.str();
 }
 
+
+std::string datagatherer::ParseRawSolutionsFile(std::ifstream & fin){
+	
+	std::stringstream converter;
+	std::stringstream solutions_file;
+	std::string tmpstr;
+	int number_of_solutions;
+	if (!getline(fin,tmpstr)){
+		return "";
+	}
+	
+	
+	//  first we read in the number of solutions.
+	
+	
+	converter << tmpstr;  //get the line number
+	converter >> number_of_solutions;
+	converter.clear(); //reset
+	converter.str("");
+	solutions_file << tmpstr << "\n";
+	getline(fin,tmpstr); //burn one line
+	solutions_file << tmpstr << "\n";
+	
+	
+	for (int solution_counter = 0; solution_counter <  number_of_solutions; ++solution_counter) {
+		
+		getline(fin,tmpstr); // read the line containing the path index for the solution.
+		solutions_file << tmpstr << "\n";
+		for (int variable_counter = 0; variable_counter < this->numvariables; ++variable_counter) {
+			std::pair < std::string, std::string > temporary_coordinates;
+			
+			getline(fin,tmpstr);
+			solutions_file << tmpstr << "\n";
+			
+		}
+		
+		
+		getline(fin,tmpstr); // read the line separating solutions.
+		solutions_file << tmpstr << "\n";
+		
+	}
+	
+	
+	
+	return solutions_file.str();
+}
 
 
 
