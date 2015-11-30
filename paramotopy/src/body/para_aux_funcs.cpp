@@ -52,7 +52,7 @@ int GetFileParserIndex(std::string filename){
   possible_savefiles["nonsingular_solutions"] = 1;
   possible_savefiles["singular_solutions"] = 1;
   possible_savefiles["raw_data"] = -1;
-  possible_savefiles["raw_solutions"] = -1;
+  possible_savefiles["raw_solutions"] = 3;
   possible_savefiles["main_data"] = -1;
   possible_savefiles["midpath_data"] = -1;
   possible_savefiles["failed_paths"] = 2;
@@ -86,7 +86,7 @@ void GetFilesToParse(boost::filesystem::path run_to_analyze,
   possible_parser_indices.push_back(1);//nonsingular
   possible_parser_indices.push_back(1);//singular_
   possible_parser_indices.push_back(-1);//raw_data
-  possible_parser_indices.push_back(-1);//raw_solutions
+  possible_parser_indices.push_back(3);//raw_solutions
   possible_parser_indices.push_back(-1);//main_data
   possible_parser_indices.push_back(-1);//midpath_data
   possible_parser_indices.push_back(2);//failed_paths

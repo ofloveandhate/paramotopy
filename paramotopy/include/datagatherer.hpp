@@ -399,8 +399,12 @@ public:
 	 */
 	std::string ParseFailedPaths(std::ifstream & fin);
 	
-
-	
+	/** function for parsing the raw_solutions file (just one instance of it)
+	 
+	 * \param fin The handle to the file.
+	 * \return The data in string form.
+	 */
+	std::string ParseRawSolutionsFile(std::ifstream & fin);
 	
 private:
 	
