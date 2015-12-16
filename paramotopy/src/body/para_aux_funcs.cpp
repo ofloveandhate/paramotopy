@@ -221,9 +221,40 @@ std::vector< boost::filesystem::path > FindFiles(boost::filesystem::path dir, st
   }
   
   
-  std::sort(found_files.begin(), found_files.end());
+  if (found_files.size() > 1)
+  {
+    unsigned comp_start = expression.size()-1;
+
+    auto substring_comparitor = [comp_start](boost::filesystem::path const& path1, boost::filesystem::path const& path2)
+    {
+      
+      auto file_int = [comp_start](std::string const& s)
+      {
+
+        if (s.size() == comp_start)
+          return -1;
+        else
+        {
+          int n; std::stringstream converter;
+          converter << s.substr(comp_start,s.size());
+          converter >> n;
+          if (converter.fail())
+          {
+            std::string throwme = "unable to convert remainder of filename '" + s + " (" + s.substr(comp_start,s.size()) + ") to integer for sorting";
+            throw std::runtime_error(throwme);
+          }
+
+          return n;
+        }
+      };
+
+      return file_int(path1.filename().string()) < file_int(path2.filename().string());
+    }; // end the lambda definition
+
+    std::sort(found_files.begin(), found_files.end(), substring_comparitor);
+  } // re: if (found_files.size() > 1)
+
   return found_files;
-  
 }
 
 

@@ -373,10 +373,22 @@ bool datagatherer::GatherDataForFails(std::vector< point > terminal_fails,
 	
 	std::vector< boost::filesystem::path > folders_with_data = GetFoldersForData(run_to_analyze);
 	
-	for (int ii=0;ii<int(gather_savefiles.size());++ii){
-		datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze, gather_parser_indices[ii], false);
+	for (unsigned ii=0;ii<gather_savefiles.size();++ii){
+		if (gather_parser_indices[ii] > 0)
+		{
+			std::cout << "collecting " << gather_savefiles[ii] << std::endl;
+			datagatherer::CollectSpecificFiles(gather_savefiles[ii], folders_with_data, run_to_analyze,
+						   gather_parser_indices[ii], false);
+		}
+		else
+		{
+			std::cout << "ignoring " << gather_savefiles[ii] << std::endl;
+		}
 	}
+
+
 	
+
 	//at this point, we should have the run_to_analyze/gathered_data/finalized folder, which will contain exactly one file for each of the user-specified saved files, in order, with all the data for the run.  just need to parse it.
 	
 	boost::filesystem::path folder_with_data = this->run_to_analyze;
@@ -553,7 +565,7 @@ void datagatherer::GatherDataFromMenu(){
 
 void datagatherer::CollectSpecificFiles(std::string file_to_gather,
 					std::vector < boost::filesystem::path > folders_with_data,
-					boost::filesystem::path run_to_analyze, int parser_index, bool mergefailed)
+					boost::filesystem::path run_to_analyze, int parser_index, bool merge_failed_data)
 {
 	
 	
@@ -572,12 +584,12 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather,
 	std::vector< boost::filesystem::path > next_folders = folders_with_data; // seed
 	std::vector< boost::filesystem::path > current_folders;
 	
-	for (int ii=0; ii<int(folders_with_data.size()); ++ii) {
+	for (unsigned ii=0; ii<folders_with_data.size(); ++ii) {
 		next_folders_are_basic.push_back(true);
 	}
 	
 	int current_num_folders;
-  int level = 0;
+  	int level = 0;
 	while (next_folders.size()>1){
 		
 		current_folders = next_folders;
@@ -588,10 +600,10 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather,
 		next_folders_are_basic.clear();
 		
 		
-		for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj=jj+2) {
+		for (int jj=0; jj< ( current_num_folders - (current_num_folders%2) ) ; jj+=2) {
 			datagatherer::IncrementOutputFolder(output_folder_name, base_output_folder_name, output_folder_index);
 			boost::filesystem::create_directory(output_folder_name);
-//			std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
+			std::cout << "merging " << current_folders[jj] << " " << current_folders[jj+1] << " lvl " << level << " iteration " << jj/2+1 << std::endl;
 			datagatherer::MergeFolders( file_to_gather, current_folders[jj], current_folders[jj+1], output_folder_name,parser_index);
 			
 			
@@ -625,7 +637,7 @@ void datagatherer::CollectSpecificFiles(std::string file_to_gather,
 	bool source_folder_is_basic = next_folders_are_basic[0];
 	
 	
-	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, mergefailed);
+	datagatherer::finalize_run_to_file(file_to_gather, source_folder, base_output_folder_name, parser_index, merge_failed_data);
 	
 
 	if (source_folder_is_basic==false) {
@@ -761,7 +773,7 @@ void datagatherer::WriteUnsuccessfulResolves(std::map< int, point> successful_re
 void datagatherer::finalize_run_to_file(std::string file_to_gather,
 					boost::filesystem::path source_folder,
 					boost::filesystem::path base_output_folder_name,
-					int parser_index, bool mergefailed)
+					int parser_index, bool merge_failed_data)
 {
   
 	
@@ -794,7 +806,7 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 	
 	
 	std::map< int,  point > successful_resolves;
-	if (mergefailed) {
+	if (merge_failed_data) {
 	  successful_resolves = datagatherer::ReadSuccessfulResolves();
 	  datagatherer::WriteUnsuccessfulResolves(successful_resolves);
 	}
@@ -805,7 +817,7 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 	
 	
 
-	for (int ii=0; ii< int(filelist.size()); ++ii) {
+	for (unsigned ii=0; ii< filelist.size(); ++ii) {
 	
 	  // MEN addition
 	  // create a std::vector<int> lookupinfo where lookupinfo[i] = byte # of first location
@@ -836,17 +848,17 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 
 	    std::stringstream ss_ni;
 	    ss_ni << next_index;
-	    bytecount+=ss_ni.str().size(); // do I need one more for new line ... we'll see . . . 
+	    bytecount+=ss_ni.str().size(); 
 
 	    lookupinfo.push_back(bytecount); // this assumes we have success in everything and no index mismatch
 	    
 	    //check the integrity of the data
 	    if (next_index!=(previous_index+1)){
-	      std::cerr << "index mismatch, filename " << file_to_gather	<< ", with indices " << previous_index << " & " << next_index << std::endl;
+	      std::cerr << "index mismatch, filename " << filelist[ii]	<< ", with indices " << previous_index << " & " << next_index << std::endl;
 	      passed_check = false;
 	    }
 	    
-	    if (mergefailed) {
+	    if (merge_failed_data) {
 	      datagatherer::CheckForResolvedFailedPoint(file_to_gather,next_index,next_data,successful_resolves);
 	    }
 	    
@@ -858,7 +870,7 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 
 	  if (passed_check){ // this is just passed_check for the currentfile index (i.e. only nonsingular_solutions1 and not nonsingular_solutions2
 	    // note that the ^ regular expression is used, so in order to avoid finding this lookup table as a possible file that contains bertini output info sorted
-	    // the file should now be lookup_(filelist[ii].c_str()), i.e. like loopup_nonsingular_solutions0	    
+	    // the file should now be lookup_(filelist[ii].c_str()), i.e. like lookup_nonsingular_solutions0	    
 	    boost::filesystem::path output_lookup = base_output_folder_name;
 	    boost::filesystem::path filename = filelist[ii].filename();
 	    	    
@@ -878,7 +890,7 @@ void datagatherer::finalize_run_to_file(std::string file_to_gather,
 	  else{
 
 	    // note that the ^ regular expression is used, so in order to avoid finding this lookup table as a possible file that contains bertini output info sorted             
-            // the file should now be lookup_(filelist[ii].c_str()), i.e. like loopup_nonsingular_solutions0                                                                      
+            // the file should now be lookup_(filelist[ii].c_str()), i.e. like lookup_nonsingular_solutions0                                                                      
 	    boost::filesystem::path output_lookup = base_output_folder_name;
 	    boost::filesystem::path filename = filelist[ii].filename();
 
@@ -991,7 +1003,7 @@ void datagatherer::MergeFolders(std::string file_to_gather, boost::filesystem::p
 	std::stringstream converter;
 	
 	boost::filesystem::path output_file_name = output_folder_name;
-	output_file_name /= file_to_gather += "0";
+	output_file_name /= (file_to_gather + "0");
 	
 	//std::cout << "opening file " << output_file_name << " to write data" << std::endl; //remove me
 	std::ofstream outputfile(output_file_name.c_str());
@@ -1005,16 +1017,15 @@ void datagatherer::MergeFolders(std::string file_to_gather, boost::filesystem::p
 	std::string expression = "^"; //specify the beginning of the string (regex)
 	expression.append(file_to_gather);
 	
-	int file_index_left = 0, file_index_right = 0;//, file_index_output = -1;
+	int file_index_left = 0, file_index_right = 0;
 	
-	int next_index_left, next_index_right;//, parameter_index_left= -2, parameter_index_right = -2,  current_index=-1;
+	int next_index_left, next_index_right;
 	
 	std::string output_buffer;
 	
 	std::vector < boost::filesystem::path > filelist_left  = FindFiles(left_folder,  expression);  //this function is in para_aux_funcs
 	std::vector < boost::filesystem::path > filelist_right = FindFiles(right_folder, expression);  //this function is in para_aux_funcs
-	
-	
+
 	if (filelist_left.size()==0) {
 		std::cerr << "folder to merge '" << left_folder.string() << "' had no data files!" << std::endl;
 		return;
@@ -1245,7 +1256,6 @@ bool datagatherer::endoffile_stuff(std::ifstream & datafile, int & file_index, s
 		return false;
 	}
 	else{
-		std::cout << "opening " << filelist[file_index] << std::endl;
 		datafile.open(filelist[file_index].c_str());
 		
 		if (!datafile.is_open()) {
