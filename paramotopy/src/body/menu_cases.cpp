@@ -123,7 +123,7 @@ void steptwo_case(ProgSettings paramotopy_settings,
 	
   //write a file containing the random values.
   boost::filesystem::path randpointfilename = paramotopy_info.location;
-  randpointfilename /= "randstart";
+  randpointfilename /= "randompoints_step1";
   std::ofstream fout;
   fout.open(randpointfilename.c_str());
   fout.precision(16);

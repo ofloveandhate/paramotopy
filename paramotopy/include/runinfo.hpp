@@ -220,30 +220,7 @@ public:
   bool made_new_folder;
   
   /** Display the random value menu. */
-  void RandomMenu(){
-    std::stringstream ss;
-    ss << "1) save values\n"
-       << "2) load random values\n"
-       << "3) make new values\n"
-       << "*\n0)return to paramotopy\n: ";
-    int choice = get_int_choice(ss.str(),0,3);
-    switch (choice) {
-    case 0:
-      
-      break;
-    case 1:
-      runinfo::SaveRandom();
-      break;
-    case 2:
-      runinfo::LoadRandom();
-      break;
-    case 3:
-      runinfo::SetRandom();
-      break;
-    default:
-      break;
-    }
-  };
+  void RandomMenu();
   /** Save the random values to a file. */
   void SaveRandom();
   /** Load the random values. */

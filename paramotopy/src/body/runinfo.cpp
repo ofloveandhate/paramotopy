@@ -379,6 +379,37 @@ void runinfo::WriteRandomValues(){
   fout.close();
 }
 
+
+void runinfo::RandomMenu(){
+    std::stringstream ss;
+    ss << "1) save values\n"
+       << "2) load random values\n"
+       << "3) make new values\n"
+       << "4) show current values\n"
+       << "*\n0) return to paramotopy\n: ";
+    int choice = get_int_choice(ss.str(),0,4);
+    switch (choice) {
+    case 0:
+      
+      break;
+    case 1:
+      runinfo::SaveRandom();
+      break;
+    case 2:
+      runinfo::LoadRandom();
+      break;
+    case 3:
+      runinfo::SetRandom();
+    case 4:
+      runinfo::PrintRandom();
+      break;
+
+    default:
+      break;
+    }
+  };
+
+
 void runinfo::SaveRandom(){
   // menu option for saving the random points, asks the user for a file name
   // to save the random start points.
@@ -466,9 +497,7 @@ bool runinfo::GetPrevRandom(){
   RandomValues.clear();
   
   boost::filesystem::path randomfilename = base_dir;
-  
   randomfilename /= "randompoints_step1";
-  
 
   if (boost::filesystem::exists(randomfilename)) {
     
@@ -827,7 +856,7 @@ void runinfo::GetRandomValues(){
   std::stringstream myss;
   std::ifstream fin;
   boost::filesystem::path randfilename = this->location;
-  randfilename /= "randstart";
+  randfilename /= "randompoints_step1";
   fin.open(randfilename.c_str());
   
   if (!fin.is_open()) {

@@ -44,7 +44,9 @@ extern "C"{
 #include "paramotopy_enum.hpp"
 #include "random.hpp"
 #include "mtrand.hpp"
-//#include "xml_preferences.hpp"
+
+#include "config.h"
+
 
 /** Function to call the bertini libraries. */
 
@@ -188,9 +190,7 @@ boost::filesystem::path make_base_dir_name(boost::filesystem::path filename);
 
 
 
-/** Display the main paramotopy choice menu. 
- \return int - The integer choice of the user for the main menu. */
-int ParamotopyMainMenu();
+
 
 
 

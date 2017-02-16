@@ -3,8 +3,8 @@
 
 
 
-#we're building paramotopy, version 1.0.3.3, and the corresponding email is dan brake's
-AC_INIT([paramotopy], [1.0.3.3], [danielthebrake@gmail.com],[paramotopy], [http://www.paramotopy.com])
+#we're building paramotopy, version 1.0.3.4, and the corresponding email is dan brake's
+AC_INIT([paramotopy], [1.0.3.4], [danielthebrake@gmail.com],[paramotopy], [http://www.paramotopy.com])
 
 
 # Force autoconf to be at least this version number:
@@ -108,7 +108,7 @@ AX_BOOST_TIMER
 
 
 
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(include/config.h)
 
 #wrap it up.
 AC_OUTPUT

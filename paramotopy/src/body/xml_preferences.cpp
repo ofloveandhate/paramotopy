@@ -720,7 +720,7 @@ int ProgSettings::check_for_existing_prefs_auto(boost::filesystem::path & load_f
 		found_a_file = 1;
 	}
 	else{
-		std::cout << "failed to find the desired settings file" << pFilename << std::endl;
+		std::cout << "failed to find the desired settings file " << pFilename << std::endl;
 		load_filename = ProgSettings::default_name();
 		if (boost::filesystem::exists(load_filename)) {
 			found_a_file = 2;
@@ -953,19 +953,15 @@ void ProgSettings::loadWithFailSafes(boost::filesystem::path pFilename){
 	ProgSettings::FindProgram("bertini","system","bertinilocation");
 	
 	
-	
-	
-	// if (changesmade) {//only save settings if made a change.
-	// 	ProgSettings::save();
-	// }
-	
-	// if (load_defaults || (!boost::filesystem::exists(ProgSettings::default_name())) || changesmade) {
-	// 	ProgSettings::save(ProgSettings::default_name());
-	// }
-	
-	
-	
+	if (load_defaults)
+		ProgSettings::save(ProgSettings::default_name());
+
+	if (load_defaults || (!boost::filesystem::exists(ProgSettings::default_name())) || changesmade) {
+		ProgSettings::save();
+	}
 }
+
+
 
 //for reading individual settings categories from the xml file.
 int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
@@ -1356,7 +1352,6 @@ void ProgSettings::MainMenu(){
 			
 			case 9:
 				return;
-				break;
 
 			default:
 				std::cout << "somehow an unacceptable entry submitted to MainMenu :(\n";

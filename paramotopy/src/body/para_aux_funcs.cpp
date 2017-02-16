@@ -402,55 +402,9 @@ int get_int_choice(std::string display_string,int min_value,int max_value){
 	return userinput;
 }
 
-////  use this function to get inout fro the user and ensure it is an interger (actually fails to detect non-integer numeric inputs
-//int get_int_choice(std::string display_string,int min_value,int max_value){
-//
-//	int userinput = min_value - 1;
-//	
-//	while (  (std::cout << display_string) &&
-//		   ( !(std::cin >> userinput) || userinput < min_value || userinput > max_value))
-//	{
-//		std::cout << "Invalid entry -- try again:\n";
-//		std::cin.clear();
-//		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-//    }
-//	return userinput;
-//}
 
 
 
-
-//the main choice function for paramotopy.
-int ParamotopyMainMenu(){
-	
-  std::stringstream menu;
-	
-  menu << "\n\nYour choices : \n\n"
-       << "1) Parse an appropriate input file. \n"
-       << "2) Data Management. \n"
-       << "3)   -unprogrammed- \n"
-       << "4) Manage start point (load/save/new). \n"
-       << "5) Write Step 1.\n"
-       << "6) Run Step 1.\n"
-       << "7) Run Step 2.\n"
-       << "8) Failed Path Analysis.\n"
-       << "\n"
-       << "99) Preferences.\n"
-       << "*\n"
-       << "0) Quit the program.\n\n"
-       << "Enter the integer value of your choice : ";
-  
-	std::cout << menu.str();
-	
-  int intChoice = -1;
-	while (  (intChoice>=9 && intChoice<=98) || (intChoice >=100 || intChoice < 0) ) {
-		intChoice = get_int_choice("", 0, 99);
-	}
-  
-	
-	
-  return intChoice;
-}  //   re: getuserchoice
 
 
 

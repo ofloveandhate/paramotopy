@@ -1,33 +1,4 @@
-#include <iostream>
-#include <ios>
-#include <string>
-#include <fstream>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h> 
-#include <list>
-#include <vector>
-#include <map>
-#include <sstream>
-#include <cmath>
-#include "mtrand.hpp"
-#include "step1_funcs.hpp"
-#include "random.hpp"
-#include "step2_funcs.hpp"
-#include "para_aux_funcs.hpp"
-#include "paramotopy_enum.hpp"
-#include "menu_cases.hpp"
-#include "failed_paths.hpp"
-#include "datagatherer.hpp"
-#include "xml_preferences.hpp"
-//#include "preferences.h"
-#include "tinyxml.h"
-#include <mpi.h>
-#include "runinfo.hpp"
-
+#include "paramotopy.hpp"
 
 
 
@@ -44,7 +15,7 @@ int main(int argC, char *args[]){
 	
 	// Data members used throughout the program  
 	std::string homedir = getenv("HOME");
-	OPTIONS currentChoice = Start;
+	
 	std::string path_to_inputfile;
 	bool parsed = false;
 	std::ifstream finconfig;
@@ -115,7 +86,7 @@ int main(int argC, char *args[]){
 	
 	if (!paramotopy_info.GetPrevRandom()){
 		paramotopy_info.MakeRandomValues();
-		std::cout << "made new random values" << std::endl;
+		std::cout << "couldn't find previous random values, made new random values" << std::endl;
 	}
 	
 	
@@ -138,37 +109,21 @@ int main(int argC, char *args[]){
 					<< "\t*** * * * * * * * * * * * * ***\n";
 	}
 
-	int intChoice=-1;	
+
+	OPTIONS currentChoice = Start;
 	
-
-
 	while(currentChoice!=Quit){
 		
-		intChoice = ParamotopyMainMenu();  // gets the choice from the user.
+		int intChoice = ParamotopyMainMenu();  // gets the choice from the user.
 		
 		switch (intChoice){
 			case 1 :
 				
 				currentChoice = Input;
 
-				paramotopy_info.GetInputFileName();
-				paramotopy_info.ParseData();
-
-
-				paramotopy_info.AutoScanData(paramotopy_settings.settings["files"]["previousdatamethod"].intvalue);
-
-				if (!paramotopy_info.GetPrevRandom()){
-					paramotopy_info.MakeRandomValues();
-					std::cout << "made new random values" << std::endl;
-				}
-				paramotopy_info.mkdirstep1();
-				paramotopy_info.CopyUserDefinedFile();
+				SetNewInput(paramotopy_info, paramotopy_settings);
+				
 				parsed=true;
-				
-				
-				paramotopy_settings.set_name(paramotopy_settings.make_settings_name(paramotopy_info.inputfilename));
-				paramotopy_settings.load();
-				
 				
 				break;
 				
@@ -177,6 +132,8 @@ int main(int argC, char *args[]){
 			case 2:
 				//data management
 				DataManagementMainMenu(paramotopy_info);
+
+
 				boost::filesystem::create_directories(paramotopy_info.base_dir);
 				paramotopy_info.mkdirstep1();
 				std::cout << "file directory is now " << paramotopy_info.base_dir << "\n";
@@ -294,3 +251,70 @@ int main(int argC, char *args[]){
 
 	return 0;
 }//re: main function
+
+
+
+
+void SetNewInput(runinfo & paramotopy_info, ProgSettings & paramotopy_settings)
+{
+	paramotopy_info.GetInputFileName();
+	paramotopy_info.ParseData();
+
+
+	paramotopy_info.AutoScanData(paramotopy_settings.settings["files"]["previousdatamethod"].intvalue);
+
+	if (!paramotopy_info.GetPrevRandom()){
+		paramotopy_info.MakeRandomValues();
+		std::cout << "made new random values" << std::endl;
+	}
+	paramotopy_info.mkdirstep1();
+	paramotopy_info.CopyUserDefinedFile();
+	
+	paramotopy_settings.set_name(paramotopy_settings.make_settings_name(paramotopy_info.inputfilename));
+	paramotopy_settings.load();
+}
+
+
+
+
+
+
+
+
+
+
+//the main choice function for paramotopy.
+int ParamotopyMainMenu(){
+	
+  std::stringstream menu;
+	
+  menu << "\n\nYour choices : \n\n"
+       << "1) Parse an appropriate input file. \n"
+       << "2) Data Management. \n"
+       << "3)   -unprogrammed- \n"
+       << "4) Manage start point (load/save/new). \n"
+       << "5) Write Step 1.\n"
+       << "6) Run Step 1.\n"
+       << "7) Run Step 2.\n"
+       << "8) Failed Path Analysis.\n"
+       << "\n"
+       << "99) Preferences.\n"
+       << "*\n"
+       << "0) Quit the program.\n\n"
+       << "Enter the integer value of your choice : ";
+  
+	std::cout << menu.str();
+	
+  int intChoice = -1;
+	while (  (intChoice>=9 && intChoice<=98) || (intChoice >=100 || intChoice < 0) ) {
+		intChoice = get_int_choice("", 0, 99);
+	}
+  
+	
+	
+  return intChoice;
+}  //   re: getuserchoice
+
+
+
+

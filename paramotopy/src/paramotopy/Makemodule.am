@@ -4,7 +4,8 @@ bin_PROGRAMS += paramotopy
 
 paramotopy_SOURCES = \
 src/paramotopy/paramotopy.cpp \
-include/paramotopy_enum.hpp
+include/paramotopy_enum.hpp \
+include/paramotopy.hpp
 
 
 paramotopy_LDADD = libtinyxml.a $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)  $(BOOST_CHRONO_LIB) $(BOOST_REGEX_LIB) $(BOOST_TIMER_LIB) $(MPI_CXXLDFLAGS)
