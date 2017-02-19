@@ -285,7 +285,7 @@ void ProgSettings::default_basic_bertini_values_pathfailure(){
 
 void ProgSettings::default_path_failure_settings(){
 	
-	setValue("PathFailure","newrandommethod",1);
+	setValue("PathFailure","newrandommethod",0);
 	setValue("PathFailure","tightentolerances",1);
 	setValue("PathFailure","maxautoiterations",1);
 }
