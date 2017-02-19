@@ -73,11 +73,6 @@ AC_MSG_ERROR([it appears you do not have mpi installed])
 
 # the form of the following commands --
 # AC_SEARCH_LIBS(function, libraries-list, action-if-found, action-if-not-found, extra-libraries)
-#find bertini
-
-AC_SEARCH_LIBS([zero_dim_main],[bertini-serial], [],[
-	AC_MSG_ERROR([unable to find bertini-serial])
-])
 
 
 
@@ -97,6 +92,10 @@ AC_SEARCH_LIBS([cos], [m], [], [
   AC_MSG_ERROR([unable to find the cos() function])
   ])
 
+#find bertini
+AC_SEARCH_LIBS([zero_dim_main],[bertini-serial], [],[
+	AC_MSG_ERROR([unable to find bertini-serial])
+])
 
 
 AX_BOOST_BASE([1.53],, [AC_MSG_ERROR([paramotopy needs Boost, but it was not found in your system])])
