@@ -102,13 +102,16 @@ void steptwo_case(ProgSettings paramotopy_settings,
   step2path /= "step2";  //concatenation in boost
   
   if (boost::filesystem::exists(step2path)){  // if it can see the current run's step2 folder
-    if (get_int_choice("found previous step2 folder.  remove, or bail out?\n0) bail out\n1) remove and continue\n: ",0,1)==1){
+    if (get_int_choice("found previous step2 folder.  remove, or bail out?\n0) bail out\n1) remove and continue (deletes old step2 and path failure analysis data)\n: ",0,1)==1){
+
       boost::filesystem::remove_all( step2path );
       
       step2path += "finished";   // remove the step2finished file if it exists.
       if (boost::filesystem::exists(step2path)) {
 				boost::filesystem::remove( step2path );
       }
+
+      boost::filesystem::remove_all(paramotopy_info.location / "failure_analysis");
     }
     else{
       std::cout << "returning to paramotopy main menu without running step2" << std::endl;

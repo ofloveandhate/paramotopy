@@ -14,21 +14,8 @@
 #include "master.hpp"
 
 
-#ifndef __MENU_CASES__
-#define __MENU_CASES__
-
-/*
- the computeNumdenom function is in the bertini library.  it takes in a character array, and pointers which return the numerator
- and denominator of the number.  I pass the input by casting via (char *)
- */
-//extern "C" {
-//	void computeNumDenom(char **numer, char **denom, char *s);
-//}
-
-//#include <bertini.h>
-//
-
-
+#ifndef PARAMOTOPY_MENU_CASES_HPP
+#define PARAMOTOPY_MENU_CASES_HPP
 
 
 
