@@ -1,5 +1,4 @@
-
-
+% !TeX root = paramotopy_manual.tex
 
 	\pagestyle{plain} 
 	\pagenumbering{roman} 
@@ -13,7 +12,7 @@
 {\LARGE \tt Paramotopy}\\[\baselineskip]
 Parallel Parameter Homotopy \\ via Bertini \\
 \vskip0.5in
-Danielle Amethyst Brake and Matt Niemerg  \\
+Silviana Amethyst and Matt Niemerg  \\
 with Dan Bates
 \vfill%\vskip2in
 \includegraphics[width = 0.55\linewidth]{monksproj.png}
@@ -23,7 +22,7 @@ with Dan Bates
 \vfill
 \begin{singlespace}
 Manual prepared by\\
-Danielle Amethyst Brake\\
+Silviana Amethyst\\
  \hfill Manual compiled \today
 \end{singlespace}
 \newpage
@@ -43,9 +42,9 @@ Danielle Amethyst Brake\\
 
 \section{Introduction}
 
-The Paramotopy program is a compiled linux/unix wrapper around Bertini which permits rapid parallel solving of parameterized polynomial systems.  It consists of two executable programs: \texttt{Paramotopy}, and \texttt{Step2}, and further depends on having a copy of the parallel version of Bertini.  \texttt{Paramotopy} is called from the command line, and in turn calls \texttt{Bertini} and \texttt{step2}.
+The Paramotopy program is a compiled linux/unix wrapper around Bertini 1 which permits rapid parallel solving of parameterized polynomial systems.  It consists of two executable programs: \texttt{Paramotopy}, and \texttt{Step2}, and further depends on having a copy of the parallel version of Bertini 1.  \texttt{Paramotopy} is called from the command line, and in turn calls \texttt{Bertini} and \texttt{step2}.
 
-Briefly, homotopy continuation is the tracking of solutions from one system to another through continuous deformation; a simplified example appears in Figure~\ref{fig:generic_homotopy_continuation}.  Using a combination of prediction and correction, Bertini follows solutions through such a deformation.  First, it obtains the solutions to the initial system.  Taking discrete steps in complex-valued time, each solution path is tracked individually.  If suitable options are chosen in the configuration of the run, precision will be automatically adjusted to compensate for loss of accuracy near system singularities due to poorly conditioned matrices.  Additionally, Bertini has various ``endgame'' schemes for bringing the paths to successful completion, as well as determining whether paths crossed or other problems happened along the way.  Nearly all these options may be accessed through Paramotopy.  For a thorough description of the Bertini program, including many capabilities not used within Paramotopy, see the \href{http://www.nd.edu/~sommese/bertini/BertiniUsersManual.pdf}{Bertini User's Manual}.
+Briefly, homotopy continuation is the tracking of solutions from one system to another through continuous deformation; a simplified example appears in Figure~\ref{fig:generic_homotopy_continuation}.  Using a combination of prediction and correction, Bertini follows solutions through such a deformation.  First, it obtains the solutions to the initial system.  Taking discrete steps in complex-valued time, each solution path is tracked individually.  If suitable options are chosen in the configuration of the run, precision will be automatically adjusted to compensate for loss of accuracy near system singularities due to poorly conditioned matrices.  Additionally, Bertini has various ``endgame'' schemes for bringing the paths to successful completion, as well as determining whether paths crossed or other problems happened along the way.  Nearly all these options may be accessed through Paramotopy.  For a thorough description of the Bertini 1 program, including many capabilities not used within Paramotopy, see the \href{http://www.nd.edu/~sommese/bertini/BertiniUsersManual.pdf}{Bertini User's Manual}.
 
 
 
@@ -53,7 +52,7 @@ Paramotopy is implemented to make use of both the basic zero-dimensional solve B
   
 With respect to the soundness and reliability of this method, theory dictates that off a set of measure zero, an algebraic system will have the same number of (complex) roots throughout its parameter space.  Therefore, we are virtually guaranteed that for a \emph{randomly} chosen point in parameter space, we will find the full generic number of solutions.  Then for Step2, as we track from the random point to the specific points at which we wish to solve, we will find all the solutions.
 
-Paramotopy uses a compiled library of Bertini, MPICH2 for process distribution, OpenMP for accurate timing measurements, TinyXML for preference and information storage, and Boost for filesystem operations.  System requirements and compilation information may be found in Section~\ref{sec:started}.  In Section~\ref{sec:input} is presented the format for the input files, as well as information on configuring and using Paramotopy.  Specific descriptions of options are given in Section~\ref{sec:options}, and data output is described in Section~\ref{sec:data}.  Coarse troubleshooting tips are in Section~\ref{sec:troubleshooting}.
+Paramotopy uses a compiled library of Bertini 1, MPICH2 for process distribution, OpenMP for accurate timing measurements, TinyXML for preference and information storage, and Boost for filesystem operations.  System requirements and compilation information may be found in Section~\ref{sec:started}.  In Section~\ref{sec:input} is presented the format for the input files, as well as information on configuring and using Paramotopy.  Specific descriptions of options are given in Section~\ref{sec:options}, and data output is described in Section~\ref{sec:data}.  Coarse troubleshooting tips are in Section~\ref{sec:troubleshooting}.
   
 
 
@@ -78,9 +77,9 @@ Paramotopy uses a compiled library of Bertini, MPICH2 for process distribution, 
 
 \subsection{Contact}
 \label{sec:contact}
-For assistance with Paramotopy, please contact Danielle Brake at \\
-\texttt{danielleamethystbrake@gmail.com}.  \\For help with Bertini, contact Danielle Brake, Dan Bates \\
-\texttt{dbates@usna.edu}, \\or one of the other Bertini authors.
+For assistance with Paramotopy, please contact Silviana Amethyst at \\
+\texttt{silvianaamethyst@gmail.com}.  \\For help with Bertini 1, contact Silviana Amethyst, Dan Bates \\
+\texttt{dbates@usna.edu}, \\or one of the other Bertini 1 authors.
 
 \subsection*{Acknowledgements}
 \begin{itemize}
@@ -470,7 +469,7 @@ Data collection is achieved by simply copying the Bertini output file into memor
 \index{main menu option 2}Paramotopy has a method implemented in \texttt{Data Management} which gathers and orders the data produced in a run, as well as incorporating the re-solved data generated in Failed Path Analysis.  Note that this method so far only gathers \texttt{failed\_paths} and \texttt{*\_solutions} data file types.  The others have yet to be implemented.  The data gathering requires, but does not check for, free disk space available for at least the amount occupied by the generated data in \texttt{bfiles\_filename/run*/step2/DataGathered/c*}.
 
 
-The author Danielle Brake has some generic \textsc{Matlab} code which can do basic parsing of some file types, as well as data display methods.   If you need help with any aspect, don't hesitate to ask! Contact info in Section \ref{sec:contact}.
+The author Silviana Amethyst has some generic \textsc{Matlab} code which can do basic parsing of some file types, as well as data display methods.   If you need help with any aspect, don't hesitate to ask! Contact info in Section \ref{sec:contact}.
 
 
 
