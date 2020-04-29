@@ -15,7 +15,7 @@
 
 *sublime-workspace
 
-
+bfiles_*
 
 partitionParse.c
 
@@ -65,3 +65,12 @@ ltversion*
 *.o
 *.lo
 *.o-*
+
+
+*.aux
+*.log
+*.taz.gz
+*.out
+*.idx
+*.toc
+*.synctex.gz

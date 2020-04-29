@@ -1,0 +1,18 @@
+nfunct nvargrp nparam nconst    <- all four must be present
+function1
+function2                       <- no terminating semicolon
+...                             <- do not name functions
+function n                      <- no '=' sign
+vargroup1 
+vargroup2
+constant c1,c2,...,ck;          <- note semicolon, omit if nconst=0
+c1 = 0.1234;                    <- semicolon and equal sign
+c2 = 0 + 9*I;                   <- capital 'I' for sqrt(-1)
+...
+ck = 1-1*I;                  
+0                   or     1           <- choose mesh or userdefined
+                           filename    <- only if userdefined
+p1   0 0 1 0 10     or     p1          <- declare mesh discretization
+p2   0 0 1 0 64     or     p2              or parameter name
+...
+pj   0 0 1 0 13     or     pj
