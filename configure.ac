@@ -3,8 +3,8 @@
 
 
 
-#we're building paramotopy, version 1.0.3.5, and the corresponding email is dani brake's
-AC_INIT([paramotopy], [1.0.3.5], [danielthebrake@gmail.com],[paramotopy], [http://www.paramotopy.com])
+#we're building paramotopy, version 1.0.3.6, and the corresponding email is silviana's
+AC_INIT([paramotopy], [1.0.3.6], [silvianaamethyst@gmail.com],[paramotopy], [https://www.paramotopy.com])
 
 
 # Force autoconf to be at least this version number:

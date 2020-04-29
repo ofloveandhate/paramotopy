@@ -9,8 +9,8 @@ void ParamotopySplashScreen(){
 		<< "*******************************\n"
 		<< " Welcome to Paramotopy.\n"
 		<< "     parametrized system analysis software by\n"
-		<< "     dani brake and matthew niemerg, with dan bates.\n\n"
-		<< "     www.paramotopy.com     danielthebrake@gmail.com  matthew.niemerg@gmail.com \n"
+		<< "     silviana amethyst and Matthew Niemerg, with Dan Bates.\n\n"
+		<< "     www.paramotopy.com     silvianaamethyst@gmail.com\n"
 		<< "\n"
 		<< "     version " << PACKAGE_VERSION << "\n"
 		<< "**************************" << std::endl;
