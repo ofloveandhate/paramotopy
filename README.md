@@ -49,3 +49,21 @@ Additional compiler flags can be added to `CPPFLAGS`, if desired.
 After `./configure [OPTIONS]` has successfully ran, then you can install paramotopy with
 
     make; make install
+
+## notes to self (silviana), for running `make dist`
+
+Silviana builds on MacOS, using Homebrew.  
+
+* use this to make the gnu tools installed by Homebrew supercede those provided by Mac:
+
+```
+PATH="$(brew --prefix)/opt/gnu-tar/libexec/gnubin:$PATH"
+```
+
+* use this to make `tar` not fail when running `make dist`:
+
+```
+export TAR_OPTIONS = --owner=0 --group=0 --numeric-owner
+```
+
+note: an improvement would be to move to CMake, but I have no time for that right now.
