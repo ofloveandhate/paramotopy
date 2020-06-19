@@ -2,8 +2,8 @@
 
 
 
-#ifndef __SLAVE_H_INCLUDED__
-#define __SLAVE_H_INCLUDED__
+#ifndef __worker_H_INCLUDED__
+#define __worker_H_INCLUDED__
 
 #include <mpi.h>
 #include <sys/wait.h>
@@ -45,15 +45,15 @@ extern "C" {
 
 
 /**
- *  @class "slave_process"
+ *  @class "worker_process"
  *
  * process for running Bertini to solve a problem.
  *
- * \brief slave process for basic searches and brute-force runs.
+ * \brief worker process for basic searches and brute-force runs.
  **/
 
 
-class slave_process{
+class worker_process{
 	
 	
 public:
@@ -67,7 +67,7 @@ public:
 	 sets stuff to empty or bad values for checking readiness later.
 	 */
 	
-	slave_process(){
+	worker_process(){
 		this->have_dotout = false;
 		this->have_input = false;
 		this->have_start = false;
@@ -95,14 +95,14 @@ public:
 	
 	
 	/**
-	 * the main slave process.  to be used by myid!=0.
+	 * the main worker process.  to be used by myid!=0.
 	 
 	 this is the only public method excepting the constructors.
 	 
 	 \param input_settings     current input settings.
 	 \param input_p_info       current parser run info.
 	 \param process_timer      MUTABLE current timer, and returns to user for further use.
-	 */	void slave_main(ProgSettings input_settings,
+	 */	void worker_main(ProgSettings input_settings,
 									runinfo input_p_info,
 									timer & process_timer);
 	
@@ -126,7 +126,7 @@ private:
 	
 	
 	
-	datagatherer slavegatherer;  ///< data member from datagatherer, which will gather bertini output files.
+	datagatherer workergatherer;  ///< data member from datagatherer, which will gather bertini output files.
 	
 	unsigned int currentSeed;    ///< the current seed for random number generator.
 	int MPType;   ///< MPType for current run.
@@ -155,10 +155,10 @@ private:
 	
 
 	bool have_dotout;  			///<  flag indicating whether we have read the .out files into memory.
-	bool have_input;  			///<  flag indicating whether we have received the INPUT file from master.
+	bool have_input;  			///<  flag indicating whether we have received the INPUT file from controller.
 	char* input_file;       ///< the input file in a c-friendly format
 	
-	bool have_start;  			///<  flag indicating whether we have received the START file from master.
+	bool have_start;  			///<  flag indicating whether we have received the START file from controller.
 	char* start_file;       ///< the start file in a c-friendly format
 	
 	
@@ -169,13 +169,13 @@ private:
 	
 	
 	/**
-	 the slave setup function
+	 the worker setup function
 	 
 	 uses the runinfo and ProgSettings in memory to setup the rest of the necessaries.
 	 
 	 
 	 */
-	void SlaveSetup();
+	void workerSetup();
 	
 	
 	
