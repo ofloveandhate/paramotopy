@@ -1,11 +1,11 @@
 # Overview
 
-Paramotopy is command line software for repeated solving parameterized polynomial systems using [Bertini](http://bertini.nd.edu).
+Paramotopy is command line software for repeated solving parameterized polynomial systems using [Bertini](https://bertini.nd.edu).
 
 
 # Using
 
-The main website for paramotopy is at [www.paramotopy.com](http://www.paramotopy.com).  There is a user's manual, some examples, and some guidance.
+The main website for paramotopy is at [paramotopy.com](https://paramotopy.com).  There are some examples, and some guidance.  The manual is located in this repo, in the `documentation` folder.
 
 # Building
 
@@ -30,6 +30,7 @@ If you have the libraries installed in non-standard locations, you may need to a
 
     ./configure CPPFLAGS="-I/usr/local/mpfr/include -I/usr/local/gmp/include -I/usr/local/bertini/include" LDFLAGS="-L/usr/local/mpfr/lib -L/usr/local/gmp/lib -L/usr/local/bertini/lib"
 
+In this case, you probably also will also need to add the location of the Bertini library to `LD_RUN_PATH` and `LD_LIBRARY_PATH`.
 
 If you are wanting to install with a particular compiler, or your compiler is not in the `PATH` location, you will need to run
 

@@ -1,7 +1,7 @@
-                             Paramotopy(TM) version 1.0
-                Authors:  D.A. Brake, M.E. Niemerg, and D.J. Bates
+                             Paramotopy(TM) version 1.0.3.7
+                Authors:  S. Amethyst, M.E. Niemerg, and D.J. Bates
                            http://www.paramotopy.com
-                               Copyright (C) 2013
+                               Copyright (C) 2013-2020
 
                                      *NOTICE*
 
@@ -66,8 +66,8 @@ modified version of the Program without written consent of all Authors of the Pr
 The Program may be used in covered work.  However, the following must be 
 displayed in the Standard Interface of the covered work:
 
-Paramotopy(TM) version 1.0
-Authors:  D.A. Brake, M.E. Niemerg, and D.J. Bates
+Paramotopy(TM) version 1.0.3.7
+Authors:  S. Amethyst, M.E. Niemerg, and D.J. Bates
 Copyright (C) 2013
 
 Furthermore, if a covered work is conveyed, a verbatim copy of the Program's 
