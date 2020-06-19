@@ -237,8 +237,6 @@ void slave_process::LoopBasic(timer & process_timer)
 #endif
 				
 				
-				std::cout << "worker" << myid << " solving point " << linenumber << std::endl;
-				// Call Bertini
 #ifdef timingstep2
 				process_timer.press_start("bertini");
 #endif
