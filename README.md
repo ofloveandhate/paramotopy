@@ -5,7 +5,7 @@ Paramotopy is command line software for repeated solving parameterized polynomia
 
 # Using
 
-The main website for paramotopy is at [paramotopy.com](https://paramotopy.com).  There are some examples, and some guidance.  The manual is located in this repo, in the `documentation` folder.
+The main website for paramotopy is at [paramotopy.com](https://paramotopy.com).  There are some examples, and some guidance.  The manual pdf is located in this repo, in the `documentation/source` folder.  I know, it's not source.  Feel free to help me out in providing a better build system for it than manual tex-ing.
 
 # Building
 
