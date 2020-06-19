@@ -50,13 +50,6 @@ Briefly, homotopy continuation is the tracking of solutions from one system to a
 
 Paramotopy is implemented to make use of both the basic zero-dimensional solve Bertini performs by default, as well as exploiting the \texttt{userhomotopy} mode.  An illustration of the scheme is in Figure~\ref{fig:paramotopy_homotopy_continuation}.  First, Paramotopy performs what we define here to be a `Step1' run.  Bertini finds all zero-dimensional solutions to the system supplied to it, for a set of complex parameter values randomly determined; for this solve, there will likely be superfluous paths.  Second, Paramotopy tracks all meaningful solutions found in Step1 (from \texttt{nonsingular\_solutions}) to each parameter point at which the user wishes to solve; this is called `Step2'. Performing the second step in this way will eliminate the extra paths from Step1.  
   
-With respect to the soundness and reliability of this method, theory dictates that off a set of measure zero, an algebraic system will have the same number of (complex) roots throughout its parameter space.  Therefore, we are virtually guaranteed that for a \emph{randomly} chosen point in parameter space, we will find the full generic number of solutions.  Then for Step2, as we track from the random point to the specific points at which we wish to solve, we will find all the solutions.
-
-Paramotopy uses a compiled library of Bertini 1, MPICH2 for process distribution, OpenMP for accurate timing measurements, TinyXML for preference and information storage, and Boost for filesystem operations.  System requirements and compilation information may be found in Section~\ref{sec:started}.  In Section~\ref{sec:input} is presented the format for the input files, as well as information on configuring and using Paramotopy.  Specific descriptions of options are given in Section~\ref{sec:options}, and data output is described in Section~\ref{sec:data}.  Coarse troubleshooting tips are in Section~\ref{sec:troubleshooting}.
-  
-
-
-
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=0.65\linewidth]{homotopycontinuation_generic.pdf}
@@ -74,6 +67,15 @@ Paramotopy uses a compiled library of Bertini 1, MPICH2 for process distribution
 \end{center}
 \end{figure}
 
+With respect to the soundness and reliability of this method, theory dictates that off a set of measure zero, an algebraic system will have the same number of (complex) roots throughout its parameter space.  Therefore, we are virtually guaranteed that for a \emph{randomly} chosen point in parameter space, we will find the full generic number of solutions.  Then for Step2, as we track from the random point to the specific points at which we wish to solve, we will find all the solutions.
+
+Paramotopy uses a compiled library of Bertini 1, MPICH2 for process distribution, OpenMP for accurate timing measurements, TinyXML for preference and information storage, and Boost for filesystem operations.  System requirements and compilation information may be found in Section~\ref{sec:started}.  In Section~\ref{sec:input} is presented the format for the input files, as well as information on configuring and using Paramotopy.  Specific descriptions of options are given in Section~\ref{sec:options}, and data output is described in Section~\ref{sec:data}.  Coarse troubleshooting tips are in Section~\ref{sec:troubleshooting}.
+  
+
+
+
+
+\clearpage
 
 \subsection{Contact}
 \label{sec:contact}
