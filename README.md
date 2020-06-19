@@ -2,6 +2,7 @@
 
 Paramotopy is command line software for repeated solving parameterized polynomial systems using [Bertini](https://bertini.nd.edu).
 
+Bertini 1 offers a built-in parameter homotopy.  But it solves only at one parameter point at a time.  Paramotopy essentially implements the loop you'd have to write, if you wanted to use Bertini's parameter homotopy many times.  Plus, Paramotopy includes tools for resolving path failures, etc, be re-solving at just those parameter points.  Nifty!
 
 # Using
 
