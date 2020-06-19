@@ -1,6 +1,6 @@
                              Paramotopy(TM) version 1.0.3.7
                 Authors:  S. Amethyst, M.E. Niemerg, and D.J. Bates
-                           http://www.paramotopy.com
+                           https://paramotopy.com
                                Copyright (C) 2013-2020
 
                                      *NOTICE*
