@@ -154,12 +154,12 @@ int main(int argc, char* argv[]){
 	
 	//the main body of the program is here:
 	if (myid==headnode){
-		master_process master;
-		master.master_main(paramotopy_settings, paramotopy_info, process_timer);
+		controller_process controller;
+		controller.controller_main(paramotopy_settings, paramotopy_info, process_timer);
 	}
 	else{
-	  	slave_process slave;
-		slave.slave_main(paramotopy_settings, paramotopy_info, process_timer);
+	  	worker_process worker;
+		worker.worker_main(paramotopy_settings, paramotopy_info, process_timer);
 	}
 	
 

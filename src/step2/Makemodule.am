@@ -3,8 +3,8 @@
 bin_PROGRAMS += step2
 
 step2_SOURCES = src/step2/step2.cpp include/step2.hpp\
-src/step2/master.cpp include/master.hpp \
-src/step2/slave.cpp include/slave.hpp \
+src/step2/controller.cpp include/controller.hpp \
+src/step2/worker.cpp include/worker.hpp \
 src/step2/step2_funcs.cpp include/step2_funcs.hpp \
 src/step2/step2readandwrite.cpp include/step2readandwrite.hpp
 

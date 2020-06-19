@@ -1,11 +1,11 @@
-#include "slave.hpp"
+#include "worker.hpp"
 
 
 
 
 //////////////////////////////////
 //
-//         slave functions
+//         worker functions
 //
 /////////////////////////////
 
@@ -13,7 +13,7 @@
 
 
 
-void slave_process::slave_main(ProgSettings input_settings,
+void worker_process::worker_main(ProgSettings input_settings,
 					 runinfo input_p_info,
 					 timer & process_timer)
 {
@@ -23,36 +23,36 @@ void slave_process::slave_main(ProgSettings input_settings,
 	
 	
 
-	this->slavegatherer.SlaveSetup(paramotopy_settings,paramotopy_info,this->myid,this->called_dir);
+	this->workergatherer.workerSetup(paramotopy_settings,paramotopy_info,this->myid,this->called_dir);
 	
-	slave_process::SlaveSetup();
+	worker_process::workerSetup();
 	
-	slave_process::ReceiveStart(process_timer);
+	worker_process::ReceiveStart(process_timer);
 
-	slave_process::ReceiveInput(process_timer);
+	worker_process::ReceiveInput(process_timer);
 	
-	slave_process::SetWorkingFolder();
+	worker_process::SetWorkingFolder();
 	
-	slave_process::PurgeWorkingFolder();
+	worker_process::PurgeWorkingFolder();
 	
-	slave_process::MoveToWorkingFolder();
+	worker_process::MoveToWorkingFolder();
 
-	slave_process::LoopSwitch(process_timer);
+	worker_process::LoopSwitch(process_timer);
 	
-	slave_process::GoCalledDir();
+	worker_process::GoCalledDir();
 	
 		
 	
 
 	return;
-}//re:slave_main
+}//re:worker_main
 
 
 
 
 
 
-void slave_process::SlaveSetup(){
+void worker_process::workerSetup(){
 	
 	this->numparam = paramotopy_info.numparam;
 	this->numfilesatatime = paramotopy_settings.settings["parallelism"]["numfilesatatime"].intvalue;
@@ -75,19 +75,19 @@ void slave_process::SlaveSetup(){
 
 
 
-void slave_process::SeedSwitch(timer & process_timer)
+void worker_process::SeedSwitch(timer & process_timer)
 {
 
 }
 
-void slave_process::SeedBasic(timer & process_timer)
+void worker_process::SeedBasic(timer & process_timer)
 {
 	
 }
 
 
 
-void slave_process::SeedSearch(timer & process_timer)
+void worker_process::SeedSearch(timer & process_timer)
 {
 	
 }
@@ -110,15 +110,15 @@ void slave_process::SeedSearch(timer & process_timer)
 
 
 
-void slave_process::LoopSwitch(timer & process_timer)
+void worker_process::LoopSwitch(timer & process_timer)
 {
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 		case 0:
-			slave_process::LoopBasic(process_timer);
+			worker_process::LoopBasic(process_timer);
 			break;
 			
 		case 1:
-			slave_process::LoopSearch(process_timer);
+			worker_process::LoopSearch(process_timer);
 			break;
 			
 			
@@ -129,13 +129,13 @@ void slave_process::LoopSwitch(timer & process_timer)
 
 
 
-void slave_process::LoopBasic(timer & process_timer)
+void worker_process::LoopBasic(timer & process_timer)
 {
 	
 	
 	
-	slave_process::WriteInput();
-	slave_process::WriteStart();
+	worker_process::WriteInput();
+	worker_process::WriteStart();
 	
 	
 	
@@ -153,7 +153,7 @@ void slave_process::LoopBasic(timer & process_timer)
 #ifdef timingstep2
 	process_timer.press_start("read");
 #endif
-	slave_process::ReadDotOut();
+	worker_process::ReadDotOut();
 #ifdef timingstep2
 	process_timer.add_time("read",6);
 #endif
@@ -167,11 +167,11 @@ void slave_process::LoopBasic(timer & process_timer)
 	
 	std::string target_file;
 	
-	slave_process::ReadyCheck();
+	worker_process::ReadyCheck();
 	
 	int* receive_buffer = new int[1];
 	while (1) {
-		/* Receive parameter points and line numbers from the master */
+		/* Receive parameter points and line numbers from the controller */
 		
 		
 #ifdef timingstep2
@@ -193,7 +193,7 @@ void slave_process::LoopBasic(timer & process_timer)
 #ifdef timingstep2
 			process_timer.press_start("write");
 #endif
-			slavegatherer.WriteAllData();
+			workergatherer.WriteAllData();
 #ifdef timingstep2
 			process_timer.add_time("write");
 #endif
@@ -231,7 +231,7 @@ void slave_process::LoopBasic(timer & process_timer)
 #ifdef timingstep2
 				process_timer.press_start("write");
 #endif
-				slave_process::WriteNumDotOut(current_params);
+				worker_process::WriteNumDotOut(current_params);
 #ifdef timingstep2
 				process_timer.add_time("write");
 #endif
@@ -251,7 +251,7 @@ void slave_process::LoopBasic(timer & process_timer)
 				
 				
 #ifndef nosolve
-				slavegatherer.SlaveCollectAndWriteData(current_params,  paramotopy_settings, process_timer);
+				workergatherer.workerCollectAndWriteData(current_params,  paramotopy_settings, process_timer);
 #endif
 				
 			}//re: for (int kk = 0; kk < int(status.MPI_TAG);++kk)
@@ -261,7 +261,7 @@ void slave_process::LoopBasic(timer & process_timer)
 #ifdef timingstep2
 		process_timer.press_start("send");
 #endif
-		MPI_Send(&linenumber, 1, MPI_INT, 0, SLAVE_ITERATION_FINISHED, MPI_COMM_WORLD);
+		MPI_Send(&linenumber, 1, MPI_INT, 0, worker_ITERATION_FINISHED, MPI_COMM_WORLD);
 #ifdef timingstep2
 		process_timer.add_time("send");
 #endif
@@ -271,12 +271,12 @@ void slave_process::LoopBasic(timer & process_timer)
 	
 }
 
-void slave_process::LoopSearch(timer & process_timer)
+void worker_process::LoopSearch(timer & process_timer)
 {
 	
 	
-	slave_process::WriteInput();
-	slave_process::WriteStart();
+	worker_process::WriteInput();
+	worker_process::WriteStart();
 	
 	
 	
@@ -294,7 +294,7 @@ void slave_process::LoopSearch(timer & process_timer)
 #ifdef timingstep2
 	process_timer.press_start("read");
 #endif
-	slave_process::ReadDotOut();
+	worker_process::ReadDotOut();
 #ifdef timingstep2
 	process_timer.add_time("read",6);
 #endif
@@ -308,14 +308,14 @@ void slave_process::LoopSearch(timer & process_timer)
 	
 	std::string target_file;
 	
-	slave_process::ReadyCheck();
+	worker_process::ReadyCheck();
 	
 	double* current_params = new double[(2*numparam+1)];
 	int* receive_buffer = new int[1];
 	
 	
 	while (1) {
-		/* Receive parameter points and line numbers from the master */
+		/* Receive parameter points and line numbers from the controller */
 		
 		
 #ifdef timingstep2
@@ -338,7 +338,7 @@ void slave_process::LoopSearch(timer & process_timer)
 			process_timer.press_start("write");
 #endif
 #ifndef nosolve
-			slavegatherer.WriteAllData();
+			workergatherer.WriteAllData();
 #endif
 #ifdef timingstep2
 			process_timer.add_time("write");
@@ -379,7 +379,7 @@ void slave_process::LoopSearch(timer & process_timer)
 #ifdef timingstep2
 				process_timer.press_start("write");
 #endif
-				slave_process::WriteNumDotOut(current_params);
+				worker_process::WriteNumDotOut(current_params);
 #ifdef timingstep2
 				process_timer.add_time("write");
 #endif
@@ -402,9 +402,9 @@ void slave_process::LoopSearch(timer & process_timer)
 				
 				
 #ifndef nosolve
-				slavegatherer.SlaveCollectAndWriteData(current_params,  paramotopy_settings, process_timer);
+				workergatherer.workerCollectAndWriteData(current_params,  paramotopy_settings, process_timer);
 				
-				int num_solns_this_solve = slavegatherer.num_reals();
+				int num_solns_this_solve = workergatherer.num_reals();
 				
 				//get the number of found solutions
 				if (num_solns_this_solve>0) {
@@ -433,7 +433,7 @@ void slave_process::LoopSearch(timer & process_timer)
 #ifdef timingstep2
 		process_timer.press_start("send");
 #endif
-		MPI_Send(&sendme, 1, MPI_INT, 0, SLAVE_ITERATION_FINISHED, MPI_COMM_WORLD);
+		MPI_Send(&sendme, 1, MPI_INT, 0, worker_ITERATION_FINISHED, MPI_COMM_WORLD);
 #ifdef timingstep2
 		process_timer.add_time("send");
 #endif
@@ -461,7 +461,7 @@ void slave_process::LoopSearch(timer & process_timer)
 
 
 
-void slave_process::CleanupSwitch(timer & process_timer)
+void worker_process::CleanupSwitch(timer & process_timer)
 {
 
 	
@@ -473,12 +473,12 @@ void slave_process::CleanupSwitch(timer & process_timer)
 
 
 
-void slave_process::CleanupBasic(timer & process_timer)
+void worker_process::CleanupBasic(timer & process_timer)
 {
 	
 }
 
-void slave_process::CleanupSearch(timer & process_timer)
+void worker_process::CleanupSearch(timer & process_timer)
 {
 	
 }
@@ -499,7 +499,7 @@ void slave_process::CleanupSearch(timer & process_timer)
 
 
 
-void slave_process::ReceiveInput(timer & process_timer)
+void worker_process::ReceiveInput(timer & process_timer)
 {
 	
 	if (this->have_input) {
@@ -529,7 +529,7 @@ void slave_process::ReceiveInput(timer & process_timer)
 	
 }
 
-void slave_process::ReceiveStart(timer & process_timer)
+void worker_process::ReceiveStart(timer & process_timer)
 {
 	
 	MPI_Status status;
@@ -542,7 +542,7 @@ void slave_process::ReceiveStart(timer & process_timer)
 	
 	///////
 	//
-	//      get the start file from master
+	//      get the start file from controller
 	//
 	///////////
 	
@@ -579,15 +579,15 @@ void slave_process::ReceiveStart(timer & process_timer)
 
 
 
-void slave_process::WriteStart(){
+void worker_process::WriteStart(){
 	
 	if (!(this->have_start)) {
-		std::cerr << "slave" << myid << " did not have start file when attempting to write it." << std::endl;
+		std::cerr << "worker" << myid << " did not have start file when attempting to write it." << std::endl;
 		MPI_Abort(MPI_COMM_WORLD,919);
 	}
 	
 	if (!(this->in_working_folder)) {
-		std::cerr << "slave" << myid << " was not in working folder before writing start." << std::endl;
+		std::cerr << "worker" << myid << " was not in working folder before writing start." << std::endl;
 		MPI_Abort(MPI_COMM_WORLD,920);
 	}
 	
@@ -604,16 +604,16 @@ void slave_process::WriteStart(){
 
 
 
-void slave_process::WriteInput(){
+void worker_process::WriteInput(){
 
 	
 	if (!(this->have_input)) {
-		std::cerr << "slave" << myid << " did not have input before attempting to write input" << std::endl;
+		std::cerr << "worker" << myid << " did not have input before attempting to write input" << std::endl;
 		MPI_Abort(MPI_COMM_WORLD,919);
 	}
 	
 	if (!(this->in_working_folder)) {
-		std::cerr << "slave" << myid << " was not in working folder before writing input" << std::endl;
+		std::cerr << "worker" << myid << " was not in working folder before writing input" << std::endl;
 		MPI_Abort(MPI_COMM_WORLD,920);
 	}
 	
@@ -634,7 +634,7 @@ void slave_process::WriteInput(){
 
 
 
-void slave_process::ReadDotOut(){
+void worker_process::ReadDotOut(){
 	
   //read in Num.out file
   numdotout.clear();
@@ -721,7 +721,7 @@ void slave_process::ReadDotOut(){
 
 
 
-void slave_process::WriteDotOut(){
+void worker_process::WriteDotOut(){
   
   std::ofstream fout;
   
@@ -767,7 +767,7 @@ void slave_process::WriteDotOut(){
 
 
 
-void slave_process::WriteNumDotOut(double current_params[]){
+void worker_process::WriteNumDotOut(double current_params[]){
   
   //modified 2012.02.19 to make a single write call. db.
   
@@ -895,7 +895,7 @@ void slave_process::WriteNumDotOut(double current_params[]){
 
 
 
-void slave_process::SetWorkingFolder(){
+void worker_process::SetWorkingFolder(){
 	
 	
 	
@@ -926,13 +926,13 @@ void slave_process::SetWorkingFolder(){
 
 
 
-void slave_process::PurgeWorkingFolder(){
+void worker_process::PurgeWorkingFolder(){
 	boost::filesystem::remove_all(workingfolder);
 }
 
 
 
-void slave_process::MoveToWorkingFolder(){
+void worker_process::MoveToWorkingFolder(){
 	boost::filesystem::create_directories(this->workingfolder);
 	safe_chdir(this->workingfolder.c_str());
 	
@@ -942,14 +942,14 @@ void slave_process::MoveToWorkingFolder(){
 
 
 
-void slave_process::GoCalledDir(){
+void worker_process::GoCalledDir(){
 	safe_chdir(called_dir.c_str()); //used to move back to the starting directory to write the timing files.  now stay down there for loop, move here.   no sense in moving, when each worker is just writing its own files.
 
 	this->in_working_folder = false;
 }
 
 
-void slave_process::ReadyCheck()
+void worker_process::ReadyCheck()
 {
 	
 	bool its_all_good = true;
@@ -1003,12 +1003,12 @@ void slave_process::ReadyCheck()
 	
 
 	if (!its_all_good){
-		std::cerr << "slave " << myid << " reported its not all good, with bad flags:\n";
+		std::cerr << "worker " << myid << " reported its not all good, with bad flags:\n";
 		
 		for (int ii=0; ii<int(reported_errors.size()); ii++) {
-			std::cerr << "slave " << myid << " flag" << ii << " " << reported_errors[ii] << std::endl;
+			std::cerr << "worker " << myid << " flag" << ii << " " << reported_errors[ii] << std::endl;
 		}
-		std::cerr << "\n\nABORTING slave " << myid << std::endl;
+		std::cerr << "\n\nABORTING worker " << myid << std::endl;
 		MPI_Abort(MPI_COMM_WORLD, 652);
 	}
 }

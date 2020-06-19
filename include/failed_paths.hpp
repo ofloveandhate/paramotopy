@@ -49,7 +49,7 @@ public:
   /** The number of points to test if there was a failed path. */
   int num_points_inspected;
   /** The parameter points that had failed paths. */
-  std::vector< point > master_fails;
+  std::vector< point > controller_fails;
   /** The parameter points that had initial files. */
   std::map< int, std::vector < point > > initial_fails;
   /** The parameter points that keep on failing. */
@@ -108,10 +108,10 @@ private:
    */
   std::string new_step_one(ProgSettings & paramotopy_settings,runinfo & paramotopy_info);
   /** Not quite sure what this function does . . . 
-   Print the successful resolves and sort the fails and save them to the master_fails
+   Print the successful resolves and sort the fails and save them to the controller_fails
   \param successful_resolves - a map of the successful resolves. The int is the parameter number and the point is the parameter point.
   */
-  void make_master_from_recovered(std::map< int, point > successful_resolves);
+  void make_controller_from_recovered(std::map< int, point > successful_resolves);
 
   /**
      Write the failed paths

@@ -1,12 +1,12 @@
 
-#include "master.hpp"
+#include "controller.hpp"
 
 
 
 
 
 
-void master_process::master_main(ProgSettings input_settings,
+void controller_process::controller_main(ProgSettings input_settings,
 								 runinfo input_p_info,
 								 timer & process_timer)
 
@@ -17,35 +17,35 @@ void master_process::master_main(ProgSettings input_settings,
 	
 	//some data members used in this function
 	
-	master_process::SetTmpFolder();
+	controller_process::SetTmpFolder();
 	
-	master_process::MasterSetup();
+	controller_process::controllerSetup();
 	
-	master_process::SetUpFolders();
+	controller_process::SetUpFolders();
 	
-	master_process::GetTerminationInt();
+	controller_process::GetTerminationInt();
 	
-	master_process::OpenMC();
+	controller_process::OpenMC();
 	
-	master_process::SendStart(process_timer);
+	controller_process::SendStart(process_timer);
 	
-	master_process::SendInput(process_timer);
+	controller_process::SendInput(process_timer);
 	
-	master_process::SeedSwitch(process_timer);
+	controller_process::SeedSwitch(process_timer);
 	
-	master_process::LoopSwitch(process_timer);
+	controller_process::LoopSwitch(process_timer);
 	
-	master_process::CleanupSwitch(process_timer);
+	controller_process::CleanupSwitch(process_timer);
 	
 	
 	
-}//re:master
+}//re:controller
 
 
 ///////////////////
 ///////////////
 ///////////
-//////////  END MASTER MAIN FUNCTION
+//////////  END controller MAIN FUNCTION
 ///////////
 //////////////
 ////////////////
@@ -64,7 +64,7 @@ void master_process::master_main(ProgSettings input_settings,
 
 
 
-void master_process::MasterSetup()
+void controller_process::controllerSetup()
 {
 	
 	this->numparam = paramotopy_info.numparam;
@@ -95,11 +95,11 @@ void master_process::MasterSetup()
 
 
 
-// the master is responsible for generating the data points to work on, and distributing them to the workers.
+// the controller is responsible for generating the data points to work on, and distributing them to the workers.
 
 
 
-void master_process::NextRandomValue(int pointcounter, // localcounter tells which indices in tempsends
+void controller_process::NextRandomValue(int pointcounter, // localcounter tells which indices in tempsends
 									 double tempsends[]) // holds the created data
 {
 	MTRand drand;
@@ -128,7 +128,7 @@ void master_process::NextRandomValue(int pointcounter, // localcounter tells whi
 
 
 // FormNextValues generates parameter points from a mesh-style set
-void master_process::FormNextValues(int pointcounter,
+void controller_process::FormNextValues(int pointcounter,
 									std::vector< std::vector< std::pair<double,double> > > Values,
 									double tempsends[]){
 	
@@ -162,7 +162,7 @@ void master_process::FormNextValues(int pointcounter,
 
 
 //FormNextValues_mc generates points to send, from a user-defined set
-void master_process::FormNextValues_mc(int pointcounter,	//another integer counter
+void controller_process::FormNextValues_mc(int pointcounter,	//another integer counter
 									   double tempsends[]){ //tempsends holds the values to send
 	
 	
@@ -205,17 +205,17 @@ void master_process::FormNextValues_mc(int pointcounter,	//another integer count
 
 
 
-void master_process::SeedSwitch(timer & process_timer){
+void controller_process::SeedSwitch(timer & process_timer){
 	
 	
 	
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 		case 0:
-			master_process::SeedBasic(process_timer);
+			controller_process::SeedBasic(process_timer);
 			break;
 			
 		case 1:
-			master_process::SeedSearch(process_timer);
+			controller_process::SeedSearch(process_timer);
 			break;
 			
 			
@@ -230,7 +230,7 @@ void master_process::SeedSwitch(timer & process_timer){
 
 
 
-void master_process::SeedBasic(timer & process_timer){
+void controller_process::SeedBasic(timer & process_timer){
 	
 	
 	this->current_absolute_index = 0;
@@ -256,11 +256,11 @@ void master_process::SeedBasic(timer & process_timer){
 				//determine the parameter values for this file
 				
 				if (paramotopy_info.userdefined){
-					master_process::FormNextValues_mc(ii,
+					controller_process::FormNextValues_mc(ii,
 													  tempsends);
 				}
 				else {//not user defined
-					master_process::FormNextValues(ii,
+					controller_process::FormNextValues(ii,
 												   paramotopy_info.Values,
 												   tempsends);
 					
@@ -287,7 +287,7 @@ void master_process::SeedBasic(timer & process_timer){
 #ifdef timingstep2
 			process_timer.press_start("send");
 #endif
-			/* Send the slave a new work unit */
+			/* Send the worker a new work unit */
 			MPI_Send(&numtodo,            /* message buffer */
 					 1,										/* how many data items */
 					 MPI_INT,							/* data item is an integer */
@@ -303,7 +303,7 @@ void master_process::SeedBasic(timer & process_timer){
 #ifdef timingstep2
 			process_timer.press_start("send");
 #endif
-			/* Send the slave a new work unit */
+			/* Send the worker a new work unit */
 			MPI_Send(&tempsends[0],             /* message buffer */
 					 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
 					 MPI_DOUBLE,           /* data item is an integer */
@@ -324,7 +324,7 @@ void master_process::SeedBasic(timer & process_timer){
 		else{
 			lastnumsent.push_back(-1);
 			//just send a kill tag
-			master_process::TerminateInactiveWorker(proc_count,process_timer);
+			controller_process::TerminateInactiveWorker(proc_count,process_timer);
 		}
 	}//re: for int proc_count=1:numprocs
 	
@@ -333,7 +333,7 @@ void master_process::SeedBasic(timer & process_timer){
 }
 
 
-void master_process::SeedSearch(timer & process_timer){
+void controller_process::SeedSearch(timer & process_timer){
 	
 	
 	
@@ -378,7 +378,7 @@ void master_process::SeedSearch(timer & process_timer){
 			for (int ii = 0; ii <numtodo; ++ii){
 				
 				
-				master_process::NextRandomValue(ii, // current index in tempsends
+				controller_process::NextRandomValue(ii, // current index in tempsends
 												tempsends); // data to fill
 				
 				if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
@@ -403,7 +403,7 @@ void master_process::SeedSearch(timer & process_timer){
 #ifdef timingstep2
 			process_timer.press_start("send");
 #endif
-			/* Send the slave a new work unit */
+			/* Send the worker a new work unit */
 			MPI_Send(&numtodo,            /* message buffer */
 					 1,										/* how many data items */
 					 MPI_INT,							/* data item is an integer */
@@ -419,7 +419,7 @@ void master_process::SeedSearch(timer & process_timer){
 #ifdef timingstep2
 			process_timer.press_start("send");
 #endif
-			/* Send the slave a new work unit */
+			/* Send the worker a new work unit */
 			MPI_Send(&tempsends[0],             /* message buffer */
 					 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
 					 MPI_DOUBLE,           /* data item is an integer */
@@ -440,7 +440,7 @@ void master_process::SeedSearch(timer & process_timer){
 		else{
 			lastnumsent.push_back(-1);
 			//just send a kill tag
-			master_process::TerminateInactiveWorker(proc_count,process_timer);
+			controller_process::TerminateInactiveWorker(proc_count,process_timer);
 		}
 	}//re: for int proc_count=1:numprocs
 	
@@ -454,16 +454,16 @@ void master_process::SeedSearch(timer & process_timer){
 
 
 
-void master_process::LoopSwitch(timer & process_timer){
+void controller_process::LoopSwitch(timer & process_timer){
 	
 	
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 		case 0:
-			master_process::LoopBasic(process_timer);
+			controller_process::LoopBasic(process_timer);
 			break;
 			
 		case 1:
-			master_process::LoopSearch(process_timer);
+			controller_process::LoopSearch(process_timer);
 			break;
 			
 			
@@ -476,7 +476,7 @@ void master_process::LoopSwitch(timer & process_timer){
 }//re: while loop switch
 
 
-void master_process::LoopBasic(timer & process_timer){
+void controller_process::LoopBasic(timer & process_timer){
 	
 	
 	MPI_Status status;
@@ -490,7 +490,7 @@ void master_process::LoopBasic(timer & process_timer){
 	
 	int lastlineprocessed = -1;
 	
-	master_process::ReadyCheck();
+	controller_process::ReadyCheck();
 	
 	
 	while (current_absolute_index < this->terminationint) {
@@ -498,7 +498,7 @@ void master_process::LoopBasic(timer & process_timer){
 #ifdef timingstep2
 		process_timer.press_start("receive");
 #endif
-		/* Receive results from a slave */
+		/* Receive results from a worker */
 		MPI_Recv(&lastlineprocessed,       /* message buffer */
 				 1,                 /* one data item */
 				 MPI_INT,           /* of type int */
@@ -525,7 +525,7 @@ void master_process::LoopBasic(timer & process_timer){
 #ifdef timingstep2
 		process_timer.press_start("send");
 #endif
-		/* Send the slave a new work unit */
+		/* Send the worker a new work unit */
 		MPI_Send(&numtodo,             /* message buffer */
 				 1,                 /* how many data items */
 				 MPI_INT,           /* data item is an integer */
@@ -549,13 +549,13 @@ void master_process::LoopBasic(timer & process_timer){
 #ifdef timingstep2
 				process_timer.press_start("read");
 #endif
-				master_process::FormNextValues_mc(ii,tempsends);
+				controller_process::FormNextValues_mc(ii,tempsends);
 #ifdef timingstep2
 				process_timer.add_time("read");
 #endif
 			}
 			else {
-				master_process::FormNextValues(ii,
+				controller_process::FormNextValues(ii,
 											   paramotopy_info.Values,
 											   tempsends);
 				
@@ -584,7 +584,7 @@ void master_process::LoopBasic(timer & process_timer){
 #ifdef timingstep2
 		process_timer.press_start("send");
 #endif
-		/* Send the slave a new work unit */
+		/* Send the worker a new work unit */
 		MPI_Send(&tempsends[0],             /* message buffer */
 				 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
 				 MPI_DOUBLE,           /* data item is an integer */
@@ -634,7 +634,7 @@ void master_process::LoopBasic(timer & process_timer){
 
 
 
-void master_process::LoopSearch(timer & process_timer){
+void controller_process::LoopSearch(timer & process_timer){
 	
 	
 	
@@ -651,7 +651,7 @@ void master_process::LoopSearch(timer & process_timer){
 	
 	int num_solns_this_iteration = -1;
 	
-	master_process::ReadyCheck();
+	controller_process::ReadyCheck();
 	
 	
 	int num_found_solns = 0;
@@ -666,7 +666,7 @@ void master_process::LoopSearch(timer & process_timer){
 #ifdef timingstep2
 		process_timer.press_start("receive");
 #endif
-		/* Receive results from a slave */
+		/* Receive results from a worker */
 		MPI_Recv(&num_solns_this_iteration,       /* message buffer */
 				 1,                 /* one data item */
 				 MPI_INT,           /* of type int */
@@ -686,7 +686,7 @@ void master_process::LoopSearch(timer & process_timer){
 		}
 		
 		if (num_found_solns>=paramotopy_settings.settings["mode"]["search_desirednumber"].intvalue) {
-			master_process::TerminateActiveWorker(status.MPI_SOURCE, process_timer);
+			controller_process::TerminateActiveWorker(status.MPI_SOURCE, process_timer);
 			break;
 		}
 		else{
@@ -695,7 +695,7 @@ void master_process::LoopSearch(timer & process_timer){
 #ifdef timingstep2
 			process_timer.press_start("send");
 #endif
-			/* Send the slave a new work unit */
+			/* Send the worker a new work unit */
 			MPI_Send(&numtodo,             /* message buffer */
 					 1,                 /* how many data items */
 					 MPI_INT,           /* data item is an integer */
@@ -718,7 +718,7 @@ void master_process::LoopSearch(timer & process_timer){
 			
 			for (int ii = 0; ii < numtodo; ++ii){
 				
-				master_process::NextRandomValue(ii, // current index in tempsends
+				controller_process::NextRandomValue(ii, // current index in tempsends
 												tempsends); // data to fill
 				
 				if (paramotopy_settings.settings["files"]["writemeshtomc"].intvalue==1){
@@ -744,7 +744,7 @@ void master_process::LoopSearch(timer & process_timer){
 #ifdef timingstep2
 			process_timer.press_start("send");
 #endif
-			/* Send the slave a new work unit */
+			/* Send the worker a new work unit */
 			MPI_Send(&tempsends[0],             /* message buffer */
 					 numtodo*(2*paramotopy_info.numparam+1),                 /* how many data items */
 					 MPI_DOUBLE,           /* data item is an integer */
@@ -815,17 +815,17 @@ void master_process::LoopSearch(timer & process_timer){
 
 
 
-void master_process::CleanupSwitch(timer & process_timer){
+void controller_process::CleanupSwitch(timer & process_timer){
 	
 	
 	switch (paramotopy_settings.settings["mode"]["main_mode"].intvalue) {
 			
 		case 0:
-			master_process::CleanupBasic(process_timer);
+			controller_process::CleanupBasic(process_timer);
 			break;
 			
 		case 1: // also uses the basic cleanup method
-			master_process::CleanupSearch(process_timer);
+			controller_process::CleanupSearch(process_timer);
 			break;
 			
 		default:
@@ -846,9 +846,9 @@ void master_process::CleanupSwitch(timer & process_timer){
 
 
 
-void master_process::CleanupBasic(timer & process_timer){
+void controller_process::CleanupBasic(timer & process_timer){
 	/* There's no more work to be done, so receive all the outstanding
-	 results from the slaves. */
+	 results from the workers. */
 	
 	
 	
@@ -881,7 +881,7 @@ void master_process::CleanupBasic(timer & process_timer){
 		process_timer.add_time("receive");
 #endif
 		
-		master_process::TerminateActiveWorker(status.MPI_SOURCE, process_timer);
+		controller_process::TerminateActiveWorker(status.MPI_SOURCE, process_timer);
 		
 		
 		std::map< int, bool>::iterator iter;
@@ -930,9 +930,9 @@ void master_process::CleanupBasic(timer & process_timer){
 
 
 
-void master_process::CleanupSearch(timer & process_timer){
+void controller_process::CleanupSearch(timer & process_timer){
 	
-	master_process::CleanupBasic(process_timer);
+	controller_process::CleanupBasic(process_timer);
 	
 }
 
@@ -947,7 +947,7 @@ void master_process::CleanupSearch(timer & process_timer){
 
 
 
-void master_process::SendStart(timer & process_timer){
+void controller_process::SendStart(timer & process_timer){
 	
 	
 	
@@ -1010,7 +1010,7 @@ void master_process::SendStart(timer & process_timer){
 
 
 
-void master_process::SendInput(timer & process_timer){
+void controller_process::SendInput(timer & process_timer){
 	
 	
 	
@@ -1094,7 +1094,7 @@ void master_process::SendInput(timer & process_timer){
 
 
 
-void master_process::GetTerminationInt(){
+void controller_process::GetTerminationInt(){
 	
 	if (!paramotopy_info.userdefined) {
 		index_conversion_vector.push_back(1);
@@ -1123,7 +1123,7 @@ void master_process::GetTerminationInt(){
 
 
 //opens the mc_in or mc_out file stream
-void master_process::OpenMC(){
+void controller_process::OpenMC(){
 	
 	
 	boost::filesystem::path mcfname = paramotopy_info.location;
@@ -1165,7 +1165,7 @@ void master_process::OpenMC(){
 
 
 
-void master_process::SetTmpFolder(){
+void controller_process::SetTmpFolder(){
 	
 	
 	
@@ -1189,7 +1189,7 @@ void master_process::SetTmpFolder(){
 
 
 
-void master_process::SetUpFolders(){
+void controller_process::SetUpFolders(){
 	
 	
 	boost::filesystem::path DataCollectedbase_dir = paramotopy_info.location;
@@ -1225,7 +1225,7 @@ void master_process::SetUpFolders(){
 
 
 
-void master_process::TerminateInactiveWorker(int worker_id,
+void controller_process::TerminateInactiveWorker(int worker_id,
 											 timer & process_timer)
 {
 	
@@ -1235,7 +1235,7 @@ void master_process::TerminateInactiveWorker(int worker_id,
 #ifdef timingstep2
 	process_timer.press_start("send");
 #endif
-	/* Send the slave a new work unit */
+	/* Send the worker a new work unit */
 	MPI_Send(&arbitraryinteger,            /* message buffer */
 			 1,										/* how many data items */
 			 MPI_INT,							/* data item is an integer */
@@ -1253,7 +1253,7 @@ void master_process::TerminateInactiveWorker(int worker_id,
 	
 }
 
-void master_process::TerminateActiveWorker(int worker_id,
+void controller_process::TerminateActiveWorker(int worker_id,
 										   timer & process_timer)
 {
 	
@@ -1263,7 +1263,7 @@ void master_process::TerminateActiveWorker(int worker_id,
 #ifdef timingstep2
 	process_timer.press_start("send");
 #endif
-	/* Send the slave a new work unit */
+	/* Send the worker a new work unit */
 	MPI_Send(&arbitraryinteger,            /* message buffer */
 			 1,										/* how many data items */
 			 MPI_INT,							/* data item is an integer */
@@ -1284,7 +1284,7 @@ void master_process::TerminateActiveWorker(int worker_id,
 }
 
 
-void master_process::ReadyCheck()
+void controller_process::ReadyCheck()
 {
 	
 	bool its_all_good = true;
@@ -1309,12 +1309,12 @@ void master_process::ReadyCheck()
 	
 	
 	if (!its_all_good){
-		std::cerr << "master " << myid << " reported its not all good, with bad flags:\n";
+		std::cerr << "controller " << myid << " reported its not all good, with bad flags:\n";
 		
 		for (int ii=0; ii<int(reported_errors.size()); ii++) {
-			std::cerr << "master flag" << ii << " " << reported_errors[ii] << std::endl;
+			std::cerr << "controller flag" << ii << " " << reported_errors[ii] << std::endl;
 		}
-		std::cerr << "\n\nABORTING master " << myid << std::endl;
+		std::cerr << "\n\nABORTING controller " << myid << std::endl;
 		MPI_Abort(MPI_COMM_WORLD, 652);
 	}
 }
