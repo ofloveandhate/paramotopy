@@ -348,7 +348,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 	
 	\item \texttt{Architecture / calling} \\ set the call to start an MPI process on your machine.  Two defaults are built in: \texttt{mpiexec}, \texttt{aprun}.  You may also use your own, although there is no error checking for whether your custom command exists, or functions properly.  We will soon add the feature of custom calling sequences for more complex command strings.
 	
-	\item \texttt{Number of processors used} \\ Set the number of processors for Step1, Step2, and rerunning of failed paths (realized as Step2 runs).  There should be at least two processors for this mode, as Paramotopy currently uses the master-slave model, with a single master.  If you wish to use only one process, switch off parallel mode.
+	\item \texttt{Number of processors used} \\ Set the number of processors for Step1, Step2, and rerunning of failed paths (realized as Step2 runs).  There should be at least two processors for this mode, as Paramotopy currently uses the controller-worker model, with a single controller.  If you wish to use only one process, switch off parallel mode.  
 	
 
 
@@ -366,7 +366,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 \end{center}
 \end{figure}
 
-\index{choosing saved files}Bertini produces several output files which may be desirable to keep.  The file named \texttt{failed\_paths} is always saved, to enable Failed Path Analysis.  All other files are optional.  Some are more useful than others for humans or computers.  For a more thorough description of the output of Bertini, see the \href{http://www.nd.edu/~sommese/bertini/BertiniUsersManual.pdf}{Bertini User's Manual}.
+\index{choosing saved files}Bertini produces several output files which may be desirable to keep.  The file named \texttt{failed\_paths} is always saved, to enable Failed Path Analysis.  All other files are optional.  Some are more useful than others for humans or computers.  For a more thorough description of the output of Bertini, see the \href{https://www.nd.edu/~sommese/bertini/BertiniUsersManual.pdf}{Bertini User's Manual}.
 
 
 

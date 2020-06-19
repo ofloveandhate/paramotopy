@@ -136,16 +136,16 @@ public:
 	int newfilethreshold;
 	int myid;
 	std::string real_filename;
-	std::map< std::string, fileinfo> slavemap;  // a map between file names and fileinfo (as defined above)
+	std::map< std::string, fileinfo> workermap;  // a map between file names and fileinfo (as defined above)
 	
 	
 	int num_reals(){
-			return this->slavemap[this->real_filename].num_found_solns;
+			return this->workermap[this->real_filename].num_found_solns;
 	}
 	
-	void slave_init(){
+	void worker_init(){
 		ParamNames.clear();
-		slavemap.clear();
+		workermap.clear();
 		this->numfiles = 0;
 		this->buffersize = this->newfilethreshold = -1;
 		this->myid = -1;
@@ -160,10 +160,10 @@ public:
 	
 		fileinfo blankinfo;
 
-		this->slavemap[filename] = blankinfo;
+		this->workermap[filename] = blankinfo;
 		this->numfiles ++;
 		
-		this->slavemap[filename].parser_index = GetFileParserIndex(filename);
+		this->workermap[filename].parser_index = GetFileParserIndex(filename);
 		
 		
 	}
@@ -173,7 +173,7 @@ public:
 	
 	
 	
-	void SlaveSetup(ProgSettings & paramotopy_settings,
+	void workerSetup(ProgSettings & paramotopy_settings,
 									runinfo & paramotopy_info,
 									int myid,
 									boost::filesystem::path called_dir);
@@ -187,7 +187,7 @@ public:
 	 * \param paramotopy_settings the settings structure, passed by reference
 	 * \param process_timer Timer object for collecting timing data.
 	 */
-	bool SlaveCollectAndWriteData(double *current_params,
+	bool workerCollectAndWriteData(double *current_params,
 																ProgSettings & paramotopy_settings,
 																timer & process_timer);
 	

@@ -64,10 +64,10 @@ bool timer::write_timing_data(const boost::filesystem::path folder_to_write_to, 
 	converter << myid;
 	
 	if (myid==0) {
-		file_to_write_to /= "master";
+		file_to_write_to /= "controller";
 	}
 	else{
-		file_to_write_to /= "slave";
+		file_to_write_to /= "worker";
 	}
 	file_to_write_to += "timing";
 	

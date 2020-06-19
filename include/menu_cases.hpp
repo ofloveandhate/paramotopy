@@ -11,7 +11,7 @@
 #include "step2_funcs.hpp"
 #include "step2readandwrite.hpp"
 #include "xml_preferences.hpp"
-#include "master.hpp"
+#include "controller.hpp"
 
 
 #ifndef PARAMOTOPY_MENU_CASES_HPP

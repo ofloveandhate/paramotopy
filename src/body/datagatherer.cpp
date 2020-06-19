@@ -8,7 +8,7 @@
 //constructs a file name for reading/writing
 boost::filesystem::path datagatherer::MakeTargetFilename(std::string filename)
 {
-	if (slavemap.find(filename)==slavemap.end())
+	if (workermap.find(filename)==workermap.end())
 	{
 		std::cout << "trying to MakeTargetFilename for filename not stored in the map of target file names: " << filename << std::endl;
 		exit(-12938);
@@ -19,22 +19,22 @@ boost::filesystem::path datagatherer::MakeTargetFilename(std::string filename)
 	
 	
 	std::stringstream ss;
-	ss << this->slavemap[filename].filecount;
+	ss << this->workermap[filename].filecount;
 	tmppath += ss.str();
   return tmppath;
 }
 
 
 
-void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
+void datagatherer::workerSetup(ProgSettings & paramotopy_settings,
 															runinfo & paramotopy_info,
 															int myid,
 															boost::filesystem::path called_dir){
 	
 	
 	
-	datagatherer slavegatherer;
-	datagatherer::slave_init();
+	datagatherer workergatherer;
+	datagatherer::worker_init();
 	
 	std::string category;
 	if (paramotopy_info.steptwomode==2)
@@ -89,7 +89,7 @@ void datagatherer::SlaveSetup(ProgSettings & paramotopy_settings,
 
 								 
 								 
-bool datagatherer::SlaveCollectAndWriteData(double current_params[],
+bool datagatherer::workerCollectAndWriteData(double current_params[],
                                             ProgSettings & paramotopy_settings,
                                             timer & process_timer){
   
@@ -98,7 +98,7 @@ bool datagatherer::SlaveCollectAndWriteData(double current_params[],
 
 
 	// Collect the Data
-	for (auto iter = this->slavemap.begin(); iter!= this->slavemap.end(); ++iter){
+	for (auto iter = this->workermap.begin(); iter!= this->workermap.end(); ++iter){
 
 	  //get data from file
 #ifdef timingstep2
@@ -175,7 +175,7 @@ void datagatherer::AppendOnlyPosReal(std::string source_filename,
 {
   //this function will operate on any *_solutions file
 	
-	if (slavemap.find(source_filename)==slavemap.end())
+	if (workermap.find(source_filename)==workermap.end())
 	{
 		std::cout << "trying to AppendOnlyPosReal for filename not stored in the map of target file names: " << source_filename << std::endl;
 		exit(-12938);
@@ -260,14 +260,14 @@ void datagatherer::AppendOnlyPosReal(std::string source_filename,
     outstring << tmp_num_found_solns << "\n\n";
     outstring << current_point_data.str();
     
-    slavemap[source_filename].num_found_solns = tmp_num_found_solns;
-    slavemap[source_filename].runningfile.append(outstring.str());
+    workermap[source_filename].num_found_solns = tmp_num_found_solns;
+    workermap[source_filename].runningfile.append(outstring.str());
     
     
   }
   else
     {
-      slavemap[source_filename].num_found_solns = 0;
+      workermap[source_filename].num_found_solns = 0;
     }
   
   
@@ -281,7 +281,7 @@ void datagatherer::AppendOnlyPosReal(std::string source_filename,
 void datagatherer::AppendData(std::string source_filename,
                               double *current_params){
   
-	if (slavemap.find(source_filename)==slavemap.end())
+	if (workermap.find(source_filename)==workermap.end())
 	{
 		std::cout << "trying to AppendData for filename not stored in the map of target file names: " << source_filename << std::endl;
 		exit(-12938);
@@ -310,7 +310,7 @@ void datagatherer::AppendData(std::string source_filename,
   }
   fin.close();
   
-	slavemap[source_filename].runningfile.append(outstring.str());
+	workermap[source_filename].runningfile.append(outstring.str());
 	
 	
   return;
@@ -320,7 +320,7 @@ void datagatherer::WriteAllData(){
 	
 
 	
-	for (auto iter=this->slavemap.begin(); iter!=this->slavemap.end(); iter++) {
+	for (auto iter=this->workermap.begin(); iter!=this->workermap.end(); iter++) {
 		datagatherer::WriteData(iter->second.runningfile,
                                 datagatherer::MakeTargetFilename(iter->first) );
     }
@@ -457,7 +457,7 @@ std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesyste
 	
 	
 	std::map <std::string, std::vector< point > > temp_point_storage;
-	std::vector< point > master_point_storage;
+	std::vector< point > controller_point_storage;
 	
 	
 	for (int ii = 0; ii< int(this->gather_savefiles.size()); ++ii) {
@@ -471,7 +471,7 @@ std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesyste
 		
 		if (!datafile.is_open()) {
 			std::cerr << "failed to open " << currentfile.string() << std::endl;
-			return master_point_storage;
+			return controller_point_storage;
 		}
 		
 		std::string tmpstr;
@@ -491,7 +491,7 @@ std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesyste
 		temp_point_storage[gather_savefiles[ii]] = gathered_data;
 	}
 	
-	master_point_storage.resize(temp_point_storage[gather_savefiles[0]].size());
+	controller_point_storage.resize(temp_point_storage[gather_savefiles[0]].size());
 	
 	
 	//now put them together, return.
@@ -503,13 +503,13 @@ std::vector < point > datagatherer::GatherFinalizedDataToMemory(boost::filesyste
 		for (int jj=0; jj< int(gather_savefiles.size()); ++jj){
 			tmppoint.collected_data[gather_savefiles[jj]] = temp_point_storage[gather_savefiles[jj]][ii].collected_data[gather_savefiles[jj]];
 		}
-		master_point_storage[ii] = tmppoint;
+		controller_point_storage[ii] = tmppoint;
 	}
 	
-	std::sort(master_point_storage.begin(), master_point_storage.end());
+	std::sort(controller_point_storage.begin(), controller_point_storage.end());
 	
 	
-	return master_point_storage;
+	return controller_point_storage;
 }
 
 

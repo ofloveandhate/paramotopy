@@ -1,7 +1,7 @@
 #include "failed_paths.hpp"
 
 
-//the master function for doing stuff to the failed points.  called by paramotopy's main.
+//the controller function for doing stuff to the failed points.  called by paramotopy's main.
 
 void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy_info){
 	
@@ -14,11 +14,11 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
   //set settings for path failure.
   
   initial_fails.clear();
-  master_fails.clear();
+  controller_fails.clear();
   terminal_fails.clear();
   
   failinfo::find_failed_paths(paramotopy_info,0,0);
-  initial_fails[0] = this->master_fails;   //seed the data
+  initial_fails[0] = this->controller_fails;   //seed the data
   
   boost::filesystem::path makeme = paramotopy_info.base_dir;
   makeme /= "failure_analysis";
@@ -97,13 +97,13 @@ void failinfo::StartOver(runinfo & paramotopy_info){
     boost::filesystem::remove_all(found_runs[ii]);
   }
   
-  this->master_fails.clear();
+  this->controller_fails.clear();
   this->initial_fails.clear();
   this->terminal_fails.clear();
   
   paramotopy_info.location = paramotopy_info.base_dir;
   failinfo::find_failed_paths(paramotopy_info,0,0);
-  initial_fails[0] = this->master_fails;
+  initial_fails[0] = this->controller_fails;
   
   
   this->current_iteration=0;
@@ -198,7 +198,7 @@ void failinfo::RecoverProgress(runinfo & paramotopy_info){
       
       datagatherer lets_gather_some_data(paramotopy_info.base_dir,paramotopy_info.fundamental_dir,paramotopy_info.numvariables);
       std::map< int, point > successful_resolves = lets_gather_some_data.ReadSuccessfulResolves();
-      failinfo::make_master_from_recovered(successful_resolves);
+      failinfo::make_controller_from_recovered(successful_resolves);
       
       
     }
@@ -233,16 +233,16 @@ void failinfo::report_restored_data(){
     }
   }
   
-  std::cout << "master:" << std::endl;
-  for (int ii=0; ii< int(master_fails.size()); ++ii) {
-    std::cout << master_fails[ii].index << std::endl;
+  std::cout << "controller:" << std::endl;
+  for (int ii=0; ii< int(controller_fails.size()); ++ii) {
+    std::cout << controller_fails[ii].index << std::endl;
   }
   return;
 }
 
 
 
-void failinfo::make_master_from_recovered(std::map< int, point > successful_resolves){
+void failinfo::make_controller_from_recovered(std::map< int, point > successful_resolves){
 	
 //  std::cout << "successful_resolves has " << successful_resolves.size() << " elements." << std::endl;
   
@@ -259,7 +259,7 @@ void failinfo::make_master_from_recovered(std::map< int, point > successful_reso
   
   std::sort(tmpcrap.begin(),tmpcrap.end());
   
-  master_fails = tmpcrap;
+  controller_fails = tmpcrap;
   
   return;
 }
@@ -436,18 +436,18 @@ void failinfo::write_successful_resolves(runinfo paramotopy_info){
     return;
   }
   
-  outputfile << master_fails.size() << "\n";
-  for (int ii = 0; ii<int( master_fails.size() ); ++ii) {
-    outputfile << master_fails[ii].index << " " << master_fails[ii].collected_data.size() << "\n";
-//    std::cout << master_fails[ii].index << " " << master_fails[ii].collected_data.size() << std::endl;
+  outputfile << controller_fails.size() << "\n";
+  for (int ii = 0; ii<int( controller_fails.size() ); ++ii) {
+    outputfile << controller_fails[ii].index << " " << controller_fails[ii].collected_data.size() << "\n";
+//    std::cout << controller_fails[ii].index << " " << controller_fails[ii].collected_data.size() << std::endl;
     
     
-    if ( int(master_fails[ii].collected_data.size())>0){
+    if ( int(controller_fails[ii].collected_data.size())>0){
       std::map<std::string, std::string>::iterator iter;
       std::stringstream namelist;
       std::stringstream datalist;
       
-      for ( iter=master_fails[ii].collected_data.begin(); iter!=master_fails[ii].collected_data.end(); ++iter) {
+      for ( iter=controller_fails[ii].collected_data.begin(); iter!=controller_fails[ii].collected_data.end(); ++iter) {
 				namelist << iter->first << " ";
 				datalist << iter->second;
       }
@@ -502,7 +502,7 @@ void failinfo::find_successful_resolves(runinfo & paramotopy_info){
     
   }
   
-  failinfo::merge_successful_resolves(current_successful_resolves,relative_indices,final_indices); //merges the data into the master list.
+  failinfo::merge_successful_resolves(current_successful_resolves,relative_indices,final_indices); //merges the data into the controller list.
   
   
 	
@@ -514,11 +514,11 @@ void failinfo::merge_successful_resolves(std::vector< point > current_successful
 	
 	
   for (int ii=0; ii<int( current_successful_resolves.size() ); ++ii) {
-    if (master_fails[relative_indices[ii]].index != final_indices[ii]) {
-      std::cerr << "mismatch in indices when commiting to master list" << std::endl;
+    if (controller_fails[relative_indices[ii]].index != final_indices[ii]) {
+      std::cerr << "mismatch in indices when commiting to controller list" << std::endl;
     }
     else{
-      master_fails[relative_indices[ii]].collected_data = current_successful_resolves[ii].collected_data;
+      controller_fails[relative_indices[ii]].collected_data = current_successful_resolves[ii].collected_data;
     }
   }
   
@@ -894,8 +894,8 @@ int failinfo::find_failed_paths(runinfo paramotopy_info, int temporal_flag, int 
   
   switch (temporal_flag) {
 		case 0:
-			this->master_fails.clear();
-			this->master_fails = temporary_fails;
+			this->controller_fails.clear();
+			this->controller_fails = temporary_fails;
 			break;
 			
 		case 1:
