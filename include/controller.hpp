@@ -13,8 +13,8 @@
 #include <iomanip>
 
 
-#ifndef __MASTER_H__
-#define __MASTER_H__
+#ifndef __controller_H__
+#define __controller_H__
 
 #include "step1_funcs.hpp"
 #include "step2_funcs.hpp"
@@ -31,18 +31,18 @@
 
 
 /**
- *  @class "master_process"
+ *  @class "controller_process"
  *
  * process for distribution of parameter points and termination of workers. 
  *
- * \brief master process for basic searches and brute-force runs.
+ * \brief controller process for basic searches and brute-force runs.
  **/
 
-class master_process{
+class controller_process{
 	
 public:
 	
-//	master_process(communicator){
+//	controller_process(communicator){
 //		
 //		/* Find out how many processes there are in the default
 //		 communicator */
@@ -57,7 +57,7 @@ public:
 //		this->num_active_workers = 0;
 //	}
 	
-	master_process(){
+	controller_process(){
 		
 		/* Find out how many processes there are in the default
 		 communicator */
@@ -74,7 +74,7 @@ public:
 	
 	
 	/**
-	 * the main master process.  to be used by which ever process gets myid==0.  handles the distribution of the parameter points to the workers via MPI.
+	 * the main controller process.  to be used by which ever process gets myid==0.  handles the distribution of the parameter points to the workers via MPI.
 
 	 this is the only public method excepting the constructors.
 	 
@@ -82,7 +82,7 @@ public:
 	 \param input_p_info       current parser run info.
 	 \param process_timer      MUTABLE current timer, and returns to user for further use.
 	 */
-	void master_main(ProgSettings input_settings,
+	void controller_main(ProgSettings input_settings,
 									 runinfo input_p_info,
 									 timer & process_timer);
 	
@@ -132,13 +132,13 @@ private:
 	
 	
 	/**
-	 the master setup function  
+	 the controller setup function  
 	 
 	 uses the runinfo and ProgSettings in memory to setup the rest of the necessaries.
 	 
 
 	 */
-	void MasterSetup();
+	void controllerSetup();
 	
 	
 	
