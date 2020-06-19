@@ -117,14 +117,14 @@ Paramotopy has the following library dependencies:
 \begin{itemize}
 \item \href{http://sourceforge.net/projects/tinyxml/}{Tinyxml}  (lies internally to the program's folders, as per the license agreement).
 \item MPICH2,
-\item  \href{http://www.boost.org/}{Boost} -- regex, system, filesystem (for file manipulation), and a few others.  Make sure you have the entire boost library.  Minimum version is 1.49.
+\item  \href{http://www.boost.org/}{Boost} -- regex, system, filesystem (for file manipulation), and a few others.  Make sure you have the entire boost library.  Minimum version is 1.53.
 \item OpenMP (for the most accurate timing available).  Seems standard on *nix variants these days.
 \item \href{http://www.bedaux.net/mtrand/}{MTRand} (lies internally to the program's folders, as per the license agreement)
 \end{itemize}
 \noindent For installation of dependencies on a Mac, consider using \href{http://mxcl.github.io/homebrew/}{Homebrew}.
 \vspace{10mm}
 
-\noindent In addition, Paramotopy relies on a suitably compiled version of Bertini, which has the following dependencies:
+\noindent In addition, Paramotopy relies on a suitably compiled version of Bertini 1, which has the following dependencies:
 \begin{itemize}
 \item \href{http://www.mpfr.org/}{mpfr} 
 \item \href{http://gmplib.org/}{gmp}
@@ -134,17 +134,14 @@ Paramotopy has the following library dependencies:
 \end{itemize}
 
 
-When Bertini is compiled for use with Paramotopy, it must be compiled in two ways:  into an executable, and a library.  When compiled into the executable, it must have the flag \texttt{-D\_HAVE\_MPI} (for use with Paramotopy).  In contrast, the library \emph{must not} have the \texttt{-D\_HAVE\_MPI} flag.  In addition, we redefine \texttt{main()} to be \texttt{bertini\_main} via the command \texttt{-Dmain=bertini\_main}.  Compilation is a little different of every machine, of course, and a future milestone is to use something like \texttt{./configure} to handle setting everything up properly for start-to-finish with minimal user input.  If you would like to help with this, please contact the authors.
-
-As it stands now, Paramotopy is compiled using a Makefile.  Various options are available in the makefile:
+Paramotopy is built using the Autotools.  If you cloned the repo from Github, you should 
 \begin{itemize}
-\item \texttt{TIMING}: choose {\texttt{YES}} or {\texttt{NO}}.  Conditional compilation using \texttt{\#ifdef} in the code turns on or off timing statements for Step2.
-\item \texttt{OPT}: Sets available compiler options, such as the \texttt{-O} optimization flag, and compiler warning levels.  These are left user-set, as every compiler has different options.
-\item \texttt{VERBOSE}:  Chooses whether Step2 ought to be compiled with \texttt{\#ifdefs} for extra output to the screen.
+\item {libtoolize \&\& autoreconf -vfi} in the directory first, if on Linux
+\item {autoreconf -vfi} in the directory first, if on Mac
 \end{itemize}
-Additionally, the user before compiling (or in the process of) must set an environment variable, \texttt{MACHINENAME}\index{\texttt{MACHINENAME}} to have the value of the name of their machine.  Then, in the Makefile, the user sets such things as the location of the necessary libraries, and other machine-specific parameters.  
+Then, use the standard {\tt ./configure}, {\tt make}, {\tt make install} pattern.  
 
-Simply issuing the \texttt{make} command should be enough to compile the programs once initial configuration is completed.
+You may have to add the path to where you installed the Bertini libraries to {\tt LD\_RUN\_PATH} and {\tt LD\_LIBRARY\_PATH}, especially if you customized {\tt prefix} when installing Bertini 1.
 
 
 \clearpage
