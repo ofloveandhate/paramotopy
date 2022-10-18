@@ -47,8 +47,6 @@ int main(int argC, char *args[]){
 	
 
 	
-
-	std::string suppliedfilename;
 	if (argC==1) {
 		paramotopy_info.GetInputFileName();
 	}
@@ -56,7 +54,7 @@ int main(int argC, char *args[]){
 		std::stringstream commandss;
 		commandss << args[1];
 		
-		suppliedfilename = commandss.str();
+		std::string suppliedfilename = commandss.str();
 		
 		paramotopy_info.GetInputFileName(suppliedfilename);
 	}
