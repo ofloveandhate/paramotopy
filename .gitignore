@@ -74,3 +74,6 @@ ltversion*
 *.idx
 *.toc
 *.synctex.gz
+configure~
+.DS_Store
+examples/my_script~
