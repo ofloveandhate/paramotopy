@@ -631,7 +631,7 @@ void runinfo::CopyUserDefinedFile(){
     if (!boost::filesystem::exists(mcfile)) {
       std::cerr << "mcfile specified by the input file does not exist..." 
 				<< std::endl;
-      std::cerr << "mcfile: " << mcfile << "\n";
+      std::cerr << "mcfile: " << mcfile << std::endl;
       return;
     }
     
