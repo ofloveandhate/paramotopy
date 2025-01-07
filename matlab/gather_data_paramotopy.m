@@ -102,29 +102,40 @@ for ii = 1:numfolders
         display(dirlist(jj).name)
         fid = fopen([folders{ii} '/' dirlist(jj).name]);
         params = fgetl(fid);
-        counting_lines = 2;
 
-		while (counting_lines<linecount && linecount>2)
+        current_line_number = 2;
+
+		while (current_line_number<linecount && linecount>2)
 
             line_number_mc = fscanf(fid,'%i',[1,1]);
 			if (mod(line_number_mc+1,1000)==0)
 				display(sprintf('solution %i\n',line_number_mc+1));
 			end
 			location = fscanf(fid,'%f',[1,2*info.numparam]);
-            numrealsolns = fscanf(fid,'%i',[1,1]);
-			
-	
-			
+			fgetl(fid); % burn a line, since there is a stupid dangling space after the parameter values
+
+			if strcmp(dataname,'failed_paths')
+				next_line = fgetl(fid);
+				if isempty(next_line)
+					numrealsolns = 0;
+				else
+					numrealsolns = sscanf(next_line,'%i',[1,1]);
+				end
+			else
+				% there must be a number next, telling how many solutions there are at this parameter point
+				numrealsolns = fscanf(fid,'%i',[1,1]);
+			end
+            
+
 
 			
             eval( ['[' indices '] = ind2sub(sizes,line_number_mc+1);']);
-
             eval( ['nsolns(' indices ') = numrealsolns;	']);
 			eval(['locations(' indices ').line_number_mc = line_number_mc;']);
             eval(['locations(' indices ').location = location;']);
 
             
-            counting_lines = counting_lines+4;
+            current_line_number = current_line_number+4;
             for kk = 1:numrealsolns
 				for mm = 1:info.numvar
                     tmp(mm,:) = fscanf(fid,'%f %f\n',[1,2]);
@@ -133,7 +144,7 @@ for ii = 1:numfolders
 
 				eval( ['solutions(' indices ').clusterofsoln(kk).indsoln = tmp;']);
             end
-            counting_lines = counting_lines+numrealsolns*(info.numvar+1);
+            current_line_number = current_line_number+numrealsolns*(info.numvar+1);
 		end
 		
 		
