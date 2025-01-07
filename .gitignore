@@ -77,3 +77,4 @@ ltversion*
 configure~
 .DS_Store
 examples/my_script~
+*.asv
