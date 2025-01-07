@@ -197,16 +197,26 @@ else
 	display('no gathered data detected.  trying to get at the raw data\n');
 	datadir = sprintf('bfiles_%s/run%i/step2/DataCollected/c1',filename,run);
 end
-possiblefiles = dir([datadir '/*0']);  %lists all of the first data files.
+allfiles = dir([datadir '/*0']);  %lists all of the first data files.
+
+possiblefiles = {};
+for ii = 1:length(allfiles)
+    n = allfiles(ii).name(1:end-1);
+
+    if ~contains(n,'lookup')
+        possiblefiles{end+1} = n;
+    end
+end
+
 
 display('The following saved data types have been detected');
 for ii = 1:length(possiblefiles)
 	
-	display(sprintf('%i: %s',ii,possiblefiles(ii).name(1:end-1)));
+	display(sprintf('%i: %s',ii,possiblefiles{ii}));
 end
 
 choice = input('which data file type?\n');
-dataname = possiblefiles(choice).name(1:end-1);
+dataname = possiblefiles{choice};
 
 end
 
