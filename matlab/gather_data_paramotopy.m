@@ -1,7 +1,6 @@
 % gather_data_paramotopy(filename)
 %
-%captures generated data from a paramatopy run set up via the
-%maketestpolysaurus function.
+%captures generated data from a paramatopy run
 %
 % dependencies: parse_input
 %               getlinecount
