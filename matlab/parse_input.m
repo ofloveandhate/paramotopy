@@ -33,39 +33,37 @@ info.numvargroup = inputfileparameters(2);
 info.numparam = inputfileparameters(3);
 info.numconst = inputfileparameters(4);
 
-
+% read in the equations
 info.eqn = cell(1,info.numeqn);
 for ii = 1:info.numeqn
     info.eqn{ii} = fgetl(fid);
 end
 
-varcrap = cell(1,info.numvargroup);
+
+% read in the variable groups
+variable_groups = cell(1,info.numvargroup);
 for ii = 1:info.numvargroup
-    varcrap{ii} = fgetl(fid);  %get entire line
+    variable_groups{ii} = fgetl(fid);  %get entire line
 end
-info.vars = cell(1,info.numeqn);
-varcounter = 1;
+
+
+% parse variable groups into variables
+info.vars = cell(1,0);  % make an empty 1d cell array
+var_counter = 0;
 for ii = 1:info.numvargroup
-    commas = strfind(varcrap{ii},',');%finds commas, which we use to separate the variables in a group
-    if isempty(commas)
-        info.vars{varcounter} = varcrap{ii}; %only one variable on line, so grab it
-        varcounter = varcounter + 1;
-    else
-        tmp = varcrap{ii};                 %because working with cells sometimes is awkward
-        tmp = [',' tmp(~isspace(tmp)) ','];%despace
-        commas = strfind(tmp,',');         %find commas because of omission of spaces
-        for jj = 1:length(commas)-1        % for each found comma
-            info.vars{varcounter} = tmp(commas(jj)+1:commas(jj+1)-1); %grab the variable name
-            varcounter = varcounter + 1;
-            
-        end
+    vars = split(variable_groups{ii},','); % split on commas
+    
+    % strip whitespace and pack into the cell array
+    for jj = 1:length(vars)
+        v = vars(jj);
+        var_counter = var_counter+1;
+        info.vars(var_counter) = strtrim(v);
     end
+
 end
+
 
 %%%%%%%%constants
-
-
-
 if info.numconst>0
 	info.constnames = cell(1,info.numconst);
 	info.constvalues = cell(1,info.numconst);
@@ -74,24 +72,26 @@ for ii = 1:info.numconst
 	tmp = fgetl(fid);
 	tmp = deblank(tmp);
 	info.constnames{ii} = tmp(1:strfind(tmp,'=')-1);
-	info.constvalues{ii} = str2double(tmp(strfind(tmp,'=')+1:end-1));
+	info.constvalues{ii} = tmp(strfind(tmp,'=')+1:end-1);
 end
 end
 
 
+%is run userdefined?
 tmp = fgetl(fid);
 ind = isspace(tmp);
 if all(ind==0)
 	info.userdefined = str2num(tmp);
 else
-	while isspace(tmp(1));
+	while isspace(tmp(1))
 		tmp = tmp(2:end);
 	end
 	ind = find(isspace(tmp));
 	info.userdefined = str2num(tmp(1:ind-1));
 end
-% info.userdefined = fscanf(fid,'%i\n',[1,1]);  %is run userdefined?
+% info.userdefined = fscanf(fid,'%i\n',[1,1]);  
 
+% parse in the parameters
 info.paramnames = cell(info.numparam,1);
 if (info.userdefined==0)
 	info.paramvalues = zeros(info.numparam,5);  %preallocate

@@ -31,8 +31,6 @@ end
 
 run = get_run(filename);
 
-
-
 [folders, numfolders] = getfolders(filename,run);
 
 display(sprintf('gathering data starting from %s',folders{1}));
@@ -81,74 +79,95 @@ end
 
 
 
-
-indices = '';
+index_names = strings(info.numparam,1);
 for ii = 1:info.numparam
-	indices = sprintf('%sI%i,',indices,ii);
+    index_names(ii) = sprintf('I%i',ii);
 end
-indices = indices(1:end-1);%nip off the last comma
-
+indices = char(join(index_names,',',1));
 
 tmp = base_soln;
 for ii = 1:numfolders
-    dirlist = dir([folders{ii} '/' dataname '*']);
-    display(folders{ii})
+    folder = folders{ii};
+    display(sprintf('    folder %s',folder));
+
+    % get the files to read in from the folder
+    dirlist = dir([folder '/' dataname '*']);
+    
+    % loop over the files and do the thing
     for jj = 1:length(dirlist)
+        filename = dirlist(jj).name;
+	    linecount = getlinecount([folder '/' filename]);
 
-	linecount = getlinecount([folders{ii} '/' dirlist(jj).name]);
+        display(sprintf('    file %s',filename));
+        fid = fopen([folder '/' filename]);
+        param_names = fgetl(fid); % the first line of every data file is the names of the parameters
 
-
-        display(dirlist(jj).name)
-        fid = fopen([folders{ii} '/' dirlist(jj).name]);
-        params = fgetl(fid);
-
-        current_line_number = 2;
+        current_line_number = 2; % this is a 1-based line number of the next line to read
 
 		while (current_line_number<linecount && linecount>2)
+            line = fgetl(fid); % this should be the 0-based line number into the parameter sample
+            line_number_mc = sscanf(line,'%i',[1,1]);
 
-            line_number_mc = fscanf(fid,'%i',[1,1]);
-			if (mod(line_number_mc+1,1000)==0)
+            % a progress bar, of sorts
+            if (mod(line_number_mc+1,1000)==0)
 				display(sprintf('solution %i\n',line_number_mc+1));
-			end
-			location = fscanf(fid,'%f',[1,2*info.numparam]);
-			fgetl(fid); % burn a line, since there is a stupid dangling space after the parameter values
+            end
 
-			if strcmp(dataname,'failed_paths')
+            line = fgetl(fid);
+			parameter_values = sscanf(line,'%f',[1,2*info.numparam]);
+			
+            current_line_number = current_line_number + 2; % gets us to the line that 
+            % tells how many solutions there are,
+            % unless the file parsed is `failed_paths`, which only shows up
+            % if the file is not empty.
+
+            if strcmp(dataname,'failed_paths')
 				next_line = fgetl(fid);
 				if isempty(next_line)
-					numrealsolns = 0;
+					num_solutions = 0;
 				else
-					numrealsolns = sscanf(next_line,'%i',[1,1]);
+					num_solutions = sscanf(next_line,'%i',[1,1]);
 				end
-			else
+            else
 				% there must be a number next, telling how many solutions there are at this parameter point
-				numrealsolns = fscanf(fid,'%i',[1,1]);
-			end
-            
-
-
-			
-            eval( ['[' indices '] = ind2sub(sizes,line_number_mc+1);']);
-            eval( ['nsolns(' indices ') = numrealsolns;	']);
-			eval(['locations(' indices ').line_number_mc = line_number_mc;']);
-            eval(['locations(' indices ').location = location;']);
-
-            
-            current_line_number = current_line_number+4;
-            for kk = 1:numrealsolns
-				for mm = 1:info.numvar
-                    tmp(mm,:) = fscanf(fid,'%f %f\n',[1,2]);
-                    
-				end
-
-				eval( ['solutions(' indices ').clusterofsoln(kk).indsoln = tmp;']);
+				num_solutions = fscanf(fid,'%i',[1,1]);
             end
-            current_line_number = current_line_number+numrealsolns*(info.numvar+1);
+            current_line_number = current_line_number + 2; 
+            % gets us to the line that has the first solution
+            eval( ['[' indices '] = ind2sub(sizes,line_number_mc+1);']);
+            
+            % do some bounds checking, cuz i don't know, what if the 
+            % input file doesn't match the data in the folder...
+            evalme = ['is_out_of_bounds = [' indices '] > info.paramvalues(:,5)''; '];
+            eval( evalme )
+            
+            if any(is_out_of_bounds)
+                display(sprintf('parameter point %i in file %s/%s is out of bounds...  does your input file actually correspond with the run being gathered?',line_number_mc,folder,filename))
+            end
+            eval( ['nsolns(' indices ') = num_solutions;	']);
+			eval(['locations(' indices ').line_number_mc = line_number_mc;']);
+            eval(['locations(' indices ').location = parameter_values;']);
+            
+            if num_solutions>0
+                for kk = 1:num_solutions
+                    for mm = 1:info.numvar
+                        tmp(mm,:) = fscanf(fid,'%f %f\n',[1,2]);
+                    end
+				    eval( ['solutions(' indices ').clusterofsoln(kk).indsoln = tmp;']);
+                end
+                current_line_number = current_line_number+num_solutions*(info.numvar+1); % advance the line number by the number of solutions we read in.
+                % the +1 is because a blank line separates the solutions
+            else
+                % need to burn 2 lines
+                if ~strcmp(dataname,'failed_paths')
+                    fgetl(fid);
+                    fgetl(fid);
+                end
+            end
+            
 		end
 		
-		
-		
-        fclose(fid);
+        fclose(fid); % done with the file, so we can close it
     end
 	
 end
