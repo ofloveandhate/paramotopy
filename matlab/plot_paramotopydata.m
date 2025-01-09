@@ -110,9 +110,7 @@ else
 end
 
 
-max_recursive(nsolns)
-
-	plotmode = get_mode_from_user(info);
+plotmode = get_mode_from_user(info);
 
 
 
@@ -500,7 +498,7 @@ function plotmode = get_mode_from_user(info)
 	plotmode = -1;
 	opts = [1 2];
 	while ( isempty(find(plotmode==opts, 1)) )
-		plotmode = input('choose:\n1) plot number of real solutons\n2) plot solutions themselves\n:');
+		plotmode = input('choose:\n1) plot number of solutons on a grid\n2) plot solutions themselves\n:');
 	end
 
 	switch plotmode
@@ -578,40 +576,65 @@ end
 %%%
 
 
-function plot_1solns(data,orders)
+function plot_1solns(data,orders, nplot)
+arguments
+    data
+    orders
+    nplot = struct('uservars',1,'indices',1:1)
+end
 
-scatter(1,ones(length(data(:,1))),data(:,1));
+scatter(1,ones(length(data(:,nplot.indices(1)))),data(:,nplot.indices(1)));
 
 
 end
 
 
 
-function plot_2solns(data,orders)
+function plot_2solns(data,orders,nplot)
+arguments
+    data
+    orders
+    nplot = struct('uservars',2,'indices',1:2)
+end
 
 
-scatter(data(:,1),data(:,2),5,orders);
+scatter(data(:,nplot.indices(1)),data(:,nplot.indices(2)),5,orders);
 
 end
 
 
 
-function plot_3solns(data,orders)
+function plot_3solns(data,orders,nplot)
+arguments
+    data
+    orders
+    nplot = struct('uservars',3,'indices',1:3)
+end
 
 
-scatter3(data(:,1),data(:,2),data(:,3),20,orders);
+scatter3(data(:,nplot.indices(1)),data(:,nplot.indices(2)),data(:,nplot.indices(3)),20,orders);
 
 %want some clever coloring scheme...
 end
 
-function plot_4solns(data,orders)
-
-
-	scatter3(data(:,1),data(:,2),data(:,3),20,data(:,4));
+function plot_4solns(data,orders,nplot)
+arguments
+    data
+    orders
+    nplot = struct('uservars',4,'indices',1:4)
 end
 
 
-function plot_6solns(data,orders)
+	scatter3(data(:,nplot.indices(1)),data(:,nplot.indices(2)),data(:,nplot.indices(3)),20,data(:,nplot.indices(4)));
+end
+
+
+function plot_6solns(data,orders,nplot)
+arguments
+    data
+    orders
+    nplot = struct('uservars',6,'indices',1:6)
+end
 
 
 
@@ -624,19 +647,19 @@ end
 
 function plot_higher_solns(data,orders,nplot)
 global info fontsize
+
 switch nplot.uservars
-	
 	case{1}
-		plot_1solns(data,orders)
+		plot_1solns(data,orders,nplot)
 		xlabel(info.vars{nplot.indices(1)},'FontSize',fontsize)
 
 	case{2}
-		plot_2solns(data,orders)
+		plot_2solns(data,orders,nplot)
 		xlabel(info.vars{nplot.indices(1)},'FontSize',fontsize)
 		ylabel(info.vars{nplot.indices(2)},'FontSize',fontsize)
 
 	case{3}
-		plot_3solns(data,orders)
+		plot_3solns(data,orders,nplot)
 		xlabel(info.vars{nplot.indices(1)},'FontSize',fontsize)
 		ylabel(info.vars{nplot.indices(2)},'FontSize',fontsize)
 		zlabel(info.vars{nplot.indices(3)},'FontSize',fontsize)
@@ -645,7 +668,7 @@ switch nplot.uservars
 		set(get(cbar,'ylabel'),'String', 'order of solve','FontSize',fontsize-2);
 
 	case{4}
-		plot_4solns(data(:,[nplot.indices(1) nplot.indices(2) nplot.indices(3) nplot.indices(4)]),orders)
+		plot_4solns(data,orders,nplot)
 		xlabel(info.vars{nplot.indices(1)},'FontSize',fontsize)
 		ylabel(info.vars{nplot.indices(2)},'FontSize',fontsize)
 		zlabel(info.vars{nplot.indices(3)},'FontSize',fontsize)
@@ -654,7 +677,7 @@ switch nplot.uservars
 		set(get(cbar,'ylabel'),'String', info.vars{nplot.indices(4)},'FontSize',fontsize-2);
 
 	case{6}
-		plot_6solns(data(:,[nplot.indices(1) nplot.indices(2) nplot.indices(3) nplot.indices(4) nplot.indices(5) nplot.indices(6)]),orders)
+		plot_6solns(data,orders,nplot)
 		xlabel(info.vars{nplot.indices(1)},'FontSize',fontsize)
 		ylabel(info.vars{nplot.indices(2)},'FontSize',fontsize)
 		zlabel(info.vars{nplot.indices(3)},'FontSize',fontsize)
