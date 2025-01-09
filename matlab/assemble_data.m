@@ -6,7 +6,7 @@
 % mathematics
 % silvianaamethyst@gmail.com
 
-function [data,orders] = assemble_data_real(solutions,info,generic_num_solns,nsolns)
+function [data,orders] = assemble_data(solutions,info,generic_num_solns,nsolns)
 %i promise solutions is used, just inside an eval call
 
 
