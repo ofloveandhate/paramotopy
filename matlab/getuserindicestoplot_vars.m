@@ -31,10 +31,11 @@
 
 function [nplot] = getuserindicestoplot_vars(info)
 
-display(info.vars)
-nplot.uservars = input('there are more than 3 variables, and simple no-input plotting supported\nonly for three or less...\ntherefore, how many variables (<=3) would you like to plot?\nnote:can use 4, if 4th is color\n');
+nplot.uservars = input('there are more than 3 variables, and simple no-input plotting is supported\nonly for three or less...\ntherefore, how many variables (<=3) would you like to plot?\nnote:can use 4, if 4th is color\n');
+
+display(sprintf('here are the variables available to plot.  number selection on left.'))
 for ii = 1:info.numvar
-	display(sprintf([num2str(ii) ': ' info.vars{ii}]));
+	display(sprintf('%i : %s',ii,info.vars{ii}));
 end
 
 nplot.indices = zeros(nplot.uservars,1);
