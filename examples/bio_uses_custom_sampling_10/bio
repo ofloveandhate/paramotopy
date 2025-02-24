@@ -1,0 +1,35 @@
+7 1 2 21
+Fa-Da*a-k4*a+k3*c*g+k2*f-k1*a*b
+Fb-Db*b-k6*b+k5*c*d+k2*f-k1*a*b
+Fc-Dc*c+k8*d-k7*c*e+k6*b-k5*c*d+k4*a-k3*c*g
+Fd-Dd*d-k8*d+k7*c*e+k6*b-k5*c*d
+Fe-De*e+k8*d-k7*c*e
+Ff-Df*f-k2*f+k1*a*b
+Fg-Dg*g+k4*a-k3*c*g
+a,b,c,d,e,f,g
+constant k3,k1,k5,k6,k7,k8,k9,Fa,Fb,Fc,Fd,Fe,Ff,Fg,Da,Db,Dc,Dd,De,Df,Dg;
+k3=.80349;
+k1=.980389;
+k5=.8034;
+k6=.8018;
+k7=.16876;
+k8=.7982;
+k9=.58973;
+Fa=.4264;
+Fb=.5284;
+Fc=.1687;
+Fd=.167896;
+Fe=.5673;
+Ff=.69386;
+Fg=.79827;
+Da=.0692;
+Db=.08762;
+Dc=.2897;
+Dd=.0828;
+De=.26967;
+Df=.4238;
+Dg=.5872;
+1
+my_samples
+k4
+k2
