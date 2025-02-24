@@ -54,10 +54,15 @@ if ~info.userdefined
 	canonicallinenumber = zeros(1);
 	canonicallocation = zeros(1,2*info.numparam);
 	base_soln = zeros(info.numvar,2); %the prototypical solution for this system
-	canonicalsoln = repmat(struct('indsoln',base_soln),[generic_num_solns,1]);
+	canonicalsoln = repmat(struct('indsoln',base_soln),[0,1]);
 	solutions = repmat(struct('clusterofsoln',canonicalsoln),[sizes 1]);
 	locations = repmat(struct('location',canonicallocation,'line_number_mc',canonicallinenumber),[sizes 1]);
-
+    
+    index_names = strings(info.numparam,1);
+    for ii = 1:info.numparam
+        index_names(ii) = sprintf('I%i',ii);
+    end
+    indices = char(join(index_names,',',1));
 else
 	
 
@@ -68,22 +73,18 @@ else
 	canonicallinenumber = zeros(1);
 	canonicallocation = zeros(1,2*info.numparam);
 	base_soln = zeros(info.numvar,2); %the prototypical solution for this system
-	canonicalsoln = repmat(struct('indsoln',base_soln),[generic_num_solns,1]);
+	canonicalsoln = repmat(struct('indsoln',base_soln),[0,1]);
 	solutions = repmat(struct('clusterofsoln',canonicalsoln),[sizes 1]);
 	locations = repmat(struct('location',canonicallocation,'line_number_mc',canonicallinenumber),[sizes 1]);
 	
 	info.mc_lines = sizes;
 
-	
+	indices = 'I1';
 end
 
 
 
-index_names = strings(info.numparam,1);
-for ii = 1:info.numparam
-    index_names(ii) = sprintf('I%i',ii);
-end
-indices = char(join(index_names,',',1));
+
 
 tmp = base_soln;
 for ii = 1:numfolders
@@ -133,22 +134,42 @@ for ii = 1:numfolders
 				num_solutions = fscanf(fid,'%i',[1,1]);
             end
             current_line_number = current_line_number + 2; 
+
+
             % gets us to the line that has the first solution
-            eval( ['[' indices '] = ind2sub(sizes,line_number_mc+1);']);
+            if ~info.userdefined
+
+                if info.numparam>1
+                    eval( ['[' indices '] = ind2sub(sizes,line_number_mc+1);']);
+                else
+                    eval( ['[' indices '] = line_number_mc+1;']);
+                end
+                % do some bounds checking, cuz i don't know, what if the 
+                % input file doesn't match the data in the folder...
+                evalme = ['is_out_of_bounds = [' indices '] > info.paramvalues(:,5)''; '];
+                eval( evalme )
+            else
+                eval( ['[' indices '] = line_number_mc+1;']);
+
+                evalme = ['is_out_of_bounds = [' indices '] > info.mc_lines''; '];
+                eval( evalme )
+            end
             
-            % do some bounds checking, cuz i don't know, what if the 
-            % input file doesn't match the data in the folder...
-            evalme = ['is_out_of_bounds = [' indices '] > info.paramvalues(:,5)''; '];
-            eval( evalme )
+
             
+
             if any(is_out_of_bounds)
                 display(sprintf('parameter point %i in file %s/%s is out of bounds...  does your input file actually correspond with the run being gathered?',line_number_mc,folder,filename))
             end
+
+
+
             eval( ['nsolns(' indices ') = num_solutions;	']);
 			eval(['locations(' indices ').line_number_mc = line_number_mc;']);
             eval(['locations(' indices ').location = parameter_values;']);
             
             if num_solutions>0
+                 eval( ['solutions(' indices ').clusterofsoln = repmat(struct(''indsoln'',base_soln),[0,1]);']); 
                 for kk = 1:num_solutions
                     for mm = 1:info.numvar
                         tmp(mm,:) = fscanf(fid,'%f %f\n',[1,2]);
