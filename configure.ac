@@ -4,11 +4,11 @@
 
 
 #we're building paramotopy, version 1.0.3.7, and the corresponding email is silviana's
-AC_INIT([paramotopy], [1.0.3.7], [silvianaamethyst@gmail.com],[paramotopy], [https://paramotopy.com])
+AC_INIT([paramotopy],[1.0.3.7],[silvianaamethyst@gmail.com],[paramotopy],[https://paramotopy.com])
 
 
 # Force autoconf to be at least this version number:
-AC_PREREQ([2.68])
+AC_PREREQ([2.72])
 
 
 #
@@ -41,7 +41,7 @@ AC_ENABLE_SHARED
 AC_ENABLE_STATIC
 
 #set up for building libraries
-AC_PROG_LIBTOOL
+LT_INIT
 
 #find flex / lex
 AC_PROG_LEX
