@@ -1,7 +1,7 @@
 #include <mpi.h>
-#include "step1_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/random.hpp"
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
@@ -31,8 +31,8 @@
 //	void computeNumDenom(char **numer, char **denom, char *s);
 //}
 
-#include "step2_funcs.hpp"
-#include "timing.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/timing.hpp"
 
 //#include <gmp.h>
 

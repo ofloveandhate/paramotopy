@@ -37,15 +37,15 @@
 
 #include <gmp.h>
 extern "C"{
-	#include <bertini.h>
+	#include <bertini1/bertini.h>
 }
 
 
-#include "paramotopy_enum.hpp"
-#include "random.hpp"
-#include "mtrand.hpp"
+#include "paramotopy/paramotopy_enum.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/mtrand.hpp"
 
-#include "config.h"
+#include "paramotopy/paramotopyconfig.h"
 
 
 /** Function to call the bertini libraries. */

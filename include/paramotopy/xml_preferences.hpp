@@ -8,7 +8,7 @@
 #include <map>
 #include <sstream>
 #include <set>
-#include "tinyxml.h"
+#include "paramotopy/tinyxml.h"
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -21,8 +21,8 @@
 
 #define minprefversion = 103; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
-//#include "runinfo.hpp"
-#include "para_aux_funcs.hpp"
+//#include "paramotopy/runinfo.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
 
 
 

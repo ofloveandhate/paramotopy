@@ -1,4 +1,4 @@
-#include "para_aux_funcs.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
 
 
 
@@ -12,7 +12,7 @@ void ParamotopySplashScreen(){
 		<< "     silviana amethyst and Matthew Niemerg, with Dan Bates.\n\n"
 		<< "     www.paramotopy.com     silvianaamethyst@gmail.com\n"
 		<< "\n"
-		<< "     version " << PACKAGE_VERSION << "\n"
+		<< "     version " << PARAMOTOPY_PACKAGE_VERSION << "\n"
 		<< "**************************" << std::endl;
 	
 	

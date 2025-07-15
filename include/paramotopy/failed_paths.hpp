@@ -15,17 +15,17 @@
 #ifndef __FAILED_PATHS_H__
 #define __FAILED_PATHS_H__
 
-#include "random.hpp"
-#include "mtrand.hpp"
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "para_aux_funcs.hpp"
-#include "xml_preferences.hpp"
-#include "runinfo.hpp"
-#include "menu_cases.hpp"
-#include "step2readandwrite.hpp"
-#include "point.hpp"
-#include "datagatherer.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
+#include "paramotopy/xml_preferences.hpp"
+#include "paramotopy/runinfo.hpp"
+#include "paramotopy/menu_cases.hpp"
+#include "paramotopy/step2readandwrite.hpp"
+#include "paramotopy/point.hpp"
+#include "paramotopy/datagatherer.hpp"
 
 
 /** the case to be called from paramotopy menu

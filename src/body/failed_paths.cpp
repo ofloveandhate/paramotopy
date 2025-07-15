@@ -1,4 +1,4 @@
-#include "failed_paths.hpp"
+#include "paramotopy/failed_paths.hpp"
 
 
 //the controller function for doing stuff to the failed points.  called by paramotopy's main.

@@ -19,10 +19,10 @@
 #ifndef __STEPONE_H__
 #define __STEPONE_H__
 
-#include "random.hpp"
-#include "para_aux_funcs.hpp"
-#include "xml_preferences.hpp"
-#include "runinfo.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
+#include "paramotopy/xml_preferences.hpp"
+#include "paramotopy/runinfo.hpp"
 
 
 

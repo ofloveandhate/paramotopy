@@ -25,16 +25,16 @@
 #include <boost/regex.hpp>
 
 
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
-#include "step2readandwrite.hpp"
-#include "controller.hpp"
-#include "worker.hpp"
-#include "para_aux_funcs.hpp"
-#include "timing.hpp"
-#include "paramotopy_enum.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/step2readandwrite.hpp"
+#include "paramotopy/controller.hpp"
+#include "paramotopy/worker.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
+#include "paramotopy/timing.hpp"
+#include "paramotopy/paramotopy_enum.hpp"
 
 
 

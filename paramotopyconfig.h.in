@@ -1,0 +1,9 @@
+// the configured options and settings for paramotopy
+#define PARAMOTOPY_VERSION_MAJOR @PARAMOTOPY_VERSION_MAJOR@
+#define PARAMOTOPY_VERSION_MINOR @PARAMOTOPY_VERSION_MINOR@
+#define PARAMOTOPY_VERSION_PATCH @PARAMOTOPY_VERSION_PATCH@
+
+
+#define PARAMOTOPYPACKAGE_BUGREPORT "silviana.amethyst@gmail.com"
+
+#define PARAMOTOPY_PACKAGE_VERSION "@paramotopy_VERSION_MAJOR@.@paramotopy_VERSION_MINOR@.@paramotopy_VERSION_PATCH@"

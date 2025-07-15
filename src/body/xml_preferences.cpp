@@ -1,4 +1,4 @@
-#include "xml_preferences.hpp"
+#include "paramotopy/xml_preferences.hpp"
 
 //NUMPOSSIBLE_SAVEFILES is set in xml_preferences.hpp
 const char * const ProgSettings::possible_savefiles[NUMPOSSIBLE_SAVEFILES] =

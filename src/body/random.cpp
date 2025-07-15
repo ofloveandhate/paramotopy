@@ -1,5 +1,5 @@
-#include "random.hpp"
-#include "mtrand.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/mtrand.hpp"
 
 
 

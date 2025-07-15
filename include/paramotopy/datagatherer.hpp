@@ -15,23 +15,23 @@
 #include <sys/types.h>
 
 
-#include "random.hpp"
-#include "para_aux_funcs.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/progress.hpp>
 #include <boost/regex.hpp>
 
-#include "tinyxml.h"
-#include "point.hpp"
+#include "paramotopy/tinyxml.h"
+#include "paramotopy/point.hpp"
 
 #ifndef __DATAGATHERER_H__
 #define __DATAGATHERER_H__
 
-#include "runinfo.hpp"
-#include "xml_preferences.hpp"
-#include "timing.hpp"
+#include "paramotopy/runinfo.hpp"
+#include "paramotopy/xml_preferences.hpp"
+#include "paramotopy/timing.hpp"
 
 
 

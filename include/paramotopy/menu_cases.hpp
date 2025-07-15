@@ -5,13 +5,13 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
-#include "mtrand.hpp"
-#include "paramotopy_enum.hpp"
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "step2readandwrite.hpp"
-#include "xml_preferences.hpp"
-#include "controller.hpp"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/paramotopy_enum.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/step2readandwrite.hpp"
+#include "paramotopy/xml_preferences.hpp"
+#include "paramotopy/controller.hpp"
 
 
 #ifndef PARAMOTOPY_MENU_CASES_HPP

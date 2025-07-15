@@ -22,12 +22,12 @@
 #ifndef __STEPTWO_H__
 #define __STEPTWO_H__
 
-#include "step1_funcs.hpp"
+#include "paramotopy/step1_funcs.hpp"
 
 //#include <gmp.h>
 #include <gmp.h>
 extern "C" {
-	#include "bertini.h"
+	#include <bertini1/bertini.h>
 }
 
 /**

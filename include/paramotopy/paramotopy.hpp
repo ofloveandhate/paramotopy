@@ -18,20 +18,20 @@
 #include <map>
 #include <sstream>
 #include <cmath>
-#include "mtrand.hpp"
-#include "step1_funcs.hpp"
-#include "random.hpp"
-#include "step2_funcs.hpp"
-#include "para_aux_funcs.hpp"
-#include "paramotopy_enum.hpp"
-#include "menu_cases.hpp"
-#include "failed_paths.hpp"
-#include "datagatherer.hpp"
-#include "xml_preferences.hpp"
-//#include "preferences.h"
-#include "tinyxml.h"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
+#include "paramotopy/paramotopy_enum.hpp"
+#include "paramotopy/menu_cases.hpp"
+#include "paramotopy/failed_paths.hpp"
+#include "paramotopy/datagatherer.hpp"
+#include "paramotopy/xml_preferences.hpp"
+//#include "paramotopy/preferences.h"
+#include "paramotopy/tinyxml.h"
 #include <mpi.h>
-#include "runinfo.hpp"
+#include "paramotopy/runinfo.hpp"
 
 
 

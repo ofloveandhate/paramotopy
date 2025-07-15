@@ -1,6 +1,6 @@
 //contains the runinfo class
 
-#include "runinfo.hpp"
+#include "paramotopy/runinfo.hpp"
 
 
 bool runinfo::CheckRunStepOne(){

@@ -83,3 +83,5 @@ examples/my_script~
 
 *.ac~
 examples/bio_grid_two_params_40x50/reorderc
+
+build/

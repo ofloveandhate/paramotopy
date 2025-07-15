@@ -19,20 +19,20 @@
 #include <stdlib.h>
 
 
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
-#include "step2readandwrite.hpp"
-#include "timing.hpp"
-#include "datagatherer.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/random.hpp"
+#include "paramotopy/step2readandwrite.hpp"
+#include "paramotopy/timing.hpp"
+#include "paramotopy/datagatherer.hpp"
 
 
 // you must include gmp pour include polysolve.
 
 #include <gmp.h>
 extern "C" {
-	#include "bertini.h"
+	#include <bertini1/bertini.h>
 }
 
 /*

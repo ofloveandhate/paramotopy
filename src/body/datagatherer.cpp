@@ -1,6 +1,6 @@
 //contains the datagatherer class.
 
-#include "datagatherer.hpp"
+#include "paramotopy/datagatherer.hpp"
 
 
 

@@ -16,16 +16,16 @@
 #ifndef __controller_H__
 #define __controller_H__
 
-#include "step1_funcs.hpp"
-#include "step2_funcs.hpp"
-#include "mtrand.hpp"
-#include "random.hpp"
+#include "paramotopy/step1_funcs.hpp"
+#include "paramotopy/step2_funcs.hpp"
+#include "paramotopy/mtrand.hpp"
+#include "paramotopy/random.hpp"
 
-#include "para_aux_funcs.hpp"
-#include "step2readandwrite.hpp"
-#include "runinfo.hpp"
-#include "timing.hpp"
-#include "failed_paths.hpp"
+#include "paramotopy/para_aux_funcs.hpp"
+#include "paramotopy/step2readandwrite.hpp"
+#include "paramotopy/runinfo.hpp"
+#include "paramotopy/timing.hpp"
+#include "paramotopy/failed_paths.hpp"
 
 
 
