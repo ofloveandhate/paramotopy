@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+set(paramotopy_INCLUDE_DIR "@CMAKE_INSTALL_PREFIX@/@BERTINI1_INC_DEST@")
+include("${CMAKE_CURRENT_LIST_DIR}/paramotopyTargets.cmake")
+
+set(paramotopy_PARALLEL_C_FLAGS "-D_HAVE_MPI")
+
+
+check_required_components(paramotopy)
