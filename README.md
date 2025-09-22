@@ -6,7 +6,10 @@ Bertini 1 offers a built-in parameter homotopy.  But it solves only at one param
 
 # Using
 
-The main website for paramotopy is at [paramotopy.com](https://paramotopy.com).  There are some examples, and some guidance.  The manual pdf is located in this repo, in the `documentation/source` folder.  I know, it's not source.  Feel free to help me out in providing a better build system for it than manual tex-ing.
+The pdf for the user manual is located in this repo, in the `manual` folder. 
+
+The website for paramotopy is at [paramotopy.com](https://paramotopy.com).  There are some examples, and some guidance.  
+
 
 # Quick guide to building
 
