@@ -239,10 +239,7 @@ std::vector< boost::filesystem::path > FindFiles(boost::filesystem::path dir, st
           converter << s.substr(comp_start,s.size());
           converter >> n;
           if (converter.fail())
-          {
-            std::string throwme = "unable to convert remainder of filename '" + s + " (" + s.substr(comp_start,s.size()) + ") to integer for sorting";
-            throw std::runtime_error(throwme);
-          }
+          	n = 0;
 
           return n;
         }
