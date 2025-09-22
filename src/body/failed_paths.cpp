@@ -64,6 +64,7 @@ void failinfo::MainMenu(ProgSettings & paramotopy_settings, runinfo & paramotopy
 				
 			case 3:
 				paramotopy_settings.PathFailureMenu();
+        paramotopy_settings.save();
 				paramotopy_settings.set_path_failure_settings();//sets the current settings from the base
 				break;
 				
@@ -318,6 +319,7 @@ void failinfo::PerformAnalysis(ProgSettings & paramotopy_settings, runinfo & par
 		//controls whether tolerances are tightened,
     if (paramotopy_settings.settings["PathFailure"]["tightentolerances"].intvalue==1){
       paramotopy_settings.tightentolerances();
+      paramotopy_settings.save();
     }
     
     

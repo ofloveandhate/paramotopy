@@ -80,8 +80,8 @@ Paramotopy uses a compiled library of Bertini 1, MPICH2 for process distribution
 \subsection{Contact}
 \label{sec:contact}
 For assistance with Paramotopy, please contact Silviana Amethyst at \\
-\texttt{silvianaamethyst@gmail.com}.  \\For help with Bertini 1, contact Silviana Amethyst, Dan Bates \\
-\texttt{dbates@usna.edu}, \\or one of the other Bertini 1 authors.
+\texttt{silvianaamethyst@gmail.com}.  \\For help with Bertini 1, contact Silviana Amethyst, Jon Hauenstein\\
+\texttt{hauenstein@nd.edu}, \\or one of the other Bertini 1 authors.
 
 \subsection*{Acknowledgements}
 \begin{itemize}
@@ -113,7 +113,9 @@ Any opinions, findings, and conclusions or recommendations expressed in this mat
 \section{Getting Started}
 \label{sec:started}
 
-\subsection{Compilation and Installation}
+\subsection{Installation}
+
+\subsubsection{Dependencies}
 
 Paramotopy has the following library dependencies: 
 \begin{itemize}
@@ -136,14 +138,19 @@ Paramotopy has the following library dependencies:
 \end{itemize}
 
 
-Paramotopy is built using the Autotools.  If you cloned the repo from Github, you should 
-\begin{itemize}
-\item {libtoolize \&\& autoreconf -vfi} in the directory first, if on Linux
-\item {autoreconf -vfi} in the directory first, if on Mac
-\end{itemize}
-Then, use the standard {\tt ./configure}, {\tt make}, {\tt make install} pattern.  
+\subsubsection{Compiling}
 
-You may have to add the path to where you installed the Bertini libraries to {\tt LD\_RUN\_PATH} and {\tt LD\_LIBRARY\_PATH}, especially if you customized {\tt prefix} when installing Bertini 1.
+Paramotopy is built using CMake.
+
+\begin{enumerate}
+	\item Install Bertini 1 from source.  As of version 1.7, Bertini 1 uses CMake to install.  There's a readme in the Bertini 1 source that describes its installation (it's just basic CMake).
+	\item Clone and move to Paramotopy's source directory.
+	\item \verb|mkdir build && cd build|
+	\item \verb|cmake ../|
+	\item \verb|make|
+	\item \verb|make install|, possibly with \verb|sudo|
+\end{enumerate}
+
 
 
 \clearpage
@@ -152,7 +159,7 @@ You may have to add the path to where you installed the Bertini libraries to {\t
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{welcome.png}
+\includegraphics[width=4in]{welcome.png}
 \caption[Welcome Screen]{The welcome screen.  If you do not supply the filename as the first argument to Paramotopy from the command line, it will immediately prompt you for the name.  You cannot use the program without an input file.}
 \label{screen:welcome}
 \end{center}
@@ -162,7 +169,7 @@ You may have to add the path to where you installed the Bertini libraries to {\t
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{mainmenu.png}
+\includegraphics[width=2.5in]{mainmenu.png}
 \caption[Main Menu]{Main menu, describing the available choices.  Use numeric input, or whatever it prompts for. If you just loaded the program, it will describe what directory it is working in.}
 \label{screen:mainmenu}
 \end{center}
@@ -237,13 +244,17 @@ Paramotopy enables the user to supply their own plain text file of parameter poi
 \section{Options \& Configuration}
 \label{sec:options}
 
-\index{preferences location}Persistent configuration of Paramotopy is maintained through the {\begin{center}\texttt{\$HOME/.paramotopy/paramotopyprefs.xml} \end{center}} \noindent file located in the home directory.  The following sections describe what the settings affect.  Note that since the preferences file is merely text, the user could manually hack it with a text editor.
+\index{preferences location}Persistent configuration of Paramotopy is maintained through a set of xml files located at {\begin{center}\texttt{\$HOME/.paramotopy/} \end{center}} \noindent with one file per paramotopy input file name.   
+
+When you use Paramotopy on a new file, it saves an xml file for that filename in \texttt{\$HOME/.paramotopy/}, and loads it when you parse a file of that name again.  Since the settings are just xml, you can edit them yourself, do version control, etc.
+
+The following sections describe what the settings affect.  Note that since the preferences file is merely text, the user could manually hack it with a text editor.
 
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{preferencesmainmenu.png}
-\caption[Preferences Main Menu]{The Paramotopy main menu.  Interaction is via mainly numeric input at the console.}
+\includegraphics[width=2.5in]{preferencesmainmenu.png}
+\caption[Preferences Main Menu]{The Paramotopy main preferences menu.  Interaction is via mainly numeric input at the console.}
 \label{screen:prefsmainmenu}
 \end{center}
 \end{figure}
@@ -255,7 +266,7 @@ Separate settings categories are present for both the Step1 and Step2 runs, and 
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{step1settings.png}
+\includegraphics[width=2.5in]{step1settings.png}
 \caption[Step 1 Settings]{\index{bertini settings}Step1 Settings.  All settings are direct Bertini config options.}
 \label{screen:step1menu}
 \end{center}
@@ -263,7 +274,7 @@ Separate settings categories are present for both the Step1 and Step2 runs, and 
 
 %\begin{figure}[h]
 %\begin{center}
-%\includegraphics[scale=\screencapsize]{step2settings.png}
+%\includegraphics[width=2.5in]{step2settings.png}
 %\caption[Step 2 Settings]{\index{bertini settings}Step2 Settings. All settings are direct Bertini config options.}
 %\label{screen:step2menu}
 %\end{center}
@@ -279,7 +290,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{modemenu.png}
+\includegraphics[width=2.5in]{modemenu.png}
 \caption[Solver Mode Menu]{\index{mode menu} Choose from a suite of modes, and configuration options.}
 \label{screen:modemenu}
 \end{center}
@@ -297,7 +308,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{pathfailuresettings.png}
+\includegraphics[width=2.5in]{pathfailuresettings.png}
 \caption[Path Failure Settings]{\index{failed paths menu}Path Failure Settings menu.  The path failure analysis section of the program utilizes the Bertini preferences from the Step1 and Step2 sections, optionally changing them with successive runs.}
 \label{screen:pathfailuremenu}
 \end{center}
@@ -305,7 +316,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{failure.png}
+\includegraphics[width=2.5in]{failure.png}
 \caption[Path Failure Re-solve Menu]{\index{failed paths menu}Path Failure Re-solve menu.  User can continue to attempt to re-solve, adjust settings, and delete files and start over.}
 \label{screen:failure}
 \end{center}
@@ -333,13 +344,13 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{parallelmenu.png}
+\includegraphics[width=3in]{parallelmenu.png}
 \caption[Parallelism Menu]{Parallelism menu.}
 \label{screen:parallelmenu}
 \end{center}
 \end{figure}
 
-\begin{itemize}
+\begin{enumerate}
 	\item \texttt{Switch Parallel On/Off}  \\turn on or off parallel solve mode.  If off, then a single processor will be used for all portions of the program
 	
 	\item \texttt{Number of Files to send to workers at a time}\\ \index{file distribution}to minimize network traffic, it is advisable to distribute the work in chunks.  Setting this value close to one will kill performance, while setting it near the total number of parameter points will send all the work to a single processor.  It is up to the user to find balance, though one rule of thumb would be to set this to:   \\ \hspace{2in} (total\#files /($k \times $\#processors) ), \\with $k$ perhaps 5 or 10, meaning that 5 or 10 batches would be sent to each processor throughout the computation.
@@ -350,9 +361,13 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 	
 	\item \texttt{Number of processors used} \\ Set the number of processors for Step1, Step2, and rerunning of failed paths (realized as Step2 runs).  There should be at least two processors for this mode, as Paramotopy currently uses the controller-worker model, with a single controller.  If you wish to use only one process, switch off parallel mode.  
 	
+	\item \verb|parallel| \\ Whether to run in parallel at all.  
 
+	\item \verb|post_command_text| \\ Text to concatenate to the back of the system call, when Bertini 1 or step2 are launched.  Maybe this is \verb|&| to release in conjunction with a \verb|nohup| at the beginning, or something else
 
-\end{itemize}
+	\item \verb|just_print_system_command| \\ Choose if Paramotopy should just print the system call \emph{it would make} when running step 1 or step 2.  This  is so that you can submit to a job launcher, etc.  Also maybe you want to manually construct the startfile for step2, etc.
+
+\end{enumerate}
 
 
 \subsection{File Saving}
@@ -360,7 +375,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{savefiles.png}
+\includegraphics[width=2.5in]{savefiles.png}
 \caption[File Saving]{Paramotopy can save each of the output files from Bertini, for each point at which it solves the input system.  \texttt{failed\_paths} is always saved; the rest are optional.}
 \label{screen:savefilesmenu}
 \end{center}
@@ -377,7 +392,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 \subsection{System Settings}
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{systemmenu.png}
+\includegraphics[width=2.5in]{systemmenu.png}
 \caption[General Settings Menu]{\index{general settings menu}System Settings menu.}
 \label{screen:systemmenu}
 \end{center}
@@ -404,7 +419,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{fileIOmenu.png}
+\includegraphics[width=2.5in]{fileIOmenu.png}
 \caption[File IO Menu]{\index{file I/O menu}File IO menu.}
 \label{screen:fileIOmenu}
 \end{center}
@@ -441,7 +456,7 @@ Options are to change, delete, and add a setting.  User may also reset all of th
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=\screencapsize]{metamenu.png}
+\includegraphics[width=2.5in]{metamenu.png}
 \caption[Meta Menu]{\index{meta settings}Meta Settings menu.}
 \label{screen:metamenu}
 \end{center}

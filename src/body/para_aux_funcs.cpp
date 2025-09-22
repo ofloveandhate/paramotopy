@@ -239,10 +239,7 @@ std::vector< boost::filesystem::path > FindFiles(boost::filesystem::path dir, st
           converter << s.substr(comp_start,s.size());
           converter >> n;
           if (converter.fail())
-          {
-            std::string throwme = "unable to convert remainder of filename '" + s + " (" + s.substr(comp_start,s.size()) + ") to integer for sorting";
-            throw std::runtime_error(throwme);
-          }
+          	n = 0;
 
           return n;
         }
@@ -435,7 +432,7 @@ std::string stackoverflow_getcwd()
     {
         // With boost use scoped_ptr; in C++0x, use unique_ptr
         // If you want to be less C++ but more efficient you may want to use realloc
-        std::auto_ptr<char> cwd(new char[chunkSize*chunks]); 
+        std::unique_ptr<char> cwd(new char[chunkSize*chunks]); 
         if(getcwd(cwd.get(),chunkSize*chunks)!=NULL)
             return cwd.get();
         if(errno!=ERANGE)

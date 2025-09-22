@@ -37,9 +37,9 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 
 
 
-  std::stringstream mpicommand;
+  std::stringstream command;
 
-  mpicommand << paramotopy_settings.settings["parallelism"]["architecture"].value() << " ";
+  command << paramotopy_settings.settings["parallelism"]["architecture"].value() << " ";
 
 
 
@@ -47,29 +47,36 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
     {
       std::stringstream addmachinecommand;
       addmachinecommand << "-machinefile " << getenv("HOME") << "/" << paramotopy_settings.settings["parallelism"]["machinefile"].value() << " ";
-      mpicommand << addmachinecommand.str();
+      command << addmachinecommand.str();
     }
 
 
-  mpicommand << " -n " << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
+  command << " -n " << paramotopy_settings.settings["parallelism"]["numprocs"].value() << " ";
 
   boost::filesystem::path steptwopath = paramotopy_settings.settings["system"]["step2location"].pathvalue;
   steptwopath /= "step2";
 
-  mpicommand << convert_spaces_to_escaped(steptwopath.string()) << " ";
+  command << convert_spaces_to_escaped(steptwopath.string()) << " ";
 
-  mpicommand << convert_spaces_to_escaped(paramotopy_info.inputfilename.string()) << " ";
-  mpicommand << convert_spaces_to_escaped(paramotopy_info.location.string()) << " ";
-  mpicommand << paramotopy_info.steptwomode << " ";
+  command << convert_spaces_to_escaped(paramotopy_info.inputfilename.string()) << " ";
+  command << convert_spaces_to_escaped(paramotopy_info.location.string()) << " ";
+  command << paramotopy_info.steptwomode << " ";
 
   if (paramotopy_settings.settings["system"]["stifle"].intvalue==1){
-    mpicommand << " > /dev/null ";
+    command << " > /dev/null ";
   }
 
+  command << paramotopy_settings.settings["parallelism"]["post_command_text"].value();
 
-  std::cout << "\n\n\n\n\n\n\n\n" << mpicommand.str() << "\n\n\n\n\n\n\n\n\n";
+  std::cout << "\n\n\n\n\n\n\n\n" << command.str() << "\n";
 
-  system(mpicommand.str().c_str());  //make the system call to bertini
+  if (paramotopy_settings.settings["parallelism"]["just_print_system_command"].intvalue)
+    std::cout << "not actually running, please run the command above yourself from `" << stackoverflow_getcwd() << "`, and then come back in to paramotopy" << std::endl;
+  else
+  {
+    std::cout << "\n\n\n\n\n\n\n\n\n";
+    system(command.str().c_str());  //make the system call to step2
+  }
 
 }//re: parallel_case()
 
