@@ -435,7 +435,7 @@ std::string stackoverflow_getcwd()
     {
         // With boost use scoped_ptr; in C++0x, use unique_ptr
         // If you want to be less C++ but more efficient you may want to use realloc
-        std::auto_ptr<char> cwd(new char[chunkSize*chunks]); 
+        std::unique_ptr<char> cwd(new char[chunkSize*chunks]); 
         if(getcwd(cwd.get(),chunkSize*chunks)!=NULL)
             return cwd.get();
         if(errno!=ERANGE)
