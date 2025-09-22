@@ -229,6 +229,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/paramotopyConfig.cmake
 # this is a ;list of regex's.  periods must be escaped.  so many //'s.
 set(CPACK_SOURCE_IGNORE_FILES
   \\.git/
+  \\.DS_Store
   documentation_cpp/
   build/
   manual/
