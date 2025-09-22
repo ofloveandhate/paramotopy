@@ -18,8 +18,6 @@ const char * const ProgSettings::mandatory_savefiles[NUMMANDATORY_SAVEFILES] =
 
 
 
-
-
 //writes a config header for a bertini input file to the configname file.
 //this is based entirely off data stored in the preferences, eliminating the need for the user to have to
 //carry around their own config files.
@@ -145,8 +143,6 @@ void ProgSettings::tightentolerances(){
 	settings["PathFailureBertiniCurrent"]["TRACKTOLDURINGEG"].doubvalue *= 0.1;
 	settings["PathFailureBertiniCurrent"]["FINALTOL"].doubvalue *= 0.1;
 	
-	ProgSettings::save();
-	
 }
 
 
@@ -200,12 +196,76 @@ void ProgSettings::set_path_failure_settings(){
 
 
 
+void ProgSettings::PrintSettingsToCout(){
+	int name_w = 30;
+	int val_w = 30;
+	int type_w = 9;
+
+
+	auto int_to_typename = [](int t){
+		if (t==0)
+			return "string";
+		else if (t==1)
+			return "0";
+		else if (t==2)
+			return "double";
+		else if (t==3)
+			return "path";
+		else
+			return "bad type";
+	};
+
+
+	auto line = [=](std::string const& c, std::string const& v, std::string const& t){
+		std::cout << "\t" << std::setw(name_w) << std::left << c << std::setw(val_w) << v << std::setw(type_w) << t << "\n";
+	};
 
 
 
+	line("setting","value","type");
+	std::cout << '\n';
+
+
+	for (auto cat=settings.begin(); cat!=settings.end(); ++cat){
+		std::cout << cat->first << std::endl;
+
+		for (auto set=cat->second.begin(); set!=cat->second.end(); ++set)
+			line(set->first, set->second.value(), int_to_typename(set->second.type));
+	}
+}
 
 
 
+void ProgSettings::ClearAllSettings(){
+	settings["parallelism"].clear();
+	settings["step1bertini"].clear();
+	settings["step2bertini"].clear();
+	settings["PathFailure"].clear();
+	settings["SaveFiles"].clear();
+	settings["files"].clear();
+	settings["system"].clear();
+}
+
+
+
+void ProgSettings::ResetAllToDefaults(){
+	ClearAllSettings();
+	SetAllToDefaults();
+}
+
+
+void ProgSettings::SetAllToDefaults(){
+	std::cout << "setting preferences to defaults.\n";
+
+	ProgSettings::default_basic_bertini_values_stepone();
+	ProgSettings::default_basic_bertini_values_steptwo();
+	ProgSettings::default_basic_bertini_values_pathfailure();
+	ProgSettings::default_path_failure_settings();
+	ProgSettings::default_main_values();
+
+	ProgSettings::FindProgram("step2","system","step2location");
+	ProgSettings::FindProgram("bertini","system","bertinilocation");
+}
 
 
 
@@ -224,13 +284,12 @@ void ProgSettings::default_main_values(){
 		setValue("SaveFiles",mandatory_savefiles[j],1);
 	}
 	
-	for (int j = 0; j < NUMPOSSIBLE_SAVEFILES;++j){
+	// we set all possible to 0, so that all have a record
+	// don't worry, we're about to set a few to 1's
+	for (int j = 0; j < NUMPOSSIBLE_SAVEFILES;++j)
 		setValue("SaveFiles",possible_savefiles[j],0);
-		//		if (settings["SaveFiles"][possible_savefiles[j]].intvalue != 1){//!FilePrefVector[j]
-		//			std::cout << j+1 << ") " << possible_savefiles[j] << "\n";
-		//		}
-	}
 	
+	// and here are those 1's you might have worried about -- we save two files by default.
 	setValue("SaveFiles","nonsingular_solutions",1);
 	setValue("SaveFiles","real_solutions",1);
 	
@@ -240,6 +299,8 @@ void ProgSettings::default_main_values(){
 	setValue("parallelism","architecture",std::string("mpiexec"));
 	setValue("parallelism","numprocs",int(2));
 	setValue("parallelism","numfilesatatime",100);
+	setValue("parallelism","post_command_text",std::string(""));
+	setValue("parallelism","just_print_system_command",0);
 	
 	setValue("files","newrandom_newfolder",0);
 	setValue("files","previousdatamethod",1);
@@ -308,7 +369,12 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 003:
 			ProgSettings::GetNumFilesTime();
 			break;
-			
+		case 004:
+			ProgSettings::GetPostCommandText();
+			break;
+		case 005:
+			ProgSettings::GetJustPrintSystemCall();
+			break;
 			//files
 			
 			
@@ -364,6 +430,7 @@ void ProgSettings::RequiredSettingsSwitcharoo(int settingcase){
 		case 303:
 			ProgSettings::GetBufferSize();
 			break;
+
 			
 		default:
 			
@@ -380,32 +447,34 @@ bool ProgSettings::setRequiredValues(){
 	bool made_changes = false;
 	
 	std::stringstream menustream;
-	std::map<std::string,std::pair< int, std::string > >::iterator iter;
+	
 	
 	static std::map< std::string,std::pair< int, std::string> > main_required_values;
 	
 	//parallelism
-	main_required_values["architecture"].first = 001; main_required_values["architecture"].second = "parallelism";
-	main_required_values["parallel"].first = 002; main_required_values["parallel"].second = "parallelism";
-	main_required_values["numfilesatatime"].first = 003; main_required_values["numfilesatatime"].second = "parallelism";
-	
+	main_required_values["architecture"] = std::pair<int, std::string>(001,"parallelism");
+	main_required_values["parallel"] = std::pair<int, std::string>(002,"parallelism");
+	main_required_values["numfilesatatime"] = std::pair<int, std::string>(003,"parallelism");
+	main_required_values["post_command_text"] = std::pair<int, std::string>(004,"parallelism");
+	main_required_values["just_print_system_command"] = std::pair<int, std::string>(005,"parallelism");
+
 	//files
-	main_required_values["writemeshtomc"].first = 102; main_required_values["writemeshtomc"].second = "files";
-	main_required_values["deletetmpfilesatend"].first = 103; main_required_values["deletetmpfilesatend"].second = "files";
-	main_required_values["previousdatamethod"].first = 105; main_required_values["previousdatamethod"].second = "files";
-	main_required_values["newrandom_newfolder"].first = 106; main_required_values["newrandom_newfolder"].second = "files";
-	main_required_values["saveprogresseverysomany"].first = 107; main_required_values["saveprogresseverysomany"].second = "files";
-	main_required_values["newfilethreshold"].first  = 108; main_required_values["newfilethreshold"].second = "files";
-	main_required_values["tempfilelocation"].first = 109; main_required_values["tempfilelocation"].second = "files";
+	main_required_values["writemeshtomc"] = std::pair<int, std::string>(102,"files");
+	main_required_values["deletetmpfilesatend"] = std::pair<int, std::string>(103,"files");
+	main_required_values["previousdatamethod"] = std::pair<int, std::string>(105,"files");
+	main_required_values["newrandom_newfolder"] = std::pair<int, std::string>(106,"files");
+	main_required_values["saveprogresseverysomany"] = std::pair<int, std::string>(107,"files");
+	main_required_values["newfilethreshold"]  =std::pair<int, std::string>( 108,"files");
+	main_required_values["tempfilelocation"] = std::pair<int, std::string>(109,"files");
 	
 	
 	
 	
 	
 	//mode
-	main_required_values["standardstep2"].first = 201; main_required_values["standardstep2"].second = "mode";
-	main_required_values["main_mode"].first = 202; main_required_values["main_mode"].second = "mode";
-	main_required_values["startfilename"].first = 203; main_required_values["startfilename"].second = "mode";
+	main_required_values["standardstep2"] = std::pair<int, std::string>(201,"mode");
+	main_required_values["main_mode"] = std::pair<int, std::string>(202,"mode");
+	main_required_values["startfilename"] = std::pair<int, std::string>(203,"mode");
 	//adding a required value here requires adding a ProgSettings::Get___() function, and adding an option to switch
 	
 	
@@ -413,13 +482,15 @@ bool ProgSettings::setRequiredValues(){
 	
 	
 	//system
-	main_required_values["bertinilocation"].first = 300; main_required_values["bertinilocation"].second = "system";
-	main_required_values["step2location"].first = 301; main_required_values["step2location"].second = "system";
-	main_required_values["stifle"].first = 302; main_required_values["stifle"].second = "system";
-	main_required_values["buffersize"].first = 303; main_required_values["buffersize"].second = "system";
+	main_required_values["bertinilocation"] = std::pair<int, std::string>(300,"system");
+	main_required_values["step2location"] = std::pair<int, std::string>(301,"system");
+	main_required_values["stifle"] = std::pair<int, std::string>(302,"system");
+	main_required_values["buffersize"] = std::pair<int, std::string>(303,"system");
+	
+	
 	
 	//iterate over the main setting map, for each of the above settings.
-	for (iter=main_required_values.begin(); iter != main_required_values.end(); iter++) {
+	for (auto iter=main_required_values.begin(); iter != main_required_values.end(); iter++) {
 		if (settings[(*iter).second.second].find( (*iter).first) == settings[(*iter).second.second].end() )
 			// search in cat name for setting of cat name
 		{ // if fail to find a setting of the name in the category.
@@ -840,9 +911,8 @@ void ProgSettings::loadNoFailSafes(boost::filesystem::path pFilename)
 	
 	hRoot=TiXmlHandle(pElem);  // the handle for the data we will be reading
 	
-	TiXmlElement* catElem=hRoot.FirstChild().Element();
-	for (catElem; catElem; catElem=catElem->NextSiblingElement()) {
-
+	
+	for (TiXmlElement* catElem=hRoot.FirstChild().Element(); catElem; catElem=catElem->NextSiblingElement()) {
 		std::cout << "reading category " << catElem->Value() << std::endl;
 		ProgSettings::ReadCategoryFromXml(catElem->Value(),hRoot);
 	}
@@ -857,13 +927,9 @@ void ProgSettings::loadWithFailSafes(boost::filesystem::path pFilename){
 	bool changesmade=false, load_defaults = false, doc_loaded = false;
 	
 	//clear the old settings from memory.
-	settings["parallelism"].clear();
-	settings["step1bertini"].clear();
-	settings["step2bertini"].clear();
-	settings["PathFailure"].clear();
-	settings["SaveFiles"].clear();
-	settings["files"].clear();
-	settings["system"].clear();
+
+	this->ClearAllSettings();
+
 	
 	
 	boost::filesystem::path load_filename;
@@ -913,8 +979,7 @@ void ProgSettings::loadWithFailSafes(boost::filesystem::path pFilename){
 				
 				hRoot=TiXmlHandle(pElem);  // the handle for the data we will be reading
 				
-				TiXmlElement* catElem=hRoot.FirstChild().Element();
-				for (catElem; catElem; catElem=catElem->NextSiblingElement()) {
+				for (TiXmlElement* catElem=hRoot.FirstChild().Element(); catElem; catElem=catElem->NextSiblingElement()) {
 					ProgSettings::ReadCategoryFromXml(catElem->Value(),hRoot);
 				}
 			}
@@ -928,13 +993,7 @@ void ProgSettings::loadWithFailSafes(boost::filesystem::path pFilename){
 	
 	
 	if (load_defaults) {
-		
-		std::cout << "setting preferences to defaults.\n";
-		ProgSettings::default_basic_bertini_values_stepone();
-		ProgSettings::default_basic_bertini_values_steptwo();
-		ProgSettings::default_basic_bertini_values_pathfailure();
-		ProgSettings::default_path_failure_settings();
-		ProgSettings::default_main_values();
+		ProgSettings::SetAllToDefaults();
 		changesmade=true;
 	}
 	
@@ -949,9 +1008,6 @@ void ProgSettings::loadWithFailSafes(boost::filesystem::path pFilename){
 		changesmade=true;
 	}
 	
-	ProgSettings::FindProgram("step2","system","step2location");
-	ProgSettings::FindProgram("bertini","system","bertinilocation");
-	
 	
 	if (load_defaults)
 		ProgSettings::save(ProgSettings::default_name());
@@ -963,6 +1019,12 @@ void ProgSettings::loadWithFailSafes(boost::filesystem::path pFilename){
 
 
 
+
+
+
+
+
+
 //for reading individual settings categories from the xml file.
 int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
 	
@@ -970,9 +1032,10 @@ int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
 	int type;
 	int intvalue;
 	double doubvalue;
+	std::string strvalue;
 	
-	TiXmlElement* pElem=hRoot.FirstChild( catname.c_str() ).FirstChild().Element();
-	for( pElem; pElem; pElem=pElem->NextSiblingElement())
+	
+	for( TiXmlElement* pElem=hRoot.FirstChild( catname.c_str() ).FirstChild().Element(); pElem; pElem=pElem->NextSiblingElement())
 	{
 		TiXmlHandle setting_handle(pElem);  //get the handle for the setting
 		
@@ -986,49 +1049,81 @@ int ProgSettings::ReadCategoryFromXml(std::string catname, TiXmlHandle hRoot){
 		qElem = setting_handle.FirstChild("type").Element();  //read the type
 		const char *typeText=qElem->GetText();
 		
-		
-		if (nameText && valueText && typeText)
-		{ //setting is ok.  set the setting.
-			
-			
-			ss << typeText;
-			ss >> type;
-			ss.clear();
-			ss.str("");
-			
-			//according to type integer (0=string, 1=integer, 2=double), store in the setting map
-			switch (type) {
-				case 0: //string
-					ProgSettings::setValue(catname,nameText,std::string(valueText));
-					break;
-					
-				case 1: //integer
-					ss << valueText;
-					ss >> intvalue;
-					ss.clear();
-					ss.str("");
-					ProgSettings::setValue(catname,nameText,intvalue);
-					break;
-					
-				case 2: //double
-					ss << valueText;
-					ss >> doubvalue;
-					ss.clear();
-					ss.str("");
-					ProgSettings::setValue(catname,nameText,doubvalue);
-					break;
-					
-				case 3: //boost::filesystem::path
-					ProgSettings::setValue(catname,nameText,boost::filesystem::path(valueText));
-					break;
-					
-				default:
-					std::cout << "bad type set somehow, from xml prefs file.\n"
-					<< "cat: " << catname << " name: " << nameText << " type: " << type << std::endl;
-					break;
-			}
-			
+		if (!typeText){
+			ss << "unable to deserialize xml file in category `" << catname << "`, the <type> of an entry is blank, but all types must have values.  0=str, 1=int, 2=double, 3=path";
+			throw std::runtime_error(ss.str());
 		}
+
+		if (!nameText){
+			ss << "unable to deserialize xml file in category `" << catname << "`, the <name> of an entry is blank, but all names must have values. ";
+			throw std::runtime_error(ss.str());
+		}
+
+		ss << typeText;
+		ss >> type;
+		ss.clear();
+		ss.str("");
+
+
+
+		if ( (type==1 && !valueText) or (type==2 && !valueText) or type==3 && !valueText){
+			std::string t;
+			if (type==0)
+				t = "string";
+			else if (type==1)
+				t = "integer";
+			else if (type==2)
+				t = "double";
+			else if (type==3)
+				t = "path";
+
+			ss << "reading xml file, entry in category " << catname << " with <name> " << nameText << " and <type> " << t << " had empty value, but it must not be empty." << std::endl;
+			throw std::runtime_error(ss.str());
+		}
+
+
+
+		// these two lines make it so that we can actually have empty string values
+		if (!valueText)
+			strvalue = "";
+		else
+			strvalue = std::string(valueText);
+
+			
+		//according to type integer (0=string, 1=integer, 2=double), store in the setting map
+		switch (type) {
+			case 0: //string
+				ProgSettings::setValue(catname,nameText,strvalue);
+				break;
+				
+			case 1: //integer
+				ss << valueText;
+				ss >> intvalue;
+				ss.clear();
+				ss.str("");
+				ProgSettings::setValue(catname,nameText,intvalue);
+				break;
+				
+			case 2: //double
+				ss << valueText;
+				ss >> doubvalue;
+				ss.clear();
+				ss.str("");
+				ProgSettings::setValue(catname,nameText,doubvalue);
+				break;
+				
+			case 3: //boost::filesystem::path
+				ProgSettings::setValue(catname,nameText,boost::filesystem::path(valueText));
+				break;
+				
+			default:
+				std::cout << "bad type set somehow, from xml prefs file.\n"
+				<< "cat: " << catname << " name: " << nameText << " type: " << type << std::endl;
+				break;
+		}
+			
+
+
 	}
 	
 	return 0;
@@ -1297,21 +1392,23 @@ void ProgSettings::MainMenu(){
 	std::stringstream menu;
 	int choice = -1;
 	menu << "\n\n\nPreferences Main Menu:\n\n"
-	<< "1) Bertini settings\n"
-	<< "2) Solver Modes\n"
-	<< "3) Path failure resolution\n"
-	<< "4) Parallelism\n"
-	<< "5) Set files to save\n"
-	<< "6) System Settings\n"
-	<< "7) File IO\n"
-	<< "8) MetaSettings\n"
-	<< "9) Return without saving\n"
-	<< "*\n0) return to paramotopy\n"
+	<< "1)  Bertini settings\n"
+	<< "2)  Solver Modes\n"
+	<< "3)  Path failure resolution\n"
+	<< "4)  Parallelism\n"
+	<< "5)  Set files to save\n"
+	<< "6)  System Settings\n"
+	<< "7)  File IO\n"
+	<< "8)  MetaSettings\n"
+	<< "9)  Return without saving\n"
+	<< "10) Reset all settings to hardcoded defaults\n"
+	<< "11) Print current settings to screen\n"
+	<< "*\n0)  return to paramotopy\n"
 	<< "\n: ";
 	
 	
 	while (choice!=0) {
-		choice = get_int_choice(menu.str(),0,9);
+		choice = get_int_choice(menu.str(),0,11);
 		
 		switch (choice) {
 			case 0:
@@ -1352,6 +1449,14 @@ void ProgSettings::MainMenu(){
 			
 			case 9:
 				return;
+
+			case 10:
+				ProgSettings::ResetAllToDefaults();
+				break;
+
+			case 11:
+				ProgSettings::PrintSettingsToCout();
+				break;
 
 			default:
 				std::cout << "somehow an unacceptable entry submitted to MainMenu :(\n";
@@ -1689,13 +1794,15 @@ void ProgSettings::ParallelismMenu(){
 	<< "3) Machinefile\n"
 	<< "4) Architecture / calling\n"
 	<< "5) Number of processors used\n"
+	<< "6) Post-command text, for system call\n" 
+	<< "7) Should just print command, not run step2?\n" 
 	<< "*\n"
 	<< "0) go back\n"
 	<< "\n: ";
 	
 	while (choice!=0) {
 		ProgSettings::DisplayCurrentSettings("parallelism");
-		choice = get_int_choice(menu.str(),0,5);
+		choice = get_int_choice(menu.str(),0,7);
 		
 		switch (choice) {
 			case 0:
@@ -1722,7 +1829,14 @@ void ProgSettings::ParallelismMenu(){
 				ProgSettings::GetNumProcs();
 				break;
 				
-				
+			case 6:
+				ProgSettings::GetPostCommandText();
+				break;
+
+			case 7:
+				ProgSettings::GetJustPrintSystemCall();
+				break;	
+
 			default:
 				std::cout << "somehow an unacceptable entry submitted :(\n";
 				break;
@@ -1882,7 +1996,6 @@ void ProgSettings::PathFailureMenu(){
 		}
 	}
 	
-	ProgSettings::save();
 }
 
 
@@ -1942,7 +2055,7 @@ void ProgSettings::MetaSettingsMenu(){
 				
 			case 2:
 				ProgSettings::save(ProgSettings::default_name());
-				std::cout << "Saved preferences to " << ProgSettings::default_name() << "\n";
+				std::cout << "Saved preferences as defaults to " << ProgSettings::default_name() << "\n";
 				break;
 			case 3:
 				ProgSettings::save();
@@ -2056,6 +2169,33 @@ void ProgSettings::GetArchitecture(){ //case 1
 	}
 	
 	setValue("parallelism","architecture",valstr);
+	
+	return;
+};
+
+
+void ProgSettings::GetJustPrintSystemCall(){ //case 1
+	std::string valstr;
+	std::stringstream menustream;
+	
+	menustream << "Do you want to just print the system call for launching Bertini and step2, instead of running them through Paramotopy?\n"
+	<< "0) No, I want paramotopy to run Bertini and step2 for me (this is default)\n"
+	<< "1) Yes, just print it, i'll run Bertini and step2 myself\n";
+	int val = get_int_choice(menustream.str(), 0, 1);
+	
+	setValue("parallelism","just_print_system_command",val);
+	
+	return;
+};
+
+void ProgSettings::GetPostCommandText(){
+	std::string valstr;
+	std::stringstream menustream;
+	
+	menustream << "Enter the text to append to the system call, when running Bertini and step2 from Paramotopy:\n";
+	std::cout << menustream.str();
+	valstr = getAlphaNumeric_WithSpaces();
+	setValue("parallelism","post_command_text",valstr);
 	
 	return;
 };

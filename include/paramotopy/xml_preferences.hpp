@@ -8,6 +8,9 @@
 #include <map>
 #include <sstream>
 #include <set>
+
+#include <iomanip>
+
 #include "paramotopy/tinyxml.h"
 
 #include <boost/algorithm/string/case_conv.hpp>
@@ -19,7 +22,7 @@
 #ifndef __XMLPREFS__
 #define __XMLPREFS__
 
-#define minprefversion = 103; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
+#define minprefversion = 104; //please increase this every time you modify the preferences function(s).  added 11.04.21 dab
 
 //#include "paramotopy/runinfo.hpp"
 #include "paramotopy/para_aux_funcs.hpp"
@@ -259,6 +262,10 @@ public:
   void GetMachineFile(); 
   /** Get the number of processors to be used. */
   void GetNumProcs();
+  /** Get whether we should just print the system call for step2, instead of running it*/
+  void GetJustPrintSystemCall();
+  /** Get the text to put after the paramotopy-generated system call for step2*/
+  void GetPostCommandText();
   /** Get the number of files at a time to save. ? */
   void GetNumFilesTime();
   /** Get the delete temp file setting. */
@@ -350,9 +357,21 @@ public:
   void ManagePathFailureBertini();
   /**  perform meta-settings actions */
 	void MetaSettingsMenu();
+
+	void PrintSettingsToCout();
+
   //set defaults
-  /** Set the default values of the program. */
+	/** Clear all categories of settings */
+	void ClearAllSettings();
+	/** Set all settings to the hardcoded default values */
+	void ResetAllToDefaults();
+
+	/** Set the default values of the program. */
+  void SetAllToDefaults();
+  
+  /** set defaults for a slew of categories. */
   void default_main_values();
+
   /** Set the default bertini step 1 values. */
   void default_basic_bertini_values_stepone();
   /** Set the default bertini step 2 values. */

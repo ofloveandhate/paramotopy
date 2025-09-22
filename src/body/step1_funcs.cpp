@@ -36,8 +36,15 @@ void CallBertiniStep1(ProgSettings paramotopy_settings,
 		command << " " << paramotopy_settings.settings["system"]["bertinilocation"].value() << "/bertini";
 	}
 	
-	std::cout << command.str().c_str() << std::endl;
-	system(command.str().c_str());
+	command << paramotopy_settings.settings["parallelism"]["post_command_text"].value();
+
+	std::cout << "\n\n\n\n\n" << command.str() << std::endl;
+	if (paramotopy_settings.settings["parallelism"]["just_print_system_command"].intvalue)
+	  std::cout << "not actually running, please run the command above yourself from `" << runfolder << "`, and then come back in to paramotopy" << std::endl;
+	else{
+		std::cout << "\n\n\n\n\n"; 
+	  system(command.str().c_str());  //make the system call to bertini
+	}
 	
 	chdir(startingfolder.c_str());  // return to the initial folder
 	return;
