@@ -21,8 +21,7 @@ bool runinfo::CheckRunStepOne(){
     }
     else{
       // Tell the user we are returning to the main menu without doing a step 1 run.
-      std::cout << "returning to paramotopy main menu without running step one"
-		<< std::endl;
+      std::cout << "returning to paramotopy main menu without running step one" << std::endl;
       return false;
     }
     
@@ -53,7 +52,7 @@ void runinfo::GetOriginalParamotopy(){
 	fin.open(this->inputfilename.c_str());
 	// test if the user given input file exists
 	if (!fin.is_open()) {
-		std::cerr << "failed to open paramotopy_input_file " << this->inputfilename  << "for reading" <<  std::endl;
+		std::cerr << "failed to open paramotopy_input_file `" << this->inputfilename  << "` for reading" <<  std::endl;
 	}
 	// if the file exists, 
 	// then put the input file into memory into paramotopy_file
