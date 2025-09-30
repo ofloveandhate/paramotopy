@@ -96,7 +96,7 @@ The authors wish to thank the following:
 	\item Zube,
 \end{itemize}
 
-\clearpage
+
 \subsection{License}
 \label{sec:license}
 Paramotopy is free, open source software with restrictions.  The license is available on the web at \href{https://paramotopy.com/resources/programs/paramotopy_license.txt}{paramotopy.com}.
@@ -154,17 +154,16 @@ Paramotopy is built using CMake.
 
 
 \clearpage
-\subsection{Using Paramotopy}
+\section{Using Paramotopy}
 \label{sec:running}
 
-\begin{figure}[h]
+
 \begin{center}
 \includegraphics[width=4in]{welcome.png}
-\caption[Welcome Screen]{The welcome screen.  If you do not supply the filename as the first argument to Paramotopy from the command line, it will immediately prompt you for the name.  You cannot use the program without an input file.}
-\label{screen:welcome}
 \end{center}
-\end{figure}
 
+
+Launch paramotopy from the command line via \verb|paramotopy filename|, where \verb|filename| is the name of the paramotopy input file. If you do not supply the filename as the first argument to Paramotopy from the command line, it will immediately prompt you for the name.  You cannot use the program without an input file.
 
 
 \begin{figure}[h]
@@ -176,9 +175,32 @@ Paramotopy is built using CMake.
 \end{figure}
 
 
+Paramotopy is numeric menu driven.  The main menu appears in Figure~\ref{screen:mainmenu}.
+The menu can be automated by writing a text file, and feeding that text file to paramotopy when you launch it.
 
 \clearpage
-\section{Input Files}
+\subsection{Start points for step2}
+
+\subsubsection{Typical use case: Use a 0-dim run for step1}
+
+Paramotopy assumes that you want to use the Bertini 1 output file \verb|nonsingular_solutions| as the startpoints for step2.  When you launch step2, it looks for \verb|nonsingular_solutions| at the location \verb|bfiles_filename/runN/step1/nonsingular_solutions|.  If it does not find it, it cannot run step2.  If you wish to use another file as the start, copy that file yourself into \verb|bfiles_filename/runN/step1/| with the name \verb|nonsingular_solutions|.
+
+\subsubsection{Special case: Use an NID for the start points of step2}
+
+If you want to use the output of \verb|tracktype: 1| from Bertini in step1, you should 
+\begin{enumerate}
+	\item Run step1 with \verb|tracktype: 1|.  It will NOT produce \verb|nonsingular_solutions|, but instead \verb|witness_data|.  You can do this from inside Paramotopy by setting this setting in the menu options for step1, or from outside paramotopy by first writing the input file using main menu option 5, and then running Bertini 1 yourself in that location.  Or, you can run it whereever and copy the output files.  You choose.
+	\item Outside of paramotopy, in the same folder as the completed tracktype 1 run (probably \verb|bfiles_filename/runN/step1/|), change from tracktype 1 to tracktype 4.  Run Bertini.  Choose dimension 0, and then choose \verb|-2| to select all points.  Use the filename \verb|nonsingular_solutions| for the points, and any filename you want for the linears because they don't matter.
+	\item Now you can run step2
+\end{enumerate}
+
+A word of caution: if any of the 0-dim solutions are singular, they will still be used as start points.  The NID doesn't report singular points among the 0-dim solutions.  So this is a bit dangerous.  Extra work will have to be done, to filter out the singular solutions.  Silviana has not yet done this, so if you want to do this, please reach out to her.
+
+
+
+
+\clearpage
+\subsection{Input Files}
 \label{sec:input}
 
 \index{main menu option 1}\index{input file format}The input file format for Paramotopy is fairly simple.  Extra white space on a single line is acceptable, but there must be no extra blank lines.  Illustrative examples appear in Files \ref{genericinput},\ref{bioinput},\ref{roboinput}. The input file consists of:
@@ -216,7 +238,7 @@ Paramotopy has minimal error correction in this portion of the program, so an er
 
 \clearpage
 
-\subsection{Monte Carlo Input}
+\subsection{Monte Carlo parameter samples}
 
 Paramotopy enables the user to supply their own plain text file of parameter points over which to solve a parametrized family of polynomials.  The first line is an integer indicating the number of parameter points.  The remainder of the file gives the actual parameter values, as one point per line, with parameter real-complex pairs separated by spaces.  See File \ref{roboinput} for an example of such a Paramotopy input file, and File \ref{robomc} for an example of the user-defined file. \index{monte carlo samplings}\index{user-defined parameter files}
 
