@@ -13,7 +13,9 @@ bool runinfo::CheckRunStepOne(){
   // test if we are finished with a run
   if (boost::filesystem::exists(nonsingular_solutions)){  // if it can see the 'finished' file
     // Redo the step1 or not. User choice.
-    if (get_int_choice("found completed previous step1 run.\nremove, or bail out?\n0) bail out\n1) remove and continue\n: ",0,1)==1){
+    std::stringstream ss;
+    ss << "found completed previous step1 run, because found `" << nonsingular_solutions << "`.\nremove, or bail out?\n0) bail out\n1) remove and continue\n: ";
+    if (get_int_choice(ss.str(),0,1)==1){
       boost::filesystem::remove_all( step1path );
       runinfo::mkdirstep1();
     }
