@@ -726,9 +726,16 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
     
     runinfo::make_base_dir_name();
     std::stringstream blabla;
-    blabla << prefix;
+    blabla << this->prefix;
     blabla << "/" << paramfilename;
-    mcfname = paramfilename;
+    this->mcfname = paramfilename;
+
+    // here, I want to test that it exists and print an error if it doesn't.
+
+    if (!boost::filesystem::exists(this->mcfname))
+    {
+      std::cerr << "!!!!!!!!!! you have requested to use a user-supplied parameter sample in file named `" << paramfilename <<"`, but no file exists at `" << this->mcfname << "`!!!!!" << std::endl;
+    }
 
   }
   else{
@@ -1281,6 +1288,10 @@ void runinfo::DisplayAllValues(){
   std::cout << "number variables " << numvariables << std::endl;
   if (userdefined==1) {
     std::cout << "parameter sample userdefined, with filename: " << mcfname << std::endl;
+    if (!boost::filesystem::exists(this->mcfname))
+    {
+      std::cerr << "!!!!!!!! you have requested to use a user-supplied parameter sample, but no file exists at `" << this->mcfname << "`!!!!!!!!!!" << std::endl;
+    }
   }
   else{
     std::cout << "using computer-generated parameter mesh." << std::endl;
