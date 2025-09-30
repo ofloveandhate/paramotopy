@@ -1705,3 +1705,16 @@ void runinfo::get_run_xml(boost::filesystem::path filename, int & run, time_t  &
   
   return;
 }
+
+
+
+bool runinfo::InputFileIntegrityCheck(){
+
+  if (userdefined && !boost::filesystem::exists(this->mcfname))
+  {
+    std::cerr << "!!!!!!!!!! you have requested to use a user-supplied parameter sample, but no file exists at `" << this->mcfname << "`!!!!!" << std::endl;
+    return false;
+  }
+
+  return true;
+}

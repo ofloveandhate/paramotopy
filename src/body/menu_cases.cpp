@@ -97,7 +97,11 @@ void parallel_case(ProgSettings paramotopy_settings, runinfo paramotopy_info){
 void steptwo_case(ProgSettings paramotopy_settings,
 									runinfo paramotopy_info){
 	
-
+  if (!paramotopy_info.InputFileIntegrityCheck())
+  {
+    std::cerr << "cannot run step2" << std::endl;
+    return;
+  }
 	
 	boost::filesystem::path settings_filename = paramotopy_info.location;
 	settings_filename /= "prefs.xml";
