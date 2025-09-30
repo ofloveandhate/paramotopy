@@ -212,6 +212,8 @@ int main(int argC, char *args[]){
 			  paramotopy_info.steptwomode = 2;
 			  
 			  
+			  paramotopy_info.WriteOriginalParamotopy(paramotopy_info.base_dir);
+
 			  steptwo_case(paramotopy_settings,
 				       paramotopy_info);
 			  
