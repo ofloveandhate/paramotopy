@@ -28,13 +28,15 @@ bool runinfo::CheckRunStepOne(){
     
   }  // if there is no nonsingular file, ii.e. run is not done
   else{
+
+    // remove all the files in the step1 folder.
+
     typedef std::vector< boost::filesystem::path > vec;
     vec v;
-    // not sure what this is doing ... boost stuff -- men
     copy(boost::filesystem::directory_iterator(step1path), boost::filesystem::directory_iterator(), back_inserter(v));
     for (vec::const_iterator it (v.begin()); it != v.end(); ++it)
       {
-	boost::filesystem::remove( *it );
+	     boost::filesystem::remove( *it );
       }
   }
 	
