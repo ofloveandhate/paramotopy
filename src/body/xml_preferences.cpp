@@ -913,7 +913,7 @@ void ProgSettings::loadNoFailSafes(boost::filesystem::path pFilename)
 	
 	
 	for (TiXmlElement* catElem=hRoot.FirstChild().Element(); catElem; catElem=catElem->NextSiblingElement()) {
-		std::cout << "reading category " << catElem->Value() << std::endl;
+		// std::cout << "reading category " << catElem->Value() << std::endl;
 		ProgSettings::ReadCategoryFromXml(catElem->Value(),hRoot);
 	}
 	
