@@ -107,6 +107,8 @@ int main(int argC, char *args[]){
 					<< "\t*** * * * * * * * * * * * * ***\n";
 	}
 
+	paramotopy_info.InputFileIntegrityCheck();
+
 
 	OPTIONS currentChoice = Start;
 	
