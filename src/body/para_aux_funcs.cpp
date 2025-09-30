@@ -502,7 +502,7 @@ int GetMcNumLines(boost::filesystem::path base_dir, int numparam){
 	std::ifstream fin(mcfname.c_str());
 	
 	if (!fin.is_open()){
-		std::cerr << "failed to open mc file to get line count" << std::endl;
+		std::cerr << "failed to open mc file `"<< mcfname << "` to get line count" << std::endl;
 		exit(2132);
 	}
 	

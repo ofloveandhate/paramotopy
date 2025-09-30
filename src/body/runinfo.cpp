@@ -13,26 +13,29 @@ bool runinfo::CheckRunStepOne(){
   // test if we are finished with a run
   if (boost::filesystem::exists(nonsingular_solutions)){  // if it can see the 'finished' file
     // Redo the step1 or not. User choice.
-    if (get_int_choice("found completed previous step1 run.\nremove, or bail out?\n0) bail out\n1) remove and continue\n: ",0,1)==1){
+    std::stringstream ss;
+    ss << "found completed previous step1 run, because found `" << nonsingular_solutions << "`.\nremove, or bail out?\n0) bail out\n1) remove and continue\n: ";
+    if (get_int_choice(ss.str(),0,1)==1){
       boost::filesystem::remove_all( step1path );
       runinfo::mkdirstep1();
     }
     else{
       // Tell the user we are returning to the main menu without doing a step 1 run.
-      std::cout << "returning to paramotopy main menu without running step one"
-		<< std::endl;
+      std::cout << "returning to paramotopy main menu without running step one" << std::endl;
       return false;
     }
     
   }  // if there is no nonsingular file, ii.e. run is not done
   else{
+
+    // remove all the files in the step1 folder.
+
     typedef std::vector< boost::filesystem::path > vec;
     vec v;
-    // not sure what this is doing ... boost stuff -- men
     copy(boost::filesystem::directory_iterator(step1path), boost::filesystem::directory_iterator(), back_inserter(v));
     for (vec::const_iterator it (v.begin()); it != v.end(); ++it)
       {
-	boost::filesystem::remove( *it );
+	     boost::filesystem::remove( *it );
       }
   }
 	
@@ -49,7 +52,7 @@ void runinfo::GetOriginalParamotopy(){
 	fin.open(this->inputfilename.c_str());
 	// test if the user given input file exists
 	if (!fin.is_open()) {
-		std::cerr << "failed to open paramotopy_input_file " << this->inputfilename  << "for reading" <<  std::endl;
+		std::cerr << "failed to open paramotopy_input_file `" << this->inputfilename  << "` for reading" <<  std::endl;
 	}
 	// if the file exists, 
 	// then put the input file into memory into paramotopy_file
@@ -722,9 +725,16 @@ void runinfo::ParseDataGuts(std::ifstream & fin){
     
     runinfo::make_base_dir_name();
     std::stringstream blabla;
-    blabla << prefix;
+    blabla << this->prefix;
     blabla << "/" << paramfilename;
-    mcfname = paramfilename;
+    this->mcfname = paramfilename;
+
+    // here, I want to test that it exists and print an error if it doesn't.
+
+    if (!boost::filesystem::exists(this->mcfname))
+    {
+      std::cerr << "!!!!!!!!!! you have requested to use a user-supplied parameter sample in file named `" << paramfilename <<"`, but no file exists at `" << this->mcfname << "`!!!!!" << std::endl;
+    }
 
   }
   else{
@@ -1277,6 +1287,10 @@ void runinfo::DisplayAllValues(){
   std::cout << "number variables " << numvariables << std::endl;
   if (userdefined==1) {
     std::cout << "parameter sample userdefined, with filename: " << mcfname << std::endl;
+    if (!boost::filesystem::exists(this->mcfname))
+    {
+      std::cerr << "!!!!!!!! you have requested to use a user-supplied parameter sample, but no file exists at `" << this->mcfname << "`!!!!!!!!!!" << std::endl;
+    }
   }
   else{
     std::cout << "using computer-generated parameter mesh." << std::endl;
@@ -1689,4 +1703,17 @@ void runinfo::get_run_xml(boost::filesystem::path filename, int & run, time_t  &
   }
   
   return;
+}
+
+
+
+bool runinfo::InputFileIntegrityCheck(){
+
+  if (userdefined && !boost::filesystem::exists(this->mcfname))
+  {
+    std::cerr << "!!!!!!!!!! you have requested to use a user-supplied parameter sample, but no file exists at `" << this->mcfname << "`!!!!!" << std::endl;
+    return false;
+  }
+
+  return true;
 }

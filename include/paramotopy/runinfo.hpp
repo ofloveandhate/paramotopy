@@ -358,6 +358,11 @@ bool endoffile_stuff(std::ifstream & datafile, int & file_index, std::vector < b
   std::string ParseFailedPaths(std::ifstream & fin);
   /** Print the random values. */
   void PrintRandom();
+
+  /** A function that checks that all required information is set, so that we can run step2*/
+  bool InputFileIntegrityCheck();
+
+  
 private:
   /** Get the number of variables. */
   void GetNumVariables();
